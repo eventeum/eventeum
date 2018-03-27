@@ -1,0 +1,57 @@
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  port: 8082
+
+logging:
+  level:
+    org.springframework.web: ERROR
+    net.consensys: DEBUG
+    net.consensys.configs: ERROR
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+  file: /logs/application.log
+
+ethereum:
+  node:
+    url: http://localhost:8545
+    healthcheck:
+      pollInterval: 2000
+
+eventFilters:
+  - id: RequestCreated
+    contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
+    eventSpecification:
+      eventName: RequestCreated
+      indexedParameterTypes:
+        - BYTES32
+        - ADDRESS
+      nonIndexedParameterTypes:
+        - BYTES32
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+
+eventStore:
+  url: http://localhost:8081/api/rest/v1
+  eventPath: /event
+
+broadcaster:
+  cache:
+    expirationMillis: 6000000
+  event:
+    confirmation:
+      numBlocksToWait: 12
+      numBlocksToWaitForMissingTx: 100
+  multiInstance: true
+
+zookeeper:
+  address: localhost:2181
+kafka:
+  bootstrap:
+    addresses: localhost:9092
+  topic:
+    contractEvents: contract-events
+    blockEvents: block-events
+    filterEvents: filter-events
