@@ -34,6 +34,7 @@ eventFilters:
       index: 0
 
 eventStore:
+  type: REST
   url: http://localhost:8081/api/rest/v1
   eventPath: /event
 

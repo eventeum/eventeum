@@ -1,6 +1,8 @@
-package net.consensys.eventeum.integration.eventstore;
+package net.consensys.eventeum.integration.eventstore.rest;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.integration.eventstore.EventStore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
@@ -19,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Component
-@Profile("default")
+@ConditionalOnProperty(name = "eventStore.type", havingValue = "REST")
 public class RESTEventStore implements EventStore {
 
     private FeignEventStore integration;
