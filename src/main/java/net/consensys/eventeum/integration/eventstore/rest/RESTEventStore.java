@@ -41,6 +41,11 @@ public class RESTEventStore implements EventStore {
                                              eventSignature);
     }
 
+    @Override
+    public boolean isPagingZeroIndexed() {
+        return true;
+    }
+
     @FeignClient(name="eventStore", url="${eventStore.url}")
     private interface FeignEventStore {
 

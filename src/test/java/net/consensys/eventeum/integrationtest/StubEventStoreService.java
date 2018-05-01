@@ -23,7 +23,7 @@ public class StubEventStoreService {
         wireMockServer.start();
 
         final ContractEventDetails dummyContractEventDetails = new ContractEventDetails();
-        dummyContractEventDetails.setBlockNumber(BigInteger.ONE);
+        dummyContractEventDetails.setBlockNumber(BigInteger.TEN);
 
         final Page<ContractEventDetails> dummyPage = new SimplePageImpl<>(Arrays.asList(dummyContractEventDetails), 1, 1, 1);
 

@@ -27,7 +27,9 @@ public class DefaultEventStoreService implements EventStoreService {
      */
     @Override
     public ContractEventDetails getLatestContractEvent(String eventSignature) {
-        final PageRequest pagination = new PageRequest(1,
+        int page = eventStore.isPagingZeroIndexed() ? 0 : 1;
+
+        final PageRequest pagination = new PageRequest(page,
                 1, new Sort(Sort.Direction.DESC, "blockNumber"));
 
         final List<ContractEventDetails> events =

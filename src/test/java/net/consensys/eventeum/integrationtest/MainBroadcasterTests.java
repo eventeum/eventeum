@@ -6,7 +6,6 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.Message;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,22 +20,16 @@ import java.math.BigInteger;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@TestPropertySource(locations="classpath:application-test.properties")
-public class BroadcasterMainIT extends BaseIntegrationTest {
+public abstract class MainBroadcasterTests extends BaseIntegrationTest {
 
-    @Test
-    public void testRegisterEventFilterSavesFilterInDb() {
+    public void doTestRegisterEventFilterSavesFilterInDb() {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
         final ContractEventFilter saved = getFilterRepo().findOne(getDummyEventFilterId());
         assertEquals(registeredFilter, saved);
     }
 
-    @Test
-    public void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
+    public void doTestRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
         waitForBroadcast();
@@ -48,8 +41,7 @@ public class BroadcasterMainIT extends BaseIntegrationTest {
         assertEquals(registeredFilter, broadcastMessage.getDetails());
     }
 
-    @Test
-    public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
+    public void doTestBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
 
@@ -64,8 +56,7 @@ public class BroadcasterMainIT extends BaseIntegrationTest {
         verifyDummyEventDetails(registeredFilter, message.getDetails(), ContractEventStatus.UNCONFIRMED);
     }
 
-    @Test
-    public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
+    public void doTestBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
 
@@ -82,8 +73,7 @@ public class BroadcasterMainIT extends BaseIntegrationTest {
         verifyDummyEventDetails(registeredFilter, message.getDetails(), ContractEventStatus.CONFIRMED);
     }
 
-    @Test
-    public void testUnregisterNonExistentFilter() {
+    public void doTestUnregisterNonExistentFilter() {
         try {
             unregisterEventFilter("NonExistent");
         } catch (HttpClientErrorException e) {
@@ -91,8 +81,7 @@ public class BroadcasterMainIT extends BaseIntegrationTest {
         }
     }
 
-    @Test
-    public void testUnregisterEventFilterDeletesFilterInDb() {
+    public void doTestUnregisterEventFilterDeletesFilterInDb() {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
         ContractEventFilter saved = getFilterRepo().findOne(getDummyEventFilterId());
@@ -104,8 +93,7 @@ public class BroadcasterMainIT extends BaseIntegrationTest {
         assertNull(saved);
     }
 
-    @Test
-    public void testUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
+    public void doTestUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
         final ContractEventFilter registeredFilter = doRegisterAndUnregister(FAKE_CONTRACT_ADDRESS);
 
         waitForBroadcast();
@@ -117,8 +105,7 @@ public class BroadcasterMainIT extends BaseIntegrationTest {
         assertEquals(registeredFilter, broadcastMessage.getDetails());
     }
 
-    @Test
-    public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
+    public void doTestContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
         doRegisterAndUnregister(emitter.getContractAddress());
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();

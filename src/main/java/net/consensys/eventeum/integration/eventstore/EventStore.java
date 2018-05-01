@@ -11,4 +11,6 @@ import org.springframework.data.domain.PageRequest;
  */
 public interface EventStore {
     Page<ContractEventDetails> getContractEventsForSignature(String eventSignature, PageRequest pagination);
+
+    boolean isPagingZeroIndexed();
 }

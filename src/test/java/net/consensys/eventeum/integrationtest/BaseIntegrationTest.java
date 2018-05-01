@@ -9,17 +9,13 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.message.Message;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
-
 import net.consensys.eventeum.utils.JSON;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
-import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -139,8 +135,10 @@ public class BaseIntegrationTest {
     }
 
     protected ContractEventFilter registerDummyEventFilter(String contractAddress) {
-        final ContractEventFilter filter = createDummyEventFilter(contractAddress);
+        return registerDummyEventFilter(createDummyEventFilter(contractAddress));
+    }
 
+    protected ContractEventFilter registerDummyEventFilter(ContractEventFilter filter) {
         restTemplate.postForEntity(restUrl + "/api/rest/v1/event-filter", filter, Void.class);
 
         return filter;
@@ -250,7 +248,7 @@ public class BaseIntegrationTest {
         return dummyEventFilterId;
     }
 
-    private ContractEventFilter createDummyEventFilter(String contractAddress) {
+    protected ContractEventFilter createDummyEventFilter(String contractAddress) {
         final ContractEventFilter contractEventFilter = new ContractEventFilter();
         contractEventFilter.setId(getDummyEventFilterId());
         contractEventFilter.setContractAddress(contractAddress);
