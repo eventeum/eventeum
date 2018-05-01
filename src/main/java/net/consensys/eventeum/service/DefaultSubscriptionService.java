@@ -61,15 +61,15 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void registerContractEventFilter(ContractEventFilter filter) {
-        registerContractEventFilter(filter, true);
+    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter) {
+        return registerContractEventFilter(filter, true);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
+    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
         populateIdIfMissing(filter);
 
         if (!isFilterRegistered(filter)) {
@@ -79,8 +79,11 @@ public class DefaultSubscriptionService implements SubscriptionService {
             if (broadcast) {
                 broadcastContractEventFilterAdded(filter);
             }
+
+            return filter;
         } else {
             logger.info("Already registered contract event filter with id: " + filter.getId());
+            return null;
         }
     }
 

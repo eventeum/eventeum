@@ -28,6 +28,16 @@ public class BroadcasterRESTEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testRegisterEventFilterReturnsCorrectId() {
+        doTestRegisterEventFilterReturnsCorrectId();
+    }
+
+    @Test
+    public void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
+        doTestRegisterEventFilterReturnsCreatedIdWhenNotSet();
+    }
+
+    @Test
     public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
         doTestBroadcastsUnconfirmedEventAfterInitialEmit();
     }

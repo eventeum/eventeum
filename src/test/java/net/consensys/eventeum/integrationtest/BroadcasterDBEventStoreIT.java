@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @TestPropertySource(locations="classpath:application-test-db.properties")
-public class BroadcasterLocalEventStoreIT extends MainBroadcasterTests {
+public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
 
     @Test
     public void testRegisterEventFilterSavesFilterInDb() {
@@ -25,6 +25,16 @@ public class BroadcasterLocalEventStoreIT extends MainBroadcasterTests {
     @Test
     public void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
         doTestRegisterEventFilterBroadcastsAddedMessage();
+    }
+
+    @Test
+    public void testRegisterEventFilterReturnsCorrectId() {
+        doTestRegisterEventFilterReturnsCorrectId();
+    }
+
+    @Test
+    public void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
+        doTestRegisterEventFilterReturnsCreatedIdWhenNotSet();
     }
 
     @Test

@@ -3,6 +3,7 @@ package net.consensys.eventeum.integrationtest;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.Message;
@@ -16,8 +17,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 public abstract class MainBroadcasterTests extends BaseIntegrationTest {
@@ -39,6 +42,23 @@ public abstract class MainBroadcasterTests extends BaseIntegrationTest {
 
         assertEquals(true, broadcastMessage instanceof ContractEventFilterAdded);
         assertEquals(registeredFilter, broadcastMessage.getDetails());
+    }
+
+    public void doTestRegisterEventFilterReturnsCreatedIdWhenNotSet() {
+        final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
+        filter.setId(null);
+
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(filter);
+        assertNotNull(registeredFilter.getId());
+
+        //This errors if id is not a valid UUID
+        UUID.fromString(registeredFilter.getId());
+    }
+
+    public void doTestRegisterEventFilterReturnsCorrectId() {
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
+
+        assertEquals(getDummyEventFilterId(), registeredFilter.getId());
     }
 
     public void doTestBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {

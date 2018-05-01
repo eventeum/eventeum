@@ -1,6 +1,7 @@
 package net.consensys.eventeum.service;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.message.ContractEvent;
 
 /**
  * A service for manageing contract event subscriptions within the Eventeum instance.
@@ -17,8 +18,9 @@ public interface SubscriptionService {
      * Broadcasts the added filter event to any other Eventeum instances.
      *
      * @param filter The filter to add.
+     * @return The registered contract event filter
      */
-    void registerContractEventFilter(ContractEventFilter filter);
+    ContractEventFilter registerContractEventFilter(ContractEventFilter filter);
 
     /**
      * Registers a new contract event filter.
@@ -27,8 +29,9 @@ public interface SubscriptionService {
      *
      * @param filter The filter to add.
      * @param broadcast Specifies if the added filter event should be broadcast to other Eventeum instances.
+     * @return The registered contract event filter
      */
-    void registerContractEventFilter(ContractEventFilter filter, boolean broadcast);
+    ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast);
 
     /**
      * Unregisters a previously added contract event filter.

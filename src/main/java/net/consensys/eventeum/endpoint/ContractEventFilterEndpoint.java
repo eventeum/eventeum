@@ -1,6 +1,7 @@
 package net.consensys.eventeum.endpoint;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.service.FilterNotFoundException;
 import net.consensys.eventeum.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +32,13 @@ public class ContractEventFilterEndpoint {
      * @param response the http response
      */
     @RequestMapping(method = RequestMethod.POST)
-    public void addEventFilter(@RequestBody ContractEventFilter eventFilter,
-                               HttpServletResponse response) {
+    public AddEventFilterResponse addEventFilter(@RequestBody ContractEventFilter eventFilter,
+                                                 HttpServletResponse response) {
 
-        filterService.registerContractEventFilter(eventFilter);
+        final ContractEventFilter registeredFilter = filterService.registerContractEventFilter(eventFilter);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
+
+        return new AddEventFilterResponse(registeredFilter.getId());
     }
 
     /**
