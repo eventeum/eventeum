@@ -1,7 +1,7 @@
 server:
   tomcat:
     uri-encoding: UTF-8
-  port: 8082
+  port: 8060
 
 logging:
   level:
@@ -47,11 +47,12 @@ broadcaster:
       numBlocksToWaitForMissingTx: 100
   multiInstance: true
 
+# For Kafka
 zookeeper:
-  address: localhost:2181
+  address: ${ZOOKEEPER_ADDRESS:localhost:2181}
 kafka:
   bootstrap:
-    addresses: localhost:9092
+    addresses: ${KAFKA_ADDRESSES:localhost:9092}
   topic:
     contractEvents: contract-events
     blockEvents: block-events

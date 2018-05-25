@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * A block listener that broadcasts the block details via the configured broadcaster.
  *
- * @author Craig Williams <craig.williams@consensys.net>ß
+ * @author Craig Williams <craig.williams@consensys.net>
  */
 @Component
 public class BroadcastingBlockListener implements BlockListener {
