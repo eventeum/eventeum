@@ -28,7 +28,6 @@ import java.util.Map;
  */
 @EnableKafka
 @Configuration
-@Profile("default")
 public class KafkaConfiguration {
 
     @Autowired

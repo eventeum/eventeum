@@ -34,7 +34,7 @@ ethereum:
 #      index: 0
 
 eventStore:
-  type: REST
+  type: DB
   url: http://localhost:8081/api/rest/v1
   eventPath: /event
 
@@ -45,7 +45,7 @@ broadcaster:
     confirmation:
       numBlocksToWait: 12
       numBlocksToWaitForMissingTx: 100
-  multiInstance: true
+  multiInstance: false
 
 # For Kafka
 zookeeper:
