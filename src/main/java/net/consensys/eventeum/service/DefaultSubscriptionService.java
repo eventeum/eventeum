@@ -83,7 +83,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
             return filter;
         } else {
             logger.info("Already registered contract event filter with id: " + filter.getId());
-            return null;
+            return getFilterSubscription(filter.getId()).getFilter();
         }
     }
 
