@@ -300,3 +300,16 @@ The implemented REST service should have a pageable endpoint which accepts a req
 | EVENTSTORE_TYPE | REST | REST event store enabled |
 | EVENTSTORE_URL  | http://localhost:8081/api/rest/v1 | The REST endpoint url |
 | EVENTSTORE_EVENTPATH | /event | The path to the event REST endpoint |
+
+## Known Issues
+* Currently, only events where indexed parameters are before non-indexed parameters are supported.
+
+**Supported**
+``` 
+event TestEvent(bytes32 indexed indexedBytes, address indexed indexedAddress, uint uintValue);
+```
+
+**Not Supported**
+``` 
+event TestEvent(bytes32 indexed indexedBytes, uint uintValue, address indexed indexedAddress);
+```
