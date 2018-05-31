@@ -1,7 +1,7 @@
 version: '2'
 
 services:
-  eventeum:
+  eventeum1:
     build: ./
     ports:
     - "8060:8060"
@@ -14,8 +14,28 @@ services:
       ETHEREUM_NODE_URL: http://eth-node:8545
       ZOOKEEPER_ADDRESS: zookeeper:2181
       KAFKA_ADDRESSES: kafka:9092
+      BROADCASTER_MULTIINSTANCE: "true"
     networks:
       - default
+
+  eventeum2:
+      build: ./
+      ports:
+      - "8050:8050"
+      depends_on:
+        - parity
+        - mongodb
+        - kafka
+        - eventeum1
+      environment:
+        SERVER_PORT: 8050
+        SPRING_DATA_MONGODB_HOST: mongodb
+        ETHEREUM_NODE_URL: http://eth-node:8545
+        ZOOKEEPER_ADDRESS: zookeeper:2181
+        KAFKA_ADDRESSES: kafka:9092
+        BROADCASTER_MULTIINSTANCE: "true"
+      networks:
+        - default
 
   parity:
     build:
