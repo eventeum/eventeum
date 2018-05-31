@@ -289,7 +289,8 @@ The implemented REST service should have a pageable endpoint which accepts a req
 	"last":true,
 	"totalPages":1,
 	"numberOfElements":1,
-	"hasContent":true}
+	"hasContent":true
+}
 ```
 
 **Required Configuration**
