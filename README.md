@@ -70,7 +70,6 @@ $ docker-compose -f docker-compose.yml up
 ### REST
 Eventeum exposes a REST api that can be used to register events that should be listened to / broadcast.
 
-#### Adding an event subscription
 -   **URL:** `/api/rest/v1/event-filter`    
 -   **Method:** `POST`
 -   **Headers:**  
@@ -146,3 +145,37 @@ eventFilters:
       type: NON_INDEXED_PARAMETER
       index: 0
 ```
+
+## Un-Registering Events
+
+### REST
+
+-   **URL:** `/api/rest/v1/event-filter/{event-id}`    
+-   **Method:** `DELETE`
+-   **Headers:**  `N/A`
+-   **URL Params:** `N/A`
+-   **Body:** `N/A`
+
+-   **Success Response:**
+    -   **Code:** 200  
+        **Content:** `N/A`
+	
+## Configuration
+Many values within Eventeum are configurable either by changing the values in the application.yml file or by setting the associated environment variable.
+
+| Env Variable | Default | Description |
+| -------- | -------- | -------- |
+| SERVER_PORT | 8060 | The port for the eventeum instance. |
+| ETHEREUM_NODE_URL | http://localhost:8545 | The ethereum node url. |
+| ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
+| EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
+| BROADCASTER_CACHE _EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
+| BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
+| BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
+| BROADCASTER_MULTIINSTANCE | false | If multiple instances of eventeum are to be deployed in your system, this should be set to true so that the eventeum communicates added/removed filters to other instances, via kafka. |
+| ZOOKEEPER_ADDRESS | localhost:2181 | The zookeeper address |
+| KAFKA_ADDRESSES | localhost:9092 | Comma seperated list of kafka addresses |
+| KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages |
+| KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
+| SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
+| SPRING_DATA_MONGODB_PORT | 27018 | The mongoDB post (used when event store is set to DB) |
