@@ -64,3 +64,42 @@ b. If you prefer build an all-in-one test environment with a parity dev node, us
 $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
 ```
+
+## Registering Events
+
+### REST
+Eventeum exposes a REST api that can be used to register events that should be listened to / broadcast.
+
+#### Adding an event subscription
+-   **URL:** `/api/rest/v1/event-filter`    
+-   **Method:** `POST`
+-   **Headers:**  
+
+| Key | Value | 
+| -------- | -------- |
+| content-type | application/json |
+
+-   **URL Params:** `N/A`
+-   **Body:** 
+```
+{
+	"id": "event-identifier",
+	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
+	"eventSpecification": {
+		"eventName": "TestEvent",
+		"indexedParameterTypes": ["UINT256", "ADDRESS"],
+		"nonIndexedParameterTypes": ["BYTES32", "STRING"] },
+	"correlationIdStrategy": {
+		"type": "NON_INDEXED_PARAMETER",
+		"parameterIndex": 0 }
+}
+```
+
+-   **Success Response:**
+    -   **Code:** 200  
+        **Content:** 
+```
+{
+    "id": "event-identifier"
+}
+```
