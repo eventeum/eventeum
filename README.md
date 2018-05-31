@@ -199,7 +199,8 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 		"number":257,
 		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8"}
 }
-```	
+```
+
 ## Configuration
 Many values within Eventeum are configurable either by changing the values in the application.yml file or by setting the associated environment variable.
 
@@ -219,3 +220,96 @@ Many values within Eventeum are configurable either by changing the values in th
 | KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
 | SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
+
+## Advanced
+### Correlation Id Strategies
+
+Each subscribed event can have a correlation id strategy association with it, during subscription.  A correlation id strategy defines what the kafka message key for a broadcast event should be, and allows the system to be configured so that events with particular parameter values are always sent to the same partition.
+
+Currently supported correlation id strategies are:
+
+**Indexed Parameter Strategy** - An indexed parameter within the event is used as the message key when broadcasting.
+**Non Indexed Parameter Strategy** - An non-indexed parameter within the event is used as the message key when broadcasting.
+
+### Event Store
+
+Eventeum utilises an event store in order to establish the block number to start event subscriptions from, in the event of a failover.  For example, if the last event broadcast for event with id X had a block id of 123, then on a failover, eventeum will subscribe to events from 124.
+
+There are currently 2 supported event store implementations:
+
+#### MongoDB
+
+Broadcast events are saved and retrieved from a mongoDB database.
+
+**Required Configuration**
+
+| Env Variable | Default | Description |
+| -------- | -------- | -------- |
+| EVENTSTORE_TYPE | DB | MongoDB event store enabled |
+| SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host |
+| SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post |
+
+#### REST Service
+
+Eventeum polls an external REST service in order to obtain a list of events broadcast for a specific event specification.  It is assumed that this REST service listens for broadcast events on the kafka topic and updates its internal state...broadcast events are not directly sent to the REST service by eventeum.
+
+The implemented REST service should have a pageable endpoint which accepts a request with the following specification:
+
+-   **URL:** Configurable, defaults to `/api/rest/v1/event`    
+-   **Method:** `GET`
+-   **Headers:**  
+
+| Key | Value | 
+| -------- | -------- |
+| content-type | application/json |
+
+-   **URL Params:** 
+
+| Key | Value | 
+| -------- | -------- |
+| page | The page number |
+| size | The page size |
+| sort | The results sort field |
+| dir | The results sort direction |
+| signature | Retrieve events with the specified event signature |
+
+-   **Body:** `N/A`
+
+-   **Success Response:**
+    -   **Code:** 200  
+        **Content:** 
+```
+{
+	"content":[
+		{"blockNumber":10,"id":<unique event id>}],
+	"page":1,
+	"size":1,
+	"totalElements":1,
+	"first":false,
+	"last":true,
+	"totalPages":1,
+	"numberOfElements":1,
+	"hasContent":true
+}
+```
+
+**Required Configuration**
+
+| Env Variable | Default | Description |
+| -------- | -------- | -------- |
+| EVENTSTORE_TYPE | REST | REST event store enabled |
+| EVENTSTORE_URL  | http://localhost:8081/api/rest/v1 | The REST endpoint url |
+| EVENTSTORE_EVENTPATH | /event | The path to the event REST endpoint |
+
+## Known Issues
+* Currently, only events where indexed parameters are defined before non-indexed parameters are supported.
+
+**Supported**
+``` 
+event TestEvent(bytes32 indexed indexedBytes, address indexed indexedAddress, uint uintValue);
+```
+
+**Not Supported**
+``` 
+event TestEvent(bytes32 indexed indexedBytes, uint uintValue, address indexed indexedAddress);
+```
