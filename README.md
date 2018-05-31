@@ -10,7 +10,7 @@ A bridge between your Ethereum smart contract events and backend microservices. 
 
 * Fork Tolerance - Eventeum can be configured to wait a certain amount of blocks before an event is considered 'Confirmed'.  If a fork occurs during this time, a message is broadcast to the network, allowing your services to react to the forked/removed event.
 
-## Supported Broadcast Mechanisims
+## Supported Broadcast Mechanisms
 * Kafka
 
 ## Getting Started
