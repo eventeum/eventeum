@@ -160,6 +160,46 @@ eventFilters:
     -   **Code:** 200  
         **Content:** `N/A`
 	
+## Broadcast Messages Format
+
+###  Contract Events
+When a subscribed event is emitted, a JSON message is broadcast to the configured kafka topic (contract-events by default), with the following format:
+
+```
+{
+	"id":"unique-event-id",
+	"type":"CONTRACT_EVENT",
+	"details":{
+		"name":"DummyEvent",
+		"filterId":"63da468c-cec6-49aa-bea4-eeba64fb1df4",
+		"indexedParameters":[{"type":"bytes32","value":"BytesValue"},
+			{"type":"address","value":"0x00a329c0648769a73afac7f9381e08fb43dbea72"}],
+		"nonIndexedParameters":[{"type":"uint256","value":10},
+			{"type":"string","value":"StringValue"}],
+		"transactionHash":"0xe4fd0f095990ec471cdf40638336a73636d2e88fc1a240c20b45101b9cce9438",
+		"logIndex":0,
+		"blockNumber":258,
+		"blockHash":"0x65d1956c2850677f75ec9adcd7b2cfab89e31ad1e7a5ba93b6fad11e6cd15e4a",
+		"address":"0x9ec580fa364159a09ea15cd39505fc0a926d3a00",	
+		"status":"UNCONFIRMED",
+		"eventSpecificationSignature":"0x46aca551d5bafd01d98f8cadeb9b50f1b3ee44c33007f2a13d969dab7e7cf2a8",
+		"id":"unique-event-id"}
+}
+
+```
+
+### Block Events
+When a new block is mined, a JSON message is broadcast to the configured kafka topic (block-events by default), with the following format:
+
+```
+ {
+ 	"id":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8",
+	"type":"BLOCK",
+	"details":{
+		"number":257,
+		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8"}
+}
+```	
 ## Configuration
 Many values within Eventeum are configurable either by changing the values in the application.yml file or by setting the associated environment variable.
 
@@ -178,4 +218,4 @@ Many values within Eventeum are configurable either by changing the values in th
 | KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages |
 | KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
-| SPRING_DATA_MONGODB_PORT | 27018 | The mongoDB post (used when event store is set to DB) |
+| SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
