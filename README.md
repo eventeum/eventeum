@@ -302,7 +302,7 @@ The implemented REST service should have a pageable endpoint which accepts a req
 | EVENTSTORE_EVENTPATH | /event | The path to the event REST endpoint |
 
 ## Known Issues
-* Currently, only events where indexed parameters are before non-indexed parameters are supported.
+* Currently, only events where indexed parameters are defined before non-indexed parameters are supported.
 
 **Supported**
 ``` 
