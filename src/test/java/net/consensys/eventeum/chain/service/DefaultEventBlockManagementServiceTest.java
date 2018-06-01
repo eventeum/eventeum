@@ -2,6 +2,7 @@ package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
+import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.service.EventStoreService;
 import org.junit.Before;
@@ -29,8 +30,12 @@ public class DefaultEventBlockManagementServiceTest {
     static {
         EVENT_SPEC = new ContractEventSpecification();
         EVENT_SPEC.setEventName("AnEvent");
-        EVENT_SPEC.setIndexedParameterTypes(Arrays.asList(ParameterType.ADDRESS, ParameterType.UINT256));
-        EVENT_SPEC.setNonIndexedParameterTypes(Arrays.asList(ParameterType.BYTES32));
+        EVENT_SPEC.setIndexedParameterDefinitions(Arrays.asList(
+                 new ParameterDefinition(0, ParameterType.ADDRESS),
+                 new ParameterDefinition(1, ParameterType.UINT256)));
+
+        EVENT_SPEC.setNonIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(2, ParameterType.BYTES32)));
     }
 
     @Before

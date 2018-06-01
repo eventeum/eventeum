@@ -3,17 +3,10 @@ package net.consensys.eventeum.integrationtest;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.Message;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.math.BigInteger;
@@ -48,7 +41,7 @@ public abstract class MainBroadcasterTests extends BaseIntegrationTest {
         final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
         filter.setId(null);
 
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(filter);
+        final ContractEventFilter registeredFilter = registerEventFilter(filter);
         assertNotNull(registeredFilter.getId());
 
         //This errors if id is not a valid UUID
@@ -67,6 +60,21 @@ public abstract class MainBroadcasterTests extends BaseIntegrationTest {
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+
+        waitForContractEventMessages(1);
+
+        assertEquals(1, getBroadcastContractEventMessages().size());
+
+        final Message<ContractEventDetails> message = getBroadcastContractEventMessages().get(0);
+        verifyDummyEventDetails(registeredFilter, message.getDetails(), ContractEventStatus.UNCONFIRMED);
+    }
+
+    public void doTestBroadcastsNotOrderedEvent() throws Exception {
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        final ContractEventFilter filter = createDummyEventNotOrderedFilter(emitter.getContractAddress());
+        final ContractEventFilter registeredFilter = registerEventFilter(filter);
+        emitter.emitNotOrdered(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForContractEventMessages(1);
 

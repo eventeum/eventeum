@@ -6,6 +6,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
+import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.message.Message;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
@@ -44,6 +45,7 @@ public class BaseIntegrationTest {
     protected static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000);
 
     protected static final String DUMMY_EVENT_NAME = "DummyEvent";
+    protected static final String DUMMY_EVENT_NOT_ORDERED_NAME = "DummyEventNotOrdered";
     protected static final String FAKE_CONTRACT_ADDRESS = "0xb4f391500fc66e6a1ac5d345f58bdcbea66c1a6f";
 
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
@@ -71,6 +73,8 @@ public class BaseIntegrationTest {
 
     private String dummyEventFilterId;
 
+    private String dummyEventNotOrderedFilterId;
+
     @ClassRule
     public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true);
 
@@ -87,6 +91,7 @@ public class BaseIntegrationTest {
         this.admin = Admin.build(new HttpService("http://localhost:8545"));
 
         dummyEventFilterId = UUID.randomUUID().toString();
+        dummyEventNotOrderedFilterId = UUID.randomUUID().toString();
 
         Thread.sleep(15000);
         clearMessages();
@@ -137,10 +142,10 @@ public class BaseIntegrationTest {
     }
 
     protected ContractEventFilter registerDummyEventFilter(String contractAddress) {
-        return registerDummyEventFilter(createDummyEventFilter(contractAddress));
+        return registerEventFilter(createDummyEventFilter(contractAddress));
     }
 
-    protected ContractEventFilter registerDummyEventFilter(ContractEventFilter filter) {
+    protected ContractEventFilter registerEventFilter(ContractEventFilter filter) {
         final ResponseEntity<AddEventFilterResponse> response =
                 restTemplate.postForEntity(restUrl + "/api/rest/v1/event-filter", filter, AddEventFilterResponse.class);
 
@@ -185,7 +190,7 @@ public class BaseIntegrationTest {
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
                                          ContractEventDetails eventDetails, ContractEventStatus status) {
-        assertEquals(DUMMY_EVENT_NAME, eventDetails.getName());
+        assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(status, eventDetails.getStatus());
         assertEquals("BytesValue", eventDetails.getIndexedParameters().get(0).getValue());
         assertEquals(CREDS.getAddress(), eventDetails.getIndexedParameters().get(1).getValue());
@@ -253,18 +258,45 @@ public class BaseIntegrationTest {
     }
 
     protected ContractEventFilter createDummyEventFilter(String contractAddress) {
-        final ContractEventFilter contractEventFilter = new ContractEventFilter();
-        contractEventFilter.setId(getDummyEventFilterId());
-        contractEventFilter.setContractAddress(contractAddress);
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
-        eventSpec.setIndexedParameterTypes(
-                Arrays.asList(ParameterType.BYTES32, ParameterType.ADDRESS));
-        eventSpec.setNonIndexedParameterTypes(
-                Arrays.asList(ParameterType.UINT256, ParameterType.STRING));
+        eventSpec.setIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES32),
+                              new ParameterDefinition(1, ParameterType.ADDRESS)));
+
+        eventSpec.setNonIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(2, ParameterType.UINT256),
+                              new ParameterDefinition(3, ParameterType.STRING)));
 
         eventSpec.setEventName(DUMMY_EVENT_NAME);
 
+        return createFilter(getDummyEventFilterId(), contractAddress, eventSpec);
+    }
+
+    protected String getDummyEventNotOrderedFilterId() {
+        return dummyEventNotOrderedFilterId;
+    }
+
+    protected ContractEventFilter createDummyEventNotOrderedFilter(String contractAddress) {
+
+        final ContractEventSpecification eventSpec = new ContractEventSpecification();
+        eventSpec.setIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES32),
+                              new ParameterDefinition(2, ParameterType.ADDRESS)));
+
+        eventSpec.setNonIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
+                              new ParameterDefinition(3, ParameterType.STRING)));
+
+        eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
+
+        return createFilter(getDummyEventNotOrderedFilterId(), contractAddress, eventSpec);
+    }
+
+    private ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {
+        final ContractEventFilter contractEventFilter = new ContractEventFilter();
+        contractEventFilter.setId(id);
+        contractEventFilter.setContractAddress(contractAddress);
         contractEventFilter.setEventSpecification(eventSpec);
 
         return contractEventFilter;

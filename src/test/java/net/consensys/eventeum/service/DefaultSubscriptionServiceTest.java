@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
+import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.integration.broadcast.FilterEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
@@ -54,8 +55,12 @@ public class DefaultSubscriptionServiceTest {
     static {
         eventSpec = new ContractEventSpecification();
         eventSpec.setEventName(EVENT_NAME);
-        eventSpec.setNonIndexedParameterTypes(Arrays.asList(ParameterType.UINT256, ParameterType.ADDRESS));
-        eventSpec.setIndexedParameterTypes(Arrays.asList(ParameterType.UINT256));
+
+        eventSpec.setIndexedParameterDefinitions(Arrays.asList(new ParameterDefinition(0, ParameterType.UINT256)));
+
+        eventSpec.setNonIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
+                        new ParameterDefinition(2, ParameterType.ADDRESS)));
     }
 
     @Before

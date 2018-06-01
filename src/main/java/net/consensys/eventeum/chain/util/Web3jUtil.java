@@ -3,20 +3,17 @@ package net.consensys.eventeum.chain.util;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
+import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.EventEncoder;
+import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,14 +33,15 @@ public class Web3jUtil {
         typeMappings.put(ParameterType.STRING, new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
     }
 
-    public static List<TypeReference<?>> getTypeReferencesFromParameterTypes(List<ParameterType> parameterTypes) {
-        if (parameterTypes == null || parameterTypes.isEmpty()) {
+    public static List<TypeReference<?>> getTypeReferencesFromParameterDefinitions(
+            List<ParameterDefinition> parameterDefinitions) {
+        if (parameterDefinitions == null || parameterDefinitions.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return parameterTypes
+        return parameterDefinitions
                 .stream()
-                .map(parameterType -> getTypeReferenceFromParameterType(parameterType))
+                .map(parameterDefinition -> getTypeReferenceFromParameterType(parameterDefinition.getType()))
                 .collect(Collectors.toList());
     }
 
@@ -56,11 +54,14 @@ public class Web3jUtil {
     }
 
     public static String getSignature(ContractEventSpecification spec) {
-        final Event event = new Event(spec.getEventName(),
-                Web3jUtil.getTypeReferencesFromParameterTypes(spec.getIndexedParameterTypes()),
-                Web3jUtil.getTypeReferencesFromParameterTypes(spec.getNonIndexedParameterTypes()));
 
-        return EventEncoder.encode(event);
+        final List<ParameterDefinition> allParameterDefinitions = new ArrayList<>();
+        allParameterDefinitions.addAll(spec.getIndexedParameterDefinitions());
+        allParameterDefinitions.addAll(spec.getNonIndexedParameterDefinitions());
+        Collections.sort(allParameterDefinitions);
+
+        return EventEncoder.encode(spec.getEventName(),
+                Utils.convert(getTypeReferencesFromParameterDefinitions(allParameterDefinitions)));
     }
 
     @Data

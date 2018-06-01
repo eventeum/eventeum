@@ -24,11 +24,14 @@ ethereum:
 #    contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
 #    eventSpecification:
 #      eventName: RequestCreated
-#      indexedParameterTypes:
-#        - BYTES32
-#        - ADDRESS
-#      nonIndexedParameterTypes:
-#        - BYTES32
+#      indexedParameterDefinitions:
+#        - position: 0
+#          type: BYTES32
+#        - position: 1
+#          type: ADDRESS
+#      nonIndexedParameterDefinitions:
+#        - position: 2
+#          type: BYTES32
 #    correlationId:
 #      type: NON_INDEXED_PARAMETER
 #      index: 0

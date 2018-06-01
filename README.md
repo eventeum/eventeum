@@ -68,7 +68,7 @@ $ docker-compose -f docker-compose.yml up
 ## Registering Events
 
 ### REST
-Eventeum exposes a REST api that can be used to register events that should be listened to / broadcast.
+Eventeum exposes a REST api that can be used to register events that should be subscribed to / broadcast.
 
 -   **URL:** `/api/rest/v1/event-filter`    
 -   **Method:** `POST`
@@ -86,8 +86,12 @@ Eventeum exposes a REST api that can be used to register events that should be l
 	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
 	"eventSpecification": {
 		"eventName": "TestEvent",
-		"indexedParameterTypes": ["UINT256", "ADDRESS"],
-		"nonIndexedParameterTypes": ["BYTES32", "STRING"] },
+		"indexedParameterDefinitions": [
+		  {"position": 0, "type": "UINT256"},
+		  {"position": 1, "type": "ADDRESS"}],
+		"nonIndexedParameterDefinitions": [
+		  {"position": 2, "type": "BYTES32"},
+		  {"position": 3, "type": "STRING"}] },
 	"correlationIdStrategy": {
 		"type": "NON_INDEXED_PARAMETER",
 		"parameterIndex": 0 }
@@ -108,7 +112,14 @@ Eventeum exposes a REST api that can be used to register events that should be l
 | indexedParameterTypes | String array | no | null | The array of indexed parameter types for the event. |
 | nonIndexedParameterTypes | String array | no | null | The array of non-indexed parameter types for the event. |
 
-Supporting parameter types: UINT256, ADDRESS, BYTES32, STRING
+**parameterDefinition**:
+
+| Name | Type | Mandatory | Default | Description |
+| -------- | -------- | -------- | -------- | -------- |
+| position | Number | yes | | The zero indexed position of the parameter within the event specification |
+| type | String | yes | | The type of the event parameter. |
+
+Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
 
 **correlationIdStrategy**:
 
@@ -131,16 +142,18 @@ Static events can be configured within the application.yml file of Eventeum.
 
 ```
 eventFilters:
-  - id: event-identifier
-    contractAddress: "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2"
+  - id: RequestCreated
+    contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
     eventSpecification:
-      eventName: TestEvent
-      indexedParameterTypes:
-        - UINT256
-        - ADDRESS
-      nonIndexedParameterTypes:
-        - BYTES32
-	-STRING
+      eventName: RequestCreated
+      indexedParameterDefinitions:
+        - position: 0
+          type: BYTES32
+        - position: 1
+          type: ADDRESS
+      nonIndexedParameterDefinitions:
+        - position: 2
+          type: BYTES32
     correlationId:
       type: NON_INDEXED_PARAMETER
       index: 0
@@ -301,15 +314,5 @@ The implemented REST service should have a pageable endpoint which accepts a req
 | EVENTSTORE_URL  | http://localhost:8081/api/rest/v1 | The REST endpoint url |
 | EVENTSTORE_EVENTPATH | /event | The path to the event REST endpoint |
 
-## Known Issues
-* Currently, only events where indexed parameters are defined before non-indexed parameters are supported.
-
-**Supported**
-``` 
-event TestEvent(bytes32 indexed indexedBytes, address indexed indexedAddress, uint uintValue);
-```
-
-**Not Supported**
-``` 
-event TestEvent(bytes32 indexed indexedBytes, uint uintValue, address indexed indexedAddress);
-```
+## Known Caveats / Issues
+* In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.

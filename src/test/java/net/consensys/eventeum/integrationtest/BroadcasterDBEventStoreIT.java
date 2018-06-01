@@ -43,6 +43,11 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testBroadcastNotOrderedEvent() throws Exception {
+        doTestBroadcastsNotOrderedEvent();
+    }
+
+    @Test
     public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedEventAfterBlockThresholdReached();
     }

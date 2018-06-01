@@ -20,7 +20,7 @@ public class FromBlockRESTEventStoreIT extends BaseFromBlockIntegrationTest {
     public void testFromBlockCorrectForRegisteredFilter() {
         final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
-        registerDummyEventFilter(filter);
+        registerEventFilter(filter);
 
         assertEquals(BigInteger.TEN, getFromBlockNumberForLatestRegisteredFilter());
     }

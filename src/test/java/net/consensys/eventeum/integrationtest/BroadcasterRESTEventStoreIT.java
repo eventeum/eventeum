@@ -43,6 +43,11 @@ public class BroadcasterRESTEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testBroadcastNotOrderedEvent() throws Exception {
+        doTestBroadcastsNotOrderedEvent();
+    }
+
+    @Test
     public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedEventAfterBlockThresholdReached();
     }
@@ -65,18 +70,5 @@ public class BroadcasterRESTEventStoreIT extends MainBroadcasterTests {
     @Test
     public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
-    }
-
-    private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(contractAddress);
-        ContractEventFilter saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved);
-
-        unregisterDummyEventFilter();
-
-        saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertNull(saved);
-
-        return registeredFilter;
     }
 }

@@ -16,7 +16,7 @@ public class ContractEventSpecification {
 
     private String eventName;
 
-    private List<ParameterType> indexedParameterTypes;
+    private List<ParameterDefinition> indexedParameterDefinitions;
 
-    private List<ParameterType> nonIndexedParameterTypes;
+    private List<ParameterDefinition> nonIndexedParameterDefinitions;
 }

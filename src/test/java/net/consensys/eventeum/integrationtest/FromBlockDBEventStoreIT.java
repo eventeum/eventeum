@@ -34,7 +34,7 @@ public class FromBlockDBEventStoreIT extends BaseFromBlockIntegrationTest {
 
         repo.save(eventDetails);
 
-        registerDummyEventFilter(filter);
+        registerEventFilter(filter);
 
         assertEquals(BigInteger.valueOf(123), getFromBlockNumberForLatestRegisteredFilter());
     }

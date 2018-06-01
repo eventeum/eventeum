@@ -7,6 +7,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
+import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,16 +76,17 @@ public class DefaultContactEventDetailsFactory implements ContractEventDetailsFa
     private List<Type> getNonIndexedParametersFromLog(ContractEventSpecification eventSpec, Log log) {
         return FunctionReturnDecoder.decode(
                 log.getData(),
-                Utils.convert(Web3jUtil.getTypeReferencesFromParameterTypes(eventSpec.getNonIndexedParameterTypes())));
+                Utils.convert(Web3jUtil.getTypeReferencesFromParameterDefinitions(
+                        eventSpec.getNonIndexedParameterDefinitions())));
     }
 
     private List<Type> getIndexedParametersFromLog(ContractEventSpecification eventSpec, Log log) {
         final List<String> encodedParameters = log.getTopics().subList(1, log.getTopics().size());
-        final List<ParameterType> types = eventSpec.getIndexedParameterTypes();
+        final List<ParameterDefinition> definitions = eventSpec.getIndexedParameterDefinitions();
 
         return IntStream.range(0, encodedParameters.size())
                 .mapToObj(i -> FunctionReturnDecoder.decodeIndexedValue(encodedParameters.get(i),
-                        Web3jUtil.getTypeReferenceFromParameterType(types.get(i))))
+                        Web3jUtil.getTypeReferenceFromParameterType(definitions.get(i).getType())))
                 .collect(Collectors.toList());
     }
 }
