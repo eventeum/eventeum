@@ -10,7 +10,7 @@ A bridge between your Ethereum smart contract events and backend microservices. 
 
 * Fork Tolerance - Eventeum can be configured to wait a certain amount of blocks before an event is considered 'Confirmed'.  If a fork occurs during this time, a message is broadcast to the network, allowing your services to react to the forked/removed event.
 
-## Supported Broadcast Mechanisims
+## Supported Broadcast Mechanisms
 * Kafka
 
 ## Getting Started
@@ -246,7 +246,7 @@ Currently supported correlation id strategies are:
 
 ### Event Store
 
-Eventeum utilises an event store in order to establish the block number to start event subscriptions from, in the event of a failover.  For example, if the last event broadcast for event with id X had a block id of 123, then on a failover, eventeum will subscribe to events from 124.
+Eventeum utilises an event store in order to establish the block number to start event subscriptions from, in the event of a failover.  For example, if the last event broadcast for event with id X had a block number of 123, then on a failover, eventeum will subscribe to events from block 124.
 
 There are currently 2 supported event store implementations:
 
