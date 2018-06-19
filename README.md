@@ -32,7 +32,7 @@ $ cd /path/to/eventeum/
 $ mvn clean package
 ```
 
-3. Run the project
+### Run
 
 a. If you have a running instance of MongoDB, Kafka, Zookeeper and an Ethereum node:
 
