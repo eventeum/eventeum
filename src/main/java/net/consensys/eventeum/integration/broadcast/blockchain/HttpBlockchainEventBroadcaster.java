@@ -5,6 +5,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.broadcast.BroadcastException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -21,26 +22,35 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
 
     private RestTemplate restTemplate;
 
-    public HttpBlockchainEventBroadcaster(HttpBroadcasterSettings settings) {
+    private RetryTemplate retryTemplate;
+
+    public HttpBlockchainEventBroadcaster(HttpBroadcasterSettings settings, RetryTemplate retryTemplate) {
         this.settings = settings;
 
         restTemplate = new RestTemplate();
+        this.retryTemplate = retryTemplate;
     }
 
     @Override
     public void broadcastNewBlock(BlockDetails block) {
-        final ResponseEntity<Void> response =
-                restTemplate.postForEntity(settings.getBlockEventsUrl(), block, Void.class);
+        retryTemplate.execute((context) -> {
+            final ResponseEntity<Void> response =
+                    restTemplate.postForEntity(settings.getBlockEventsUrl(), block, Void.class);
 
-        checkForSuccessResponse(response);
+            checkForSuccessResponse(response);
+            return null;
+        });
     }
 
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
-        final ResponseEntity<Void> response =
-                restTemplate.postForEntity(settings.getContractEventsUrl(), eventDetails, Void.class);
+        retryTemplate.execute((context) -> {
+            final ResponseEntity<Void> response =
+                    restTemplate.postForEntity(settings.getContractEventsUrl(), eventDetails, Void.class);
 
-        checkForSuccessResponse(response);
+            checkForSuccessResponse(response);
+            return null;
+        });
     }
 
     private void checkForSuccessResponse(ResponseEntity<Void> response) {

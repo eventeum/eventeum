@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * Spring bean configuration for the BlockchainEventBroadcaster.
@@ -46,9 +49,24 @@ public class BlockchainEventBroadcasterConfiguration {
     @ConditionalOnProperty(name="broadcaster.type", havingValue="HTTP")
     public BlockchainEventBroadcaster httpBlockchainEventBroadcaster(HttpBroadcasterSettings settings) {
         final BlockchainEventBroadcaster broadcaster =
-                new HttpBlockchainEventBroadcaster(settings);
+                new HttpBlockchainEventBroadcaster(settings, retryTemplate());
 
         return onlyOnceWrap(broadcaster);
+    }
+
+    @Bean
+    public RetryTemplate retryTemplate() {
+        RetryTemplate retryTemplate = new RetryTemplate();
+
+        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(3000l);
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+        retryPolicy.setMaxAttempts(3);
+        retryTemplate.setRetryPolicy(retryPolicy);
+
+        return retryTemplate;
     }
 
     private BlockchainEventBroadcaster onlyOnceWrap(BlockchainEventBroadcaster toWrap) {

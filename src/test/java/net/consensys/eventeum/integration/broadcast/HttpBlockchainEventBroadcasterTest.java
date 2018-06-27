@@ -1,5 +1,6 @@
 package net.consensys.eventeum.integration.broadcast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
@@ -13,7 +14,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +39,17 @@ public class HttpBlockchainEventBroadcasterTest {
         settings.setBlockEventsUrl("http://localhost:8082/consumer/block-event");
         settings.setContractEventsUrl("http://localhost:8082/consumer/contract-event");
 
-        underTest = new HttpBlockchainEventBroadcaster(settings);
+        RetryTemplate retryTemplate = new RetryTemplate();
+
+        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(3000l);
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+        retryPolicy.setMaxAttempts(3);
+        retryTemplate.setRetryPolicy(retryPolicy);
+
+        underTest = new HttpBlockchainEventBroadcaster(settings, retryTemplate);
     }
 
     @After
@@ -57,20 +72,22 @@ public class HttpBlockchainEventBroadcasterTest {
         assertEquals(contractEvent, broadcastEvents.get(0));
     }
 
-//    @Test
-//    public void testBroadcastBlockEvent() {
-//        httpConsumer = new StubHttpConsumer(HttpStatus.OK);
-//
-//        final BlockDetails block = new BlockDetails();
-//        block.setHash("0xc2141b870536473fdea321893bc084eb3244cc56ea8d4b77de240dfeac6604d2");
-//        block.setNumber(BigInteger.TEN);
-//
-//        httpConsumer.start(null);
-//        underTest.broadcastNewBlock(block);
-////TODO
-////        assertEquals(1, broadcastEvents.size());
-////        assertEquals(contractEvent, broadcastEvents.get(0));
-//    }
+    @Test
+    public void testBroadcastBlockEvent() throws IOException {
+        httpConsumer = new StubHttpConsumer(HttpStatus.OK);
+
+        final BlockDetails block = new BlockDetails();
+        block.setHash("0xc2141b870536473fdea321893bc084eb3244cc56ea8d4b77de240dfeac6604d2");
+        block.setNumber(BigInteger.TEN);
+
+        httpConsumer.start(null);
+        underTest.broadcastNewBlock(block);
+
+        ObjectMapper mapper = new ObjectMapper();
+        BlockDetails broadcastBlock = mapper.readValue(httpConsumer.getLatestRequestBody(), BlockDetails.class);
+
+        assertEquals(block, broadcastBlock);
+    }
 
     private ContractEventDetails createContractEventDetails() {
         final ContractEventDetails contractEvent = new ContractEventDetails();
