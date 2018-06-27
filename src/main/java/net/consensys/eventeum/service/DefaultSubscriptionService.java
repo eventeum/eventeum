@@ -5,7 +5,7 @@ import lombok.Data;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.integration.broadcast.FilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.utils.JSON;

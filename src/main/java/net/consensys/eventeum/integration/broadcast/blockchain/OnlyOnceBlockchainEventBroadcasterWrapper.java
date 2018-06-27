@@ -1,19 +1,10 @@
-package net.consensys.eventeum.integration.broadcast;
+package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.Message;
-import net.consensys.eventeum.integration.KafkaSettings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
@@ -27,40 +18,35 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
-@Profile("default")
-public class OnlyOnceBlockchainEventBroadcaster extends KafkaBlockchainEventBroadcaster {
-
-    private static final String EXPIRATION_PROPERTY = "${broadcaster.cache.expirationMillis}";
+public class OnlyOnceBlockchainEventBroadcasterWrapper implements BlockchainEventBroadcaster {
 
     private Cache<Integer, ContractEventDetails> contractEventCache;
 
     private Long expirationTimeMillis;
 
-    @Autowired
-    OnlyOnceBlockchainEventBroadcaster(KafkaTemplate<String, Message> kafkaTemplate,
-                                       KafkaSettings kafkaSettings,
-                                       @Value(EXPIRATION_PROPERTY) Long expirationTimeMillis,
-                                       CrudRepository<ContractEventFilter, String> filterRepository) {
-        super(kafkaTemplate, kafkaSettings, filterRepository);
+    private BlockchainEventBroadcaster wrapped;
+
+    public OnlyOnceBlockchainEventBroadcasterWrapper(Long expirationTimeMillis,
+                                              BlockchainEventBroadcaster toWrap) {
         this.expirationTimeMillis = expirationTimeMillis;
         this.contractEventCache = createContractEventCache();
+        this.wrapped = toWrap;
     }
 
     @Override
     public void broadcastNewBlock(BlockDetails block) {
-        super.broadcastNewBlock(block);
+        wrapped.broadcastNewBlock(block);
     }
 
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
         if (contractEventCache.getIfPresent(Integer.valueOf(eventDetails.hashCode())) == null) {
             contractEventCache.put(Integer.valueOf(eventDetails.hashCode()), eventDetails);
-            super.broadcastContractEvent(eventDetails);
+            wrapped.broadcastContractEvent(eventDetails);
         }
     }
 
-    @Scheduled(fixedRateString = EXPIRATION_PROPERTY)
+    @Scheduled(fixedRateString = "${broadcaster.cache.expirationMillis}")
     public void cleanUpCache() {
         contractEventCache.cleanUp();
     }

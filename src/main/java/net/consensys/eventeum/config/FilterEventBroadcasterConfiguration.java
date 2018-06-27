@@ -2,9 +2,9 @@ package net.consensys.eventeum.config;
 
 import net.consensys.eventeum.dto.message.Message;
 import net.consensys.eventeum.integration.KafkaSettings;
-import net.consensys.eventeum.integration.broadcast.DoNothingFilterEventBroadcaster;
-import net.consensys.eventeum.integration.broadcast.FilterEventBroadcaster;
-import net.consensys.eventeum.integration.broadcast.KafkaFilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.filter.DoNothingFilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.filter.KafkaFilterEventBroadcaster;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

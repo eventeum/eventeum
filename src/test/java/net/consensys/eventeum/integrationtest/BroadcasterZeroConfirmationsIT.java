@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:zero-confirmations.properties"})
-public class BroadcasterZeroConfirmationsIT extends BaseIntegrationTest {
+public class BroadcasterZeroConfirmationsIT extends BaseKafkaIntegrationTest {
 
     @Test
     public void testBroadcastsUnconfirmedAndConfirmedEventAfterInitialEmit() throws Exception {
@@ -33,10 +33,10 @@ public class BroadcasterZeroConfirmationsIT extends BaseIntegrationTest {
 
         waitForContractEventMessages(1);
 
-        assertEquals(1, getBroadcastContractEventMessages().size());
+        assertEquals(1, getBroadcastContractEvents().size());
 
-        final Message<ContractEventDetails> message = getBroadcastContractEventMessages().get(0);
-        verifyDummyEventDetails(registeredFilter, message.getDetails(), ContractEventStatus.CONFIRMED);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }
 
     private ContractEventFilter doRegisterAndUnregister(String contractAddress) {

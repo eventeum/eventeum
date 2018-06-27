@@ -11,14 +11,10 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.message.Message;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
-import net.consensys.eventeum.utils.JSON;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.web.client.RestTemplate;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -51,17 +47,13 @@ public class BaseIntegrationTest {
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
     //protected static final Credentials CREDS = Credentials.create("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d");
 
-    private List<Message<ContractEventDetails>> broadcastContractEventMessages = new ArrayList<>();
-    private List<Message<ContractEventFilter>> broadcastFilterEventMessages = new ArrayList<>();
+    private List<ContractEventDetails> broadcastContractEvents = new ArrayList<>();
 
     @LocalServerPort
     private int port = 12345;
 
     @Autowired
     private ContractEventFilterRepository filterRepo;
-
-    @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
     private RestTemplate restTemplate;
 
@@ -74,9 +66,6 @@ public class BaseIntegrationTest {
     private String dummyEventFilterId;
 
     private String dummyEventNotOrderedFilterId;
-
-    @ClassRule
-    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true);
 
     @BeforeClass
     public static void setupEnvironment() throws IOException {
@@ -93,14 +82,8 @@ public class BaseIntegrationTest {
         dummyEventFilterId = UUID.randomUUID().toString();
         dummyEventNotOrderedFilterId = UUID.randomUUID().toString();
 
-        Thread.sleep(15000);
         clearMessages();
 
-//        // wait until the partitions are assigned
-//        for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
-//                .getListenerContainers()) {
-//            ContainerTestUtils.waitForAssignment(messageListenerContainer, 3);
-//        }
     }
 
     @AfterClass
@@ -110,27 +93,11 @@ public class BaseIntegrationTest {
 
     @After
     public void cleanup() {
-        filterRepo.delete(getDummyEventFilterId());
+        filterRepo.deleteAll();
     }
 
-    @KafkaListener(topics = "#{kafkaSettings.filterEventsTopic}", groupId="testGroup")
-    public void onFilterEventMessage(Message<ContractEventFilter> message) {
-        broadcastFilterEventMessages.add(message);
-    }
-
-
-    @KafkaListener(topics = "#{kafkaSettings.contractEventsTopic}", groupId="testGroup")
-    public void onContractEventMessage(Message<ContractEventDetails> contractEventMessage) {
-        System.out.println("Message received: " + JSON.stringify(contractEventMessage));
-        broadcastContractEventMessages.add(contractEventMessage);
-    }
-
-    protected List<Message<ContractEventDetails>> getBroadcastContractEventMessages() {
-        return broadcastContractEventMessages;
-    }
-
-    protected List<Message<ContractEventFilter>> getBroadcastFilterEventMessages() {
-        return broadcastFilterEventMessages;
+    protected List<ContractEventDetails> getBroadcastContractEvents() {
+        return broadcastContractEvents;
     }
 
     protected ContractEventFilterRepository getFilterRepo() {
@@ -216,8 +183,7 @@ public class BaseIntegrationTest {
     }
 
     protected void clearMessages() {
-        broadcastContractEventMessages.clear();
-        broadcastFilterEventMessages.clear();
+        broadcastContractEvents.clear();
     }
 
     protected void waitForContractEventMessages(int expectedContractEventMessages) {
@@ -232,7 +198,7 @@ public class BaseIntegrationTest {
         //Wait for another 20 seconds maximum if messages have not yet arrived
         final long startTime = System.currentTimeMillis();
         while(true) {
-            if (broadcastContractEventMessages.size() == expectedContractEventMessages) {
+            if (broadcastContractEvents.size() == expectedContractEventMessages) {
                 break;
             }
 
@@ -240,7 +206,7 @@ public class BaseIntegrationTest {
                 final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
                 builder.append("\n");
                 builder.append("Expected contract event messages: " + expectedContractEventMessages);
-                builder.append(", received: " + broadcastContractEventMessages.size());
+                builder.append(", received: " + broadcastContractEvents.size());
 
                 TestCase.fail(builder.toString());
             }

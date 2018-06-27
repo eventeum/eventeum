@@ -15,7 +15,6 @@ import java.net.UnknownHostException;
  */
 @Component
 @Data
-@Profile("default")
 public class KafkaSettings {
 
     @Value("${kafka.bootstrap.addresses}")

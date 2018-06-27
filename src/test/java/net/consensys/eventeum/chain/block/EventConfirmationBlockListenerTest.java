@@ -7,7 +7,7 @@ import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
-import net.consensys.eventeum.integration.broadcast.BlockchainEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import org.junit.Before;
 import org.junit.Test;
 

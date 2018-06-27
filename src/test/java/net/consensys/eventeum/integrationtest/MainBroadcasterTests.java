@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-public abstract class MainBroadcasterTests extends BaseIntegrationTest {
+public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
     public void doTestRegisterEventFilterSavesFilterInDb() {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
@@ -63,10 +63,10 @@ public abstract class MainBroadcasterTests extends BaseIntegrationTest {
 
         waitForContractEventMessages(1);
 
-        assertEquals(1, getBroadcastContractEventMessages().size());
+        assertEquals(1, getBroadcastContractEvents().size());
 
-        final Message<ContractEventDetails> message = getBroadcastContractEventMessages().get(0);
-        verifyDummyEventDetails(registeredFilter, message.getDetails(), ContractEventStatus.UNCONFIRMED);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
     }
 
     public void doTestBroadcastsNotOrderedEvent() throws Exception {
@@ -78,10 +78,10 @@ public abstract class MainBroadcasterTests extends BaseIntegrationTest {
 
         waitForContractEventMessages(1);
 
-        assertEquals(1, getBroadcastContractEventMessages().size());
+        assertEquals(1, getBroadcastContractEvents().size());
 
-        final Message<ContractEventDetails> message = getBroadcastContractEventMessages().get(0);
-        verifyDummyEventDetails(registeredFilter, message.getDetails(), ContractEventStatus.UNCONFIRMED);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
     }
 
     public void doTestBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
@@ -95,10 +95,10 @@ public abstract class MainBroadcasterTests extends BaseIntegrationTest {
         triggerBlocks(12);
         waitForContractEventMessages(2);
 
-        assertEquals(2, getBroadcastContractEventMessages().size());
+        assertEquals(2, getBroadcastContractEvents().size());
 
-        final Message<ContractEventDetails> message = getBroadcastContractEventMessages().get(1);
-        verifyDummyEventDetails(registeredFilter, message.getDetails(), ContractEventStatus.CONFIRMED);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(1);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }
 
     public void doTestUnregisterNonExistentFilter() {
@@ -139,7 +139,7 @@ public abstract class MainBroadcasterTests extends BaseIntegrationTest {
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForBroadcast();
-        assertEquals(0, getBroadcastContractEventMessages().size());
+        assertEquals(0, getBroadcastContractEvents().size());
     }
 
     private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {

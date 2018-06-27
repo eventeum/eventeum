@@ -1,4 +1,4 @@
-package net.consensys.eventeum.integration.broadcast;
+package net.consensys.eventeum.integration.broadcast.filter;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
