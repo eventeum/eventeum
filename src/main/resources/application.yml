@@ -42,7 +42,7 @@ eventStore:
   eventPath: /event
 
 broadcaster:
-  type: kafka
+  type: KAFKA
   cache:
     expirationMillis: 6000000
   event:
