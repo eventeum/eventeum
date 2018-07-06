@@ -25,8 +25,6 @@ import java.util.function.Consumer;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
-@Profile("default")
 public class KafkaFilterEventConsumer implements FilterEventConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaFilterEventConsumer.class);

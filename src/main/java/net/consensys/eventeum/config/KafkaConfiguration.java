@@ -27,8 +27,8 @@ import java.util.Map;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@EnableKafka
 @Configuration
+@EnableKafka
 @ConditionalOnExpression("'${broadcaster.multiInstance}' == 'true' || '${broadcaster.type}' == 'KAFKA'")
 public class KafkaConfiguration {
 
