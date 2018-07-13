@@ -1,6 +1,7 @@
 package net.consensys.eventeum.integrationtest;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +17,7 @@ import static org.junit.Assert.assertNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @TestPropertySource(locations="classpath:application-test-db.properties")
 public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
+
 
     @Test
     public void testRegisterEventFilterSavesFilterInDb() {
@@ -70,18 +72,5 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     @Test
     public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
-    }
-
-    private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(contractAddress);
-        ContractEventFilter saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved);
-
-        unregisterDummyEventFilter();
-
-        saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertNull(saved);
-
-        return registeredFilter;
     }
 }

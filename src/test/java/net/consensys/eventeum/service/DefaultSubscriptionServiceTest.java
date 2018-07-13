@@ -1,12 +1,11 @@
 package net.consensys.eventeum.service;
 
-import junit.framework.TestCase;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
-import net.consensys.eventeum.integration.broadcast.FilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import net.consensys.eventeum.chain.block.BlockListener;
@@ -14,7 +13,6 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import rx.Subscription;

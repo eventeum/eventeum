@@ -15,7 +15,6 @@ import java.math.BigInteger;
 
 import static org.junit.Assert.assertEquals;
 
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:application-test-db.properties")

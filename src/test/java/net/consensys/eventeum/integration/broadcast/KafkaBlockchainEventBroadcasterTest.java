@@ -8,6 +8,7 @@ import net.consensys.eventeum.dto.message.BlockEvent;
 import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.Message;
 import net.consensys.eventeum.integration.KafkaSettings;
+import net.consensys.eventeum.integration.broadcast.blockchain.KafkaBlockchainEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import org.junit.Before;
 import org.junit.Test;

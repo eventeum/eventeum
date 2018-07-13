@@ -1,4 +1,4 @@
-package net.consensys.eventeum.integration.broadcast;
+package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;

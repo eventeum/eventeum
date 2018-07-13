@@ -1,7 +1,7 @@
 package net.consensys.eventeum.chain.contract;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.integration.broadcast.BlockchainEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import org.junit.Before;
 import org.junit.Test;
 

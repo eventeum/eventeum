@@ -10,7 +10,7 @@ import org.web3j.protocol.core.methods.request.EthFilter;
 import java.math.BigInteger;
 import java.util.List;
 
-public class BaseFromBlockIntegrationTest extends BaseIntegrationTest {
+public class BaseFromBlockIntegrationTest extends BaseKafkaIntegrationTest {
 
     @SpyBean
     private Web3j web3j;

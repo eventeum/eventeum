@@ -1,4 +1,4 @@
-package net.consensys.eventeum.integration.broadcast;
+package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -34,7 +34,7 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     private CrudRepository<ContractEventFilter, String> filterRespository;
 
-    KafkaBlockchainEventBroadcaster(KafkaTemplate<String, Message> kafkaTemplate,
+    public KafkaBlockchainEventBroadcaster(KafkaTemplate<String, Message> kafkaTemplate,
                                     KafkaSettings kafkaSettings,
                                     CrudRepository<ContractEventFilter, String> filterRepository) {
         this.kafkaTemplate = kafkaTemplate;
