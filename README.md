@@ -39,12 +39,13 @@ a. If you have a running instance of MongoDB, Kafka, Zookeeper and an Ethereum n
 
 **Executable JAR:**
 ```
+$ cd server
 $ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
 $ export ETHEREUM_NODE_URL=http://<node-host:port>
 $ export ZOOKEEPER_ADDRESS=<zookeeper-host:port>
 $ export KAFKA_ADDRESSES=<kafka-host:port>
 
-$ java -jar target/eventeum.jar
+$ java -jar target/eventeum-server.jar
 ```
 
 **Docker:**
