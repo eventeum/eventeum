@@ -197,7 +197,8 @@ When a subscribed event is emitted, a JSON message is broadcast to the configure
 		"address":"0x9ec580fa364159a09ea15cd39505fc0a926d3a00",	
 		"status":"UNCONFIRMED",
 		"eventSpecificationSignature":"0x46aca551d5bafd01d98f8cadeb9b50f1b3ee44c33007f2a13d969dab7e7cf2a8",
-		"id":"unique-event-id"}
+		"id":"unique-event-id"},
+		"retries":0
 }
 
 ```
@@ -211,7 +212,8 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 	"type":"BLOCK",
 	"details":{
 		"number":257,
-		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8"}
+		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8"},
+	"retries":0
 }
 ```
 
@@ -317,6 +319,35 @@ The implemented REST service should have a pageable endpoint which accepts a req
 | EVENTSTORE_TYPE | REST | REST event store enabled |
 | EVENTSTORE_URL  | http://localhost:8081/api/rest/v1 | The REST endpoint url |
 | EVENTSTORE_EVENTPATH | /event | The path to the event REST endpoint |
+
+### Integrating Eventeum into Third Party Spring Application
+
+Eventeum can be embedded into an existing Spring Application via an annotation.
+
+#### Steps to Embed
+
+1. Add the Consensys Kauri bintray repository into your `pom.xml` file:
+
+```
+<repositories>
+  <repository>
+    <id>bintray-consensys-kauri</id>
+    <url>https://consensys.bintray.com/kauri</url>
+  </repository>
+</repositories>
+```
+
+2. Add the eventeum-core dependency to your `pom.xml` file:
+
+```
+<dependency>
+  <groupId>net.consensys.eventeum</groupId>
+  <artifactId>eventeum-core</artifactId>
+  <version>*LATEST_EVENTEUM_VERSION*</version>
+</dependency>
+```
+
+3. Within your Application class or a `@Configuration` annotated class, add the `@EnableEventeum` annotation.
 
 ## Known Caveats / Issues
 * In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.
