@@ -51,6 +51,7 @@ $ java -jar target/eventeum-server.jar
 **Docker:**
 
 ```
+$ cd server
 $ docker build  . -t kauri/eventeum:latest
 
 $ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
@@ -63,6 +64,7 @@ $ docker run -p 8060:8060 kauri/eventeum
 
 b. If you prefer build an all-in-one test environment with a parity dev node, use docker-compose:
 ```
+$ cd server
 $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
 ```
