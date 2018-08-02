@@ -5,6 +5,7 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -49,13 +50,11 @@ public class Web3jServiceTest {
 
     private EventBlockManagementService mockBlockManagement;
 
-    private EthBlock mockEthBlock;
-
     private ContractEventDetailsFactory mockContractEventDetailsFactory;
 
     private ContractEventDetails mockContractEventDetails;
 
-    private PublishSubject<EthBlock> blockSubject;
+    private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
 
     @Before
     public void init() throws IOException {
@@ -63,6 +62,7 @@ public class Web3jServiceTest {
         mockBlockManagement = mock(EventBlockManagementService.class);
         mockContractEventDetailsFactory = mock(ContractEventDetailsFactory.class);
         mockContractEventDetails = mock(ContractEventDetails.class);
+        mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
 
         when(mockBlockManagement.getLatestBlockForEvent(any(ContractEventSpecification.class))).thenReturn(BLOCK_NUMBER);
 
@@ -73,37 +73,8 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenReturn(blockNumber);
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
 
-        mockEthBlock = mock(EthBlock.class);
-        final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
-
-        when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
-        when(mockBlock.getHash()).thenReturn(BLOCK_HASH);
-        when(mockEthBlock.getBlock()).thenReturn(mockBlock);
-
-        blockSubject = PublishSubject.create();
-        when(mockWeb3j.blockObservable(false)).thenReturn(blockSubject);
-
-        underTest = new Web3jService(mockWeb3j, mockContractEventDetailsFactory, mockBlockManagement, new DummyAsyncTaskService());
-    }
-
-    @Test
-    public void testAddBlockListener() {
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
-        assertNotNull(blockDetails);
-    }
-
-    @Test
-    public void testBlockHashPassedToListenerIsCorrect() {
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
-
-        assertEquals(BLOCK_HASH, blockDetails.getHash());
-    }
-
-    @Test
-    public void testBlockNumberPassedToListenerIsCorrect() {
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
-
-        assertEquals(BLOCK_NUMBER, blockDetails.getNumber());
+        underTest = new Web3jService(mockWeb3j, mockContractEventDetailsFactory,
+                mockBlockManagement, new DummyAsyncTaskService(), mockBlockSubscriptionStrategy);
     }
 
     @Test
@@ -188,19 +159,6 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenThrow(new IOException());
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
         underTest.getCurrentBlockNumber();
-    }
-
-    private BlockDetails doRegisterBlockListenerAndTrigger() {
-
-        final BlockListener mockBlockListener = mock(BlockListener.class);
-        underTest.addBlockListener(mockBlockListener);
-
-        blockSubject.onNext(mockEthBlock);
-
-        final ArgumentCaptor<BlockDetails> captor = ArgumentCaptor.forClass(BlockDetails.class);
-        verify(mockBlockListener).onBlock(captor.capture());
-
-        return captor.getValue();
     }
 
     private ContractEventDetails doRegisterEventListenerAndTrigger() {
