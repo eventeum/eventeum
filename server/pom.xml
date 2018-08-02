@@ -4,12 +4,12 @@
 
     <groupId>net.consensys.eventeum</groupId>
     <artifactId>eventeum-server</artifactId>
-    <version>0.2.0-RELEASE</version>
+    <version>0.2.1-SNAPSHOT</version>
 
     <parent>
         <groupId>net.consensys.eventeum</groupId>
         <artifactId>eventeum</artifactId>
-        <version>0.2.0-RELEASE</version>
+        <version>0.2.1-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>net.consensys.eventeum</groupId>
             <artifactId>eventeum-core</artifactId>
-            <version>0.2.0-RELEASE</version>
+            <version>0.2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
@@ -95,7 +95,7 @@
             <plugin>
                 <groupId>org.web3j</groupId>
                 <artifactId>web3j-maven-plugin</artifactId>
-                <version>0.1.4</version>
+                <version>0.3.1</version>
 
                 <configuration>
                     <packageName>net.consensys.eventeumserver.integrationtest</packageName>
