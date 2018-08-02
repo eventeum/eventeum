@@ -18,6 +18,7 @@ ethereum:
     url: http://localhost:8545
     healthcheck:
       pollInterval: 2000
+  blockStrategy: POLL
 
 #eventFilters:
 #  - id: RequestCreated

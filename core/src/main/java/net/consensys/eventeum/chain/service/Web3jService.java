@@ -1,6 +1,7 @@
 package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
 import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
@@ -39,20 +40,20 @@ public class Web3jService implements BlockchainService {
     private EventBlockManagementService blockManagement;
     private AsyncTaskService asyncTaskService;
 
-    private Collection<BlockListener> blockListeners;
-    private Subscription blockSubscription;
+    private BlockSubscriptionStrategy blockSubscriptionStrategy;
 
     @Autowired
     public Web3jService(Web3j web3j,
                         ContractEventDetailsFactory eventDetailsFactory,
                         EventBlockManagementService blockManagement,
-                        AsyncTaskService asyncTaskService) {
+                        AsyncTaskService asyncTaskService,
+                        BlockSubscriptionStrategy blockSubscriptionStrategy) {
         this.web3j = web3j;
         this.eventDetailsFactory = eventDetailsFactory;
         this.blockManagement = blockManagement;
         this.asyncTaskService = asyncTaskService;
 
-        this.blockListeners = new ConcurrentLinkedQueue<>();
+        this.blockSubscriptionStrategy = blockSubscriptionStrategy;
 
         connect();
     }
@@ -62,7 +63,7 @@ public class Web3jService implements BlockchainService {
      */
     @Override
     public void addBlockListener(BlockListener blockListener) {
-        blockListeners.add(blockListener);
+        blockSubscriptionStrategy.addBlockListener(blockListener);
     }
 
     /**
@@ -70,7 +71,7 @@ public class Web3jService implements BlockchainService {
      */
     @Override
     public void removeBlockListener(BlockListener blockListener) {
-        blockListeners.remove(blockListener);
+        blockSubscriptionStrategy.removeBlockListener(blockListener);
     }
 
     /**
@@ -104,7 +105,7 @@ public class Web3jService implements BlockchainService {
      */
     @Override
     public void reconnect() {
-        blockSubscription.unsubscribe();
+        blockSubscriptionStrategy.unsubscribe();
         connect();
     }
 
@@ -154,31 +155,14 @@ public class Web3jService implements BlockchainService {
 
     @PreDestroy
     private void unregisterBlockSubscription() {
-        blockSubscription.unsubscribe();
+        blockSubscriptionStrategy.unsubscribe();
     }
 
     private void connect() {
-        blockSubscription = registerBlockOberservable();
+        blockSubscriptionStrategy.subscribe();
     }
 
     private BigInteger getStartBlockForEventSpec(ContractEventSpecification spec) {
         return blockManagement.getLatestBlockForEvent(spec);
-    }
-
-    private Subscription registerBlockOberservable() {
-        return web3j.blockObservable(false).subscribe(block -> {
-            blockListeners.forEach(listener ->
-                    asyncTaskService.execute(() -> listener.onBlock(blockToBlockDetails(block))));
-        });
-    }
-
-    private BlockDetails blockToBlockDetails(EthBlock ethBlock) {
-        final EthBlock.Block block = ethBlock.getBlock();
-        final BlockDetails blockDetails = new BlockDetails();
-
-        blockDetails.setNumber(block.getNumber());
-        blockDetails.setHash(block.getHash());
-
-        return blockDetails;
     }
 }

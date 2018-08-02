@@ -226,6 +226,7 @@ Many values within Eventeum are configurable either by changing the values in th
 | Env Variable | Default | Description |
 | -------- | -------- | -------- |
 | SERVER_PORT | 8060 | The port for the eventeum instance. |
+| ETHEREUM_BLOCKSTRATEGY | POLL | The strategy for obtaining block events from an ethereum node (POLL or PUBSUB) |
 | ETHEREUM_NODE_URL | http://localhost:8545 | The ethereum node url. |
 | ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
@@ -242,6 +243,9 @@ Many values within Eventeum are configurable either by changing the values in th
 | KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
 | SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
+
+### INFURA Support
+Connecting to an INFURA node is only supported if connecting via websockets (`wss://<...>` node url).  The blockstrategy must also be set to PUBSUB.
 
 ## Advanced
 ### Correlation Id Strategies (Kafka Broadcasting)
