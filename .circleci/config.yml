@@ -25,6 +25,10 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
+      - run:
+          name: maven install
+          command: mvn clean install -DskipTests
+
       - run: mvn dependency:go-offline
 
       - save_cache:
