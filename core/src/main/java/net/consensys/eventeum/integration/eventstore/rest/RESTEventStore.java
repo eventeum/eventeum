@@ -46,6 +46,7 @@ public class RESTEventStore implements EventStore {
         return true;
     }
 
+    @ConditionalOnProperty(name = "eventStore.type", havingValue = "REST")
     @FeignClient(name="eventStore", url="${eventStore.url}")
     private interface FeignEventStore {
 
