@@ -4,12 +4,12 @@
 
     <groupId>net.consensys.eventeum</groupId>
     <artifactId>eventeum-server</artifactId>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.2.2-KAURI</version>
 
     <parent>
         <groupId>net.consensys.eventeum</groupId>
         <artifactId>eventeum</artifactId>
-        <version>0.2.2-SNAPSHOT</version>
+        <version>0.2.2-KAURI</version>
     </parent>
 
     <dependencies>
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>net.consensys.eventeum</groupId>
             <artifactId>eventeum-core</artifactId>
-            <version>0.2.2-SNAPSHOT</version>
+            <version>0.2.2-KAURI</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>

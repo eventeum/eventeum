@@ -5,6 +5,7 @@ import net.consensys.eventeum.dto.event.parameter.NumberParameter;
 import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -23,11 +24,16 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
     public Web3jEventParameterConverter() {
         typeConverters.put("address",
                 (type) -> new StringParameter(type.getTypeAsString(), type.toString()));
+        typeConverters.put("uint8",
+                (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
         typeConverters.put("uint256",
                 (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
         typeConverters.put("bytes32",
                 (type) -> new StringParameter(type.getTypeAsString(),
                         trim(new String((byte[]) type.getValue()))));
+        typeConverters.put("bytes32Hex",
+                (type) -> new StringParameter(type.getTypeAsString(),
+                        trim(Numeric.toHexString((byte[]) type.getValue()))));
         typeConverters.put("string",
                 (type) -> new StringParameter(type.getTypeAsString(),
                         trim((String)type.getValue())));
