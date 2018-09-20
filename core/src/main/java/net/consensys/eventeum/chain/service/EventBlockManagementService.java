@@ -20,10 +20,10 @@ public interface EventBlockManagementService {
     void updateLatestBlock(String eventSpecHash, BigInteger blockNumber);
 
     /**
-     * Retrieve the latest block number that has been seen for a specified event specification.
+     * Retrieve the block number that has to start an event specification scan.
      *
      * @param eventSpec The event specification.
      * @return The latest block number that has been seen for a specified event specification.
      */
-    BigInteger getLatestBlockForEvent(ContractEventSpecification eventSpec);
+    BigInteger getBlockNumberForScanEvent(ContractEventSpecification eventSpec);
 }

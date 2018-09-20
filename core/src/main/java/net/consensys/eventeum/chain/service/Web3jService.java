@@ -5,7 +5,6 @@ import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
 import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.service.AsyncTaskService;
@@ -24,8 +23,6 @@ import rx.Subscription;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * A BlockchainService implementating utilising the Web3j library.
@@ -163,6 +160,6 @@ public class Web3jService implements BlockchainService {
     }
 
     private BigInteger getStartBlockForEventSpec(ContractEventSpecification spec) {
-        return blockManagement.getLatestBlockForEvent(spec);
+        return blockManagement.getBlockNumberForScanEvent(spec);
     }
 }
