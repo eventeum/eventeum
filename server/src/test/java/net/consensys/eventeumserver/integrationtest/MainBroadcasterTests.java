@@ -8,8 +8,14 @@ import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.methods.request.Transaction;
+import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.response.EthLog;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -60,6 +66,11 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+
+        List<EthLog.LogResult> ethLogs = web3j.ethGetLogs(
+                new EthFilter(DefaultBlockParameterName.EARLIEST,
+                        DefaultBlockParameterName.LATEST, emitter.getContractAddress())
+        ).send().getLogs();
 
         waitForContractEventMessages(1);
 

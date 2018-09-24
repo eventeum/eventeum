@@ -44,7 +44,9 @@ public class DefaultContractEventDetailsFactoryTest {
 
     private static final String BLOCK_HASH = "0xf6c7c0822df1bce82b8edf55ab93f2e69ea80ef714801789fae3b3a08f761047";
 
-    private DefaultContactEventDetailsFactory underTest;
+    private static final String NETWORK_NAME = "ThisIsANetworkName";
+
+    private DefaultContractEventDetailsFactory underTest;
 
     private EventParameterConverter mockParameterCoverter;
 
@@ -85,7 +87,7 @@ public class DefaultContractEventDetailsFactoryTest {
 
     @Test
     public void testValuesCorrect() {
-        DefaultContactEventDetailsFactory underTest = createFactory(BigInteger.TEN);
+        DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
 
         final ContractEventDetails eventDetails = underTest.createEventDetails(filter, mockLog);
 
@@ -98,13 +100,14 @@ public class DefaultContractEventDetailsFactoryTest {
         assertEquals(BLOCK_HASH, eventDetails.getBlockHash());
         assertEquals(Web3jUtil.getSignature(eventSpec), eventDetails.getEventSpecificationSignature());
         assertEquals(ContractEventStatus.UNCONFIRMED, eventDetails.getStatus());
+        assertEquals(NETWORK_NAME,eventDetails.getNetworkName());
     }
 
     @Test
     public void testStatusWhenLogRemoved() {
         when(mockLog.isRemoved()).thenReturn(true);
 
-        DefaultContactEventDetailsFactory underTest = createFactory(BigInteger.TEN);
+        DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
 
         final ContractEventDetails eventDetails = underTest.createEventDetails(filter, mockLog);
 
@@ -113,7 +116,7 @@ public class DefaultContractEventDetailsFactoryTest {
 
     @Test
     public void testStatusWhenZeroConfirmationsConfigured() {
-        DefaultContactEventDetailsFactory underTest = createFactory(BigInteger.ZERO);
+        DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.ZERO);
 
         final ContractEventDetails eventDetails = underTest.createEventDetails(filter, mockLog);
 
@@ -122,7 +125,7 @@ public class DefaultContractEventDetailsFactoryTest {
 
     @Test
     public void testIndexedParametersAreCorrect() {
-        final DefaultContactEventDetailsFactory underTest = createFactory(BigInteger.TEN);
+        final DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
 
         final EventParameter mockParam1 = mock(EventParameter.class);
         final ArgumentCaptor<Type> argumentCaptor = ArgumentCaptor.forClass(Type.class);
@@ -137,7 +140,7 @@ public class DefaultContractEventDetailsFactoryTest {
     @Test
     public void testNonIndexedParametersAreCorrect() {
 
-        final DefaultContactEventDetailsFactory underTest = createFactory(BigInteger.TEN);
+        final DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
 
         final EventParameter mockParam1 = mock(EventParameter.class);
         final ArgumentCaptor<Type> argumentCaptor = ArgumentCaptor.forClass(Type.class);
@@ -151,8 +154,8 @@ public class DefaultContractEventDetailsFactoryTest {
                 argumentCaptor.getAllValues().get(1).toString());
     }
 
-    private DefaultContactEventDetailsFactory createFactory(BigInteger confirmations) {
+    private DefaultContractEventDetailsFactory createFactory(BigInteger confirmations) {
         final EventConfirmationConfig config = new EventConfirmationConfig(confirmations, BigInteger.valueOf(100));
-        return new DefaultContactEventDetailsFactory(mockParameterCoverter, config);
+        return new DefaultContractEventDetailsFactory(mockParameterCoverter, config, NETWORK_NAME);
     }
 }
