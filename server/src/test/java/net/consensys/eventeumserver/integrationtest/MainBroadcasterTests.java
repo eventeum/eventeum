@@ -67,11 +67,6 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-        List<EthLog.LogResult> ethLogs = web3j.ethGetLogs(
-                new EthFilter(DefaultBlockParameterName.EARLIEST,
-                        DefaultBlockParameterName.LATEST, emitter.getContractAddress())
-        ).send().getLogs();
-
         waitForContractEventMessages(1);
 
         assertEquals(1, getBroadcastContractEvents().size());

@@ -58,7 +58,7 @@ public class BaseIntegrationTest {
 
     private String restUrl;
 
-    protected Web3j web3j;
+    private Web3j web3j;
 
     private Admin admin;
 

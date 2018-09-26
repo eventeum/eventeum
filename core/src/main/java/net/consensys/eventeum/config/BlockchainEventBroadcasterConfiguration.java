@@ -28,7 +28,7 @@ import org.springframework.retry.support.RetryTemplate;
 public class BlockchainEventBroadcasterConfiguration {
 
     private static final String EXPIRATION_PROPERTY = "${broadcaster.cache.expirationMillis}";
-    public static final String BROADCASTER_PROPERTY = "broadcaster.type";
+    private static final String BROADCASTER_PROPERTY = "broadcaster.type";
 
     private Long onlyOnceCacheExpirationTime;
 
