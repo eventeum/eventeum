@@ -42,7 +42,7 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
                 String.format("%s.%s", this.rabbitSettings.getRoutingKeyPrefix(), BLOCKEVENT_ROUTING_KEY_SUFIX),
                 message);
 
-        LOG.info(String.format("Sent new block: [%s] to exchange [%s] with routing key [%s.%s]",
+        LOG.info(String.format("New block sent: [%s] to exchange [%s] with routing key [%s.%s]",
                 JSON.stringify(message),
                 this.rabbitSettings.getExchange(),
                 this.rabbitSettings.getRoutingKeyPrefix(),
@@ -56,7 +56,7 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
                 String.format("%s.%s", this.rabbitSettings.getRoutingKeyPrefix(), eventDetails.getFilterId()),
                 message);
 
-        LOG.info(String.format("Sent new contract event: [%s] to exchange [%s] with routing key [%s.%s]",
+        LOG.info(String.format("New contract event sent: [%s] to exchange [%s] with routing key [%s.%s]",
                 JSON.stringify(message),
                 this.rabbitSettings.getExchange(),
                 this.rabbitSettings.getRoutingKeyPrefix(),
