@@ -49,7 +49,7 @@ public class BlockchainEventBroadcasterConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(name="broadcaster.type", havingValue="HTTP")
+    @ConditionalOnProperty(name=BROADCASTER_PROPERTY, havingValue="HTTP")
     public BlockchainEventBroadcaster httpBlockchainEventBroadcaster(HttpBroadcasterSettings settings) {
         final BlockchainEventBroadcaster broadcaster =
                 new HttpBlockchainEventBroadcaster(settings, retryTemplate());
@@ -73,7 +73,7 @@ public class BlockchainEventBroadcasterConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(name="broadcaster.type", havingValue="RABBIT")
+    @ConditionalOnProperty(name=BROADCASTER_PROPERTY, havingValue="RABBIT")
     public BlockchainEventBroadcaster rabbitBlockChainEventBroadcaster(RabbitTemplate rabbitTemplate, RabbitSettings rabbitSettings) {
         final BlockchainEventBroadcaster broadcaster =
                 new RabbitBlockChainEventBroadcaster(rabbitTemplate,rabbitSettings);

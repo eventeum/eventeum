@@ -30,6 +30,3 @@ hs_err_pid*
 .target
 .springBeans
 **/target
-
-# Idea
-.idea/
