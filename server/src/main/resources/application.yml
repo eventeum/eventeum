@@ -62,3 +62,12 @@ kafka:
     contractEvents: contract-events
     blockEvents: block-events
     filterEvents: filter-events
+
+spring:
+  rabbitmq:
+    host: ${RABBIT_ADDRESS}
+
+rabbitmq:
+  exchange: ThisIsAExchange
+  routingKeyPrefix: thisIsRoutingKey
+

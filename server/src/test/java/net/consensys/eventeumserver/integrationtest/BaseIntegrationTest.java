@@ -78,6 +78,20 @@ public class BaseIntegrationTest {
         this.web3j = Web3j.build(new HttpService("http://localhost:8545"));
         this.admin = Admin.build(new HttpService("http://localhost:8545"));
 
+        this.web3j.ethSendTransaction(Transaction.createEtherTransaction(
+                this.web3j.ethAccounts().send().getAccounts().get(0),
+
+                this.web3j.ethGetTransactionCount(
+                    this.web3j.ethAccounts().send().getAccounts().get(0),
+                        DefaultBlockParameterName.fromString("latest")
+                ).send().getTransactionCount(),
+
+                BigInteger.valueOf(2000),
+                BigInteger.valueOf(6721975),
+                CREDS.getAddress(),
+                new BigInteger("9460000000000000000"))
+        ).send();
+
         dummyEventFilterId = UUID.randomUUID().toString();
         dummyEventNotOrderedFilterId = UUID.randomUUID().toString();
 

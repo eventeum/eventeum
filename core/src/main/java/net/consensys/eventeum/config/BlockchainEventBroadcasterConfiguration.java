@@ -3,7 +3,9 @@ package net.consensys.eventeum.config;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.integration.KafkaSettings;
+import net.consensys.eventeum.integration.RabbitSettings;
 import net.consensys.eventeum.integration.broadcast.blockchain.*;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,6 +28,7 @@ import org.springframework.retry.support.RetryTemplate;
 public class BlockchainEventBroadcasterConfiguration {
 
     private static final String EXPIRATION_PROPERTY = "${broadcaster.cache.expirationMillis}";
+    private static final String BROADCASTER_PROPERTY = "broadcaster.type";
 
     private Long onlyOnceCacheExpirationTime;
 
@@ -35,7 +38,7 @@ public class BlockchainEventBroadcasterConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(name="broadcaster.type", havingValue="KAFKA")
+    @ConditionalOnProperty(name= BROADCASTER_PROPERTY, havingValue="KAFKA")
     public BlockchainEventBroadcaster kafkaBlockchainEventBroadcaster(KafkaTemplate<String, EventeumMessage> kafkaTemplate,
                                                                       KafkaSettings kafkaSettings,
                                                                       CrudRepository<ContractEventFilter, String> filterRepository) {
@@ -46,7 +49,7 @@ public class BlockchainEventBroadcasterConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(name="broadcaster.type", havingValue="HTTP")
+    @ConditionalOnProperty(name=BROADCASTER_PROPERTY, havingValue="HTTP")
     public BlockchainEventBroadcaster httpBlockchainEventBroadcaster(HttpBroadcasterSettings settings) {
         final BlockchainEventBroadcaster broadcaster =
                 new HttpBlockchainEventBroadcaster(settings, retryTemplate());
@@ -67,6 +70,15 @@ public class BlockchainEventBroadcasterConfiguration {
         retryTemplate.setRetryPolicy(retryPolicy);
 
         return retryTemplate;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name=BROADCASTER_PROPERTY, havingValue="RABBIT")
+    public BlockchainEventBroadcaster rabbitBlockChainEventBroadcaster(RabbitTemplate rabbitTemplate, RabbitSettings rabbitSettings) {
+        final BlockchainEventBroadcaster broadcaster =
+                new RabbitBlockChainEventBroadcaster(rabbitTemplate,rabbitSettings);
+
+        return onlyOnceWrap(broadcaster);
     }
 
     private BlockchainEventBroadcaster onlyOnceWrap(BlockchainEventBroadcaster toWrap) {

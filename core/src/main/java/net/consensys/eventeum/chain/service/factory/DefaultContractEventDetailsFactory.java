@@ -11,6 +11,7 @@ import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.Utils;
@@ -23,16 +24,19 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Component
-public class DefaultContactEventDetailsFactory implements ContractEventDetailsFactory {
+public class DefaultContractEventDetailsFactory implements ContractEventDetailsFactory {
 
     private EventParameterConverter<Type> parameterConverter;
     private EventConfirmationConfig eventConfirmationConfig;
+    private String networkName;
 
     @Autowired
-    DefaultContactEventDetailsFactory(EventParameterConverter<Type> parameterConverter,
-                                      EventConfirmationConfig eventConfirmationConfig) {
+    DefaultContractEventDetailsFactory(EventParameterConverter<Type> parameterConverter,
+                                       EventConfirmationConfig eventConfirmationConfig,
+                                       @Value("${ethereum.node.networkName:}") String networkName) {
         this.parameterConverter = parameterConverter;
         this.eventConfirmationConfig = eventConfirmationConfig;
+        this.networkName = networkName;
     }
 
     @Override
@@ -53,6 +57,7 @@ public class DefaultContactEventDetailsFactory implements ContractEventDetailsFa
         eventDetails.setBlockNumber(log.getBlockNumber());
         eventDetails.setBlockHash(log.getBlockHash());
         eventDetails.setEventSpecificationSignature(Web3jUtil.getSignature(eventSpec));
+        eventDetails.setNetworkName(this.networkName);
 
         if (log.isRemoved()) {
             eventDetails.setStatus(ContractEventStatus.INVALIDATED);
