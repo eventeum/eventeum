@@ -51,6 +51,7 @@
             <groupId>org.web3j</groupId>
             <artifactId>core</artifactId>
             <version>${web3j.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>

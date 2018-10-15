@@ -32,7 +32,7 @@ public class ResubscribeNodeFailureListener implements NodeFailureListener {
 
     @Override
     public void onNodeRecovery() {
-        blockchainService.reconnect();;
+        blockchainService.reconnect();
 
         //TODO need to figure out if we need to unregister
         subscriptionService.resubscribeToAllSubscriptions(true);
