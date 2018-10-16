@@ -35,8 +35,8 @@
 
     <repositories>
         <repository>
-            <id>spring-releases</id>
-            <url>https://repo.spring.io/libs-release</url>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2/</url>
         </repository>
         <repository>
             <id>ethereum</id>
@@ -49,8 +49,8 @@
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>spring-releases</id>
-            <url>https://repo.spring.io/libs-release</url>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2/</url>
         </pluginRepository>
         <pluginRepository>
             <id>ethereum</id>
