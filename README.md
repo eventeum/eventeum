@@ -218,7 +218,8 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 	"type":"BLOCK",
 	"details":{
 		"number":257,
-		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8"},
+		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8",
+		"timestamp":12345678},
 	"retries":0
 }
 ```
