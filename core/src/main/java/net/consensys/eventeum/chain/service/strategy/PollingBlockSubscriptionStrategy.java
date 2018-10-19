@@ -6,28 +6,32 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import rx.Subscription;
 
-public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy {
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-    public PollingBlockSubscriptionStrategy(Web3j web3j, AsyncTaskService asyncTaskService) {
-        super(web3j, asyncTaskService);
+public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
+
+    public PollingBlockSubscriptionStrategy(Web3j web3j) {
+        super(web3j);
     }
 
     @Override
     public Subscription subscribe() {
         blockSubscription = web3j.blockObservable(false).subscribe(block -> {
-            blockListeners.forEach(listener ->
-                    asyncTaskService.execute(() -> listener.onBlock(blockToBlockDetails(block))));
+            triggerListeners(block);
         });
 
         return blockSubscription;
     }
 
-    private BlockDetails blockToBlockDetails(EthBlock ethBlock) {
-        final EthBlock.Block block = ethBlock.getBlock();
+    @Override
+    BlockDetails convertToBlockDetails(EthBlock blockObject) {
+        final EthBlock.Block block = blockObject.getBlock();
         final BlockDetails blockDetails = new BlockDetails();
 
         blockDetails.setNumber(block.getNumber());
         blockDetails.setHash(block.getHash());
+        blockDetails.setTimestamp(block.getTimestamp());
 
         return blockDetails;
     }

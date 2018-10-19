@@ -37,6 +37,7 @@ public class HttpBroadcasterIT extends BaseIntegrationTest {
         BlockDetails blockDetails = mapper.readValue(consumer.getLatestRequestBody(), BlockDetails.class);
         assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
         assertNotNull(blockDetails.getHash());
+        assertNotNull(blockDetails.getTimestamp());
     }
 
     @Test

@@ -14,13 +14,13 @@ public class BlockSubscriptionStrategyConfiguration {
 
     @Bean
     @ConditionalOnProperty(name="ethereum.blockStrategy", havingValue="POLL")
-    BlockSubscriptionStrategy pollingStrategy(Web3j web3j, AsyncTaskService asyncTaskService) {
-        return new PollingBlockSubscriptionStrategy(web3j, asyncTaskService);
+    BlockSubscriptionStrategy pollingStrategy(Web3j web3j) {
+        return new PollingBlockSubscriptionStrategy(web3j);
     }
 
     @Bean
     @ConditionalOnProperty(name="ethereum.blockStrategy", havingValue="PUBSUB")
-    BlockSubscriptionStrategy pubsubStrategy(Web3j web3j, AsyncTaskService asyncTaskService) {
-        return new PubSubBlockSubscriptionStrategy(web3j, asyncTaskService);
+    BlockSubscriptionStrategy pubsubStrategy(Web3j web3j) {
+        return new PubSubBlockSubscriptionStrategy(web3j);
     }
 }
