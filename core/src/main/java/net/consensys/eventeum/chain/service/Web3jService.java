@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A BlockchainService implementating utilising the Web3j library.
@@ -38,7 +40,7 @@ public class Web3jService implements BlockchainService {
     private Web3j web3j;
     private ContractEventDetailsFactory eventDetailsFactory;
     private EventBlockManagementService blockManagement;
-    private AsyncTaskService asyncTaskService;
+    private Lock lock = new ReentrantLock();
 
     private BlockSubscriptionStrategy blockSubscriptionStrategy;
 
@@ -46,12 +48,10 @@ public class Web3jService implements BlockchainService {
     public Web3jService(Web3j web3j,
                         ContractEventDetailsFactory eventDetailsFactory,
                         EventBlockManagementService blockManagement,
-                        AsyncTaskService asyncTaskService,
                         BlockSubscriptionStrategy blockSubscriptionStrategy) {
         this.web3j = web3j;
         this.eventDetailsFactory = eventDetailsFactory;
         this.blockManagement = blockManagement;
-        this.asyncTaskService = asyncTaskService;
 
         this.blockSubscriptionStrategy = blockSubscriptionStrategy;
 
@@ -93,8 +93,14 @@ public class Web3jService implements BlockchainService {
         final Observable<Log> observable = web3j.ethLogObservable(ethFilter);
 
         final Subscription sub = observable.subscribe(log -> {
-            eventListener.onEvent(
-                    eventDetailsFactory.createEventDetails(eventFilter, log));
+            lock.lock();
+
+            try {
+                eventListener.onEvent(
+                        eventDetailsFactory.createEventDetails(eventFilter, log));
+            } finally {
+                lock.unlock();
+            }
         });
 
         return sub;
