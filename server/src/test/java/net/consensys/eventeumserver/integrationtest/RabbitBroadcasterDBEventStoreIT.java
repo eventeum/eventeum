@@ -2,6 +2,7 @@ package net.consensys.eventeumserver.integrationtest;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import org.junit.Test;
@@ -19,6 +20,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
@@ -30,17 +33,33 @@ public class RabbitBroadcasterDBEventStoreIT extends BaseRabbitIntegrationTest {
     public static FixedHostPortGenericContainer rabbitContainer;
 
     @Test
-    public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
+    public void testBroadcastBlock() throws Exception {
+        triggerBlocks(1);
+
+        waitForBlockMessages(1);
+
+        assertTrue("No blocks received", getBroadcastBlockMessages().size() >= 1);
+
+        BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
+        assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
+        assertNotNull(blockDetails.getHash());
+    }
+
+    @Test
+    public void testBroadcastContractEvent() throws Exception {
+
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-        waitForBlockMessages(1);
+        waitForContractEventMessages(1);
 
-        assertTrue("No blocks received", getBroadcastBlockMessages().size() >= 1);
+        assertEquals(1, getBroadcastContractEvents().size());
+
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }
-
 
     @TestConfiguration
     static class RabbitConfig {

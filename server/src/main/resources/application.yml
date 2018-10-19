@@ -65,7 +65,7 @@ kafka:
 
 spring:
   rabbitmq:
-    host: ${RABBIT_ADDRESS}
+    host: ${RABBIT_ADDRESS:localhost}
 
 rabbitmq:
   exchange: ThisIsAExchange
