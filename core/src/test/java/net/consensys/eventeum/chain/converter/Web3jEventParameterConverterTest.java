@@ -7,6 +7,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.generated.Uint8;
 
 import java.math.BigInteger;
 
@@ -32,6 +33,13 @@ public class Web3jEventParameterConverterTest {
     @Test
     public void testUint256Conversion() {
         final EventParameter<BigInteger> result = underTest.convert(new Uint256(10));
+
+        assertEquals(BigInteger.TEN, result.getValue());
+    }
+
+    @Test
+    public void testUint8Conversion() {
+        final EventParameter<BigInteger> result = underTest.convert(new Uint8(10));
 
         assertEquals(BigInteger.TEN, result.getValue());
     }

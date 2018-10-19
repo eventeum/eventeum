@@ -60,6 +60,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
         mockNewHead = mock(NewHead.class);
         when(mockNewHead.getNumber()).thenReturn(BLOCK_NUMBER_HEX);
+        when(mockNewHead.getHash()).thenReturn(BLOCK_HASH);
 
         blockSubject = PublishSubject.create();
         when(mockWeb3j.newHeadsNotifications()).thenReturn(blockSubject);

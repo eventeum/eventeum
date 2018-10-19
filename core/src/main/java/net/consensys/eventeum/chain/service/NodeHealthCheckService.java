@@ -42,16 +42,17 @@ public class NodeHealthCheckService {
             blockchainService.getClientVersion();
 
             if (nodeStatus == NodeStatus.DOWN) {
+                LOGGER.info("Node has come back up.");
                 //We've come back up
-                failureListeners.forEach((listener) -> {listener.onNodeRecovery();});
+                failureListeners.forEach((listener) -> listener.onNodeRecovery());
             }
             nodeStatus = NodeStatus.RUNNING;
-        } catch(BlockchainException e) {
-            LOGGER.error("Node is down!!", e);
+        } catch(Throwable t) {
+            LOGGER.error("Node is down!!", t);
 
             if (nodeStatus == NodeStatus.RUNNING) {
                 //First sign of failure
-                failureListeners.forEach((listener) -> {listener.onNodeFailure();});
+                failureListeners.forEach((listener) -> listener.onNodeFailure());
             }
             nodeStatus = NodeStatus.DOWN;
         }

@@ -33,9 +33,14 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     }
 
     private BlockDetails newHeadToBlockDetails(NewHead newHead) {
-        final EthBlock ethBlock = getEthBlock(Numeric.decodeQuantity(newHead.getNumber()));
+//        final EthBlock ethBlock = getEthBlock(Numeric.decodeQuantity(newHead.getNumber()));
+//
+//        return blockToBlockDetails(ethBlock);
+        final BlockDetails blockDetails = new BlockDetails();
+        blockDetails.setHash(newHead.getHash());
+        blockDetails.setNumber(Numeric.decodeQuantity(newHead.getNumber()));
 
-        return blockToBlockDetails(ethBlock);
+        return blockDetails;
     }
 
     private EthBlock getEthBlock(BigInteger blockNumber) {

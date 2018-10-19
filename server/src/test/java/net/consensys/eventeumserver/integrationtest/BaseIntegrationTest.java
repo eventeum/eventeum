@@ -176,6 +176,7 @@ public class BaseIntegrationTest {
         assertEquals(CREDS.getAddress(), eventDetails.getIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.TEN, eventDetails.getNonIndexedParameters().get(0).getValue());
         assertEquals("StringValue", eventDetails.getNonIndexedParameters().get(1).getValue());
+        assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
     }
@@ -245,7 +246,8 @@ public class BaseIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(2, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING)));
+                              new ParameterDefinition(3, ParameterType.STRING),
+                              new ParameterDefinition(4, ParameterType.UINT8)));
 
         eventSpec.setEventName(DUMMY_EVENT_NAME);
 
@@ -265,7 +267,8 @@ public class BaseIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING)));
+                              new ParameterDefinition(3, ParameterType.STRING),
+                              new ParameterDefinition(4, ParameterType.UINT8)));
 
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
