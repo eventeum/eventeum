@@ -119,8 +119,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
      */
     @Override
     public void resubscribeToAllSubscriptions(boolean unsubscribeFirst) {
-        if (unsubscribeFirst) {
-            unregisterFilterSubscriptions();
+        try {
+            if (unsubscribeFirst) {
+                unregisterFilterSubscriptions();
+            }
+        } catch (Throwable t) {
+            log.info("Unable to unregister filter...this is probably because the node has restarted", t);
         }
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();

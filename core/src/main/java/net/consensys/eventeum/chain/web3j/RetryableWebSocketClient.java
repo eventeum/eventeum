@@ -27,12 +27,12 @@ public class RetryableWebSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        super.onClose(code, reason, remote);
-
         if (!isReconnecting.get() && code != 1000) {
             isReconnecting.set(true);
             asyncTaskService.execute(() -> doReconnect());
         }
+
+        super.onClose(code, reason, remote);
     }
 
     @Override
