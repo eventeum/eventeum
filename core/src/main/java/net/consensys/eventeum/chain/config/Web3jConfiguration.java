@@ -1,12 +1,18 @@
 package net.consensys.eventeum.chain.config;
 
-import net.consensys.eventeum.chain.web3j.RetryableWebSocketClient;
+import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.NodeFailureListener;
+import net.consensys.eventeum.chain.service.ResubscribeNodeFailureListener;
+import net.consensys.eventeum.chain.websocket.RetryableWebSocketClient;
+import net.consensys.eventeum.chain.websocket.WebSocketReconnectionManager;
+import net.consensys.eventeum.chain.websocket.WebSocketResubscribeNodeFailureListener;
 import net.consensys.eventeum.service.AsyncTaskService;
+import net.consensys.eventeum.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -30,51 +36,92 @@ import java.net.URISyntaxException;
 public class Web3jConfiguration {
 
     @Bean
-    Web3j web3j(@Value("${ethereum.node.url}") String url, AsyncTaskService asyncTaskService) {
-        final URI uri = parseURI(url);
-        Web3jService service;
-
-        if (uri.getScheme().startsWith("ws")) {
-            try {
-                final WebSocketClient client =
-                        new RetryableWebSocketClient(uri, websocketRetryTemplate(), asyncTaskService);
-                WebSocketService wsService = new WebSocketService(client, false);
-                wsService.connect();
-                service = wsService;
-            } catch (ConnectException e) {
-                throw new RuntimeException("Unable to connect to eth node websocket", e);
-            }
-        } else {
-            service = new HttpService(url);
-        }
+    Web3j web3j(Web3jService service) {
 
         return Web3j.build(service);
     }
 
-    @Bean
-    public RetryTemplate websocketRetryTemplate() {
-        final RetryTemplate retryTemplate = new RetryTemplate();
+    @ConditionalOnExpression("'${ethereum.node.url}'.contains('wss://') || '${ethereum.node.url}'.contains('ws://')")
+    @Configuration
+    public class WebSocketConfiguration {
 
-        final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-        fixedBackOffPolicy.setBackOffPeriod(2000l);
-        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+        @Bean
+        WebSocketClient webSocketClient(@Value("${ethereum.node.url}") String url,
+                                        AsyncTaskService asyncTaskService,
+                                        WebSocketReconnectionManager reconnectionManager) {
+            final URI uri = parseURI(url);
 
-        //AlwaysRetryPolicy seems to ignore backoff policy
-        final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(Integer.MAX_VALUE);
-        retryTemplate.setRetryPolicy(retryPolicy);
+            return new RetryableWebSocketClient(uri, reconnectionManager);
+        }
+
+        @Bean
+        WebSocketService webSocketService(WebSocketClient client) {
+            WebSocketService wsService = new WebSocketService(client, false);
+
+            try {
+                wsService.connect();
+            } catch (ConnectException e) {
+                throw new RuntimeException("Unable to connect to eth node websocket", e);
+            }
+
+            return wsService;
+        }
+
+        @Bean
+        RetryTemplate websocketRetryTemplate() {
+            final RetryTemplate retryTemplate = new RetryTemplate();
+
+            final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+            fixedBackOffPolicy.setBackOffPeriod(2000l);
+            retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+            //AlwaysRetryPolicy seems to ignore backoff policy
+            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+            retryPolicy.setMaxAttempts(Integer.MAX_VALUE);
+            retryTemplate.setRetryPolicy(retryPolicy);
 
 //        final AlwaysRetryPolicy retryPolicy = new AlwaysRetryPolicy();
 //        retryTemplate.setRetryPolicy(retryPolicy);
 
-        return retryTemplate;
+            return retryTemplate;
+        }
+
+        @Bean
+        WebSocketReconnectionManager reconnectionManager(AsyncTaskService asyncTaskService) {
+            return new WebSocketReconnectionManager(websocketRetryTemplate(), asyncTaskService);
+        }
+
+        @Bean
+        WebSocketResubscribeNodeFailureListener websocketFailureListener(SubscriptionService subscriptionService,
+                                                                         BlockchainService blockchainService,
+                                                                         WebSocketReconnectionManager reconnectionManager,
+                                                                         WebSocketClient client) {
+            return new WebSocketResubscribeNodeFailureListener(subscriptionService,
+                    blockchainService, reconnectionManager, client);
+        }
+
+        private URI parseURI(String serverUrl) {
+            try {
+                return new URI(serverUrl);
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(String.format("Failed to parse URL: '%s'", serverUrl), e);
+            }
+        }
     }
 
-    private static URI parseURI(String serverUrl) {
-        try {
-            return new URI(serverUrl);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(String.format("Failed to parse URL: '%s'", serverUrl), e);
+    @ConditionalOnExpression("!('${ethereum.node.url}'.contains('wss://') || '${ethereum.node.url}'.contains('ws://'))")
+    @Configuration
+    public class HttpConfiguration {
+
+        @Bean
+        HttpService webSocketService(@Value("${ethereum.node.url}") String url) {
+            return new HttpService(url);
+        }
+
+        @Bean
+        NodeFailureListener resubscribeNodeFailureListener(SubscriptionService subscriptionService,
+                                                           BlockchainService blockchainService) {
+            return new ResubscribeNodeFailureListener(subscriptionService, blockchainService);
         }
     }
 }

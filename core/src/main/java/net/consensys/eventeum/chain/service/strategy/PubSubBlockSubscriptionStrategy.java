@@ -32,7 +32,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         final BlockDetails blockDetails = new BlockDetails();
         blockDetails.setHash(blockObject.getHash());
         blockDetails.setNumber(Numeric.decodeQuantity(blockObject.getNumber()));
-        blockDetails.setTimestamp(new BigInteger(blockObject.getTimestamp()));
+        blockDetails.setTimestamp(Numeric.decodeQuantity(blockObject.getTimestamp()));
 
         return blockDetails;
     }

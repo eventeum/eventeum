@@ -29,7 +29,8 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
     private static final String BLOCK_NUMBER_HEX = "0x7B";
 
-    private static final String BLOCK_TIMESTAMP = "12345678";
+    //12345678
+    private static final String BLOCK_TIMESTAMP = "0xbc614e";
 
     private PubSubBlockSubscriptionStrategy underTest;
 
@@ -121,7 +122,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         underTest.subscribe();
         final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(new BigInteger(BLOCK_TIMESTAMP), blockDetails.getTimestamp());
+        assertEquals(BigInteger.valueOf(12345678), blockDetails.getTimestamp());
     }
 
     private BlockDetails doRegisterBlockListenerAndTrigger() {

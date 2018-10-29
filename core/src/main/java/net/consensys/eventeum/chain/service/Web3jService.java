@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
@@ -35,6 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Service
+@Slf4j
 public class Web3jService implements BlockchainService {
 
     private Web3j web3j;
@@ -111,6 +113,7 @@ public class Web3jService implements BlockchainService {
      */
     @Override
     public void reconnect() {
+        log.info("Reconnecting...");
         blockSubscriptionStrategy.unsubscribe();
         connect();
     }
@@ -165,6 +168,7 @@ public class Web3jService implements BlockchainService {
     }
 
     private void connect() {
+        log.info("Subscribing to block events");
         blockSubscriptionStrategy.subscribe();
     }
 

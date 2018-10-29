@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
 public class ResubscribeNodeFailureListener implements NodeFailureListener {
 
     private SubscriptionService subscriptionService;
