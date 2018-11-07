@@ -3,6 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2
+executorType: machine
 jobs:
   build:
     docker:
@@ -35,6 +36,10 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
+
+      - run:
+          name: integration tests
+          command: mvn clean verify -DskipIntegrationTests=false
 
       # Build and deploy latest artifacts
       - run: mvn -s ./.circleci/.circleci.settings.xml deploy

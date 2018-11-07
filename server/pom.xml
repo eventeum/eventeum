@@ -12,6 +12,11 @@
         <version>0.3.1-KAURI</version>
     </parent>
 
+    <properties>
+        <java.version>1.8</java.version>
+        <skipIntegrationTests>true</skipIntegrationTests>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -58,10 +63,6 @@
         </dependency>
     </dependencies>
 
-    <properties>
-        <java.version>1.8</java.version>
-    </properties>
-
     <build>
         <finalName>eventeum-server</finalName>
         <plugins>
@@ -94,7 +95,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <skipITs>true</skipITs>
+                    <classesDirectory>${project.build.directory}/${artifactId}.jar.original</classesDirectory>
+                    <skipITs>${skipIntegrationTests}</skipITs>
                 </configuration>
             </plugin>
             <plugin>
