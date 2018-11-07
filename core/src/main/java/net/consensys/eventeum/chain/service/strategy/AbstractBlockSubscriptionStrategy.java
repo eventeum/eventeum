@@ -26,7 +26,11 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     @Override
     public void unsubscribe() {
-        blockSubscription.unsubscribe();
+        try {
+            blockSubscription.unsubscribe();
+        } finally {
+            blockSubscription = null;
+        }
     }
 
     @Override
@@ -37,6 +41,10 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     @Override
     public void removeBlockListener(BlockListener blockListener) {
         blockListeners.remove(blockListener);
+    }
+
+    public boolean isSubscribed() {
+        return blockSubscription != null && !blockSubscription.isUnsubscribed();
     }
 
     protected void triggerListeners(T blockObject) {

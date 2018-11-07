@@ -11,4 +11,6 @@ public interface BlockSubscriptionStrategy {
     void addBlockListener(BlockListener blockListener);
 
     void removeBlockListener(BlockListener blockListener);
+
+    boolean isSubscribed();
 }

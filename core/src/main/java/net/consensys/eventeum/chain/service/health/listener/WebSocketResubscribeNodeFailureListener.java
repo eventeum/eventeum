@@ -1,10 +1,9 @@
-package net.consensys.eventeum.chain.websocket;
+package net.consensys.eventeum.chain.service.health.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.ResubscribeNodeFailureListener;
+import net.consensys.eventeum.chain.websocket.WebSocketReconnectionManager;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.springframework.stereotype.Component;
 import org.web3j.protocol.websocket.WebSocketClient;
 
 /**
@@ -26,7 +25,7 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribeNodeFail
                                                    BlockchainService blockchainService,
                                                    WebSocketReconnectionManager reconnectionManager,
                                                    WebSocketClient client) {
-        super(subscriptionService, blockchainService);
+        super(subscriptionService,blockchainService);
 
         this.reconnectionManager = reconnectionManager;
         this.client = client;

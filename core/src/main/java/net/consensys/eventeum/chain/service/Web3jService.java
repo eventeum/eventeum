@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.*;
 import rx.Observable;
@@ -114,7 +115,12 @@ public class Web3jService implements BlockchainService {
     @Override
     public void reconnect() {
         log.info("Reconnecting...");
-        blockSubscriptionStrategy.unsubscribe();
+        try {
+            blockSubscriptionStrategy.unsubscribe();
+        } catch (FilterException e) {
+            log.warn("Unable to unregister block subscription.  " +
+                    "This is probably because the node has restarted or we're in websocket mode");
+        }
         connect();
     }
 
@@ -160,6 +166,11 @@ public class Web3jService implements BlockchainService {
         } catch (IOException e) {
             throw new BlockchainException("Error when obtaining the current block number", e);
         }
+    }
+
+    @Override
+    public boolean isConnected() {
+        return blockSubscriptionStrategy != null && blockSubscriptionStrategy.isSubscribed();
     }
 
     @PreDestroy

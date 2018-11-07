@@ -124,7 +124,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
                 unregisterFilterSubscriptions();
             }
         } catch (Throwable t) {
-            log.info("Unable to unregister filter...this is probably because the node has restarted", t);
+            log.info("Unable to unregister filter...this is probably because the " +
+                    "node has restarted or we're in websocket mode");
         }
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();
@@ -134,6 +135,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
         });
 
         filterSubscriptions = newFilterSubscriptions;
+
+        log.info("Resubscribed to event filters: {}", JSON.stringify(filterSubscriptions));
     }
 
     @PreDestroy

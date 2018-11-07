@@ -1,11 +1,14 @@
-package net.consensys.eventeum.chain.service;
+package net.consensys.eventeum.chain.service.health;
 
+import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import javax.xml.soap.Node;
 import java.util.List;
 
 /**
@@ -17,7 +20,7 @@ import java.util.List;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
+@Service
 public class NodeHealthCheckService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeHealthCheckService.class);
@@ -33,24 +36,39 @@ public class NodeHealthCheckService {
                                   List<NodeFailureListener> failureListeners) {
         this.blockchainService = blockchainService;
         this.failureListeners = failureListeners;
-        nodeStatus = NodeStatus.RUNNING;
+        nodeStatus = NodeStatus.SUBSCRIBED;
     }
 
     @Scheduled(fixedDelayString = "${ethereum.node.healthcheck.pollInterval}")
     public void checkHealth() {
-        try {
-            blockchainService.getClientVersion();
+        final NodeStatus statusAtStart = nodeStatus;
 
+        if (isNodeConnected()) {
             if (nodeStatus == NodeStatus.DOWN) {
                 LOGGER.info("Node has come back up.");
+
                 //We've come back up
                 failureListeners.forEach((listener) -> listener.onNodeRecovery());
+                nodeStatus = NodeStatus.CONNECTED;
             }
-            nodeStatus = NodeStatus.RUNNING;
-        } catch(Throwable t) {
-            LOGGER.error("Node is down!!", t);
 
-            if (nodeStatus == NodeStatus.RUNNING) {
+            if (isSubscribed()) {
+                //We weren't previously subscribed, but we are now!
+                if (statusAtStart != NodeStatus.SUBSCRIBED) {
+                    failureListeners.forEach((listener) -> listener.onNodeSubscribed());
+                }
+
+                nodeStatus = NodeStatus.SUBSCRIBED;
+            } else if (statusAtStart == NodeStatus.SUBSCRIBED) {
+                //We were previously subscribed, but not any longer
+                LOGGER.info("Node subscriptions have been lost, attempting to resubscribe");
+                failureListeners.forEach((listener) -> listener.onNodeRecovery());
+                nodeStatus = NodeStatus.CONNECTED;
+            }
+        } else {
+            LOGGER.error("Node is down!!");
+
+            if (nodeStatus != NodeStatus.DOWN) {
                 //First sign of failure
                 failureListeners.forEach((listener) -> listener.onNodeFailure());
             }
@@ -58,8 +76,25 @@ public class NodeHealthCheckService {
         }
     }
 
+    protected boolean isNodeConnected() {
+        try {
+            blockchainService.getClientVersion();
+        } catch(Throwable t) {
+            LOGGER.error("Get client version failed with exception", t);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    protected boolean isSubscribed() {
+        return blockchainService.isConnected();
+    }
+
     private enum NodeStatus {
-        RUNNING,
+        CONNECTED,
+        SUBSCRIBED,
         DOWN
     }
 

@@ -1,24 +1,23 @@
 package net.consensys.eventeum.chain.config;
 
+import net.consensys.eventeum.annotation.ConditionalOnWebsocket;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.NodeFailureListener;
-import net.consensys.eventeum.chain.service.ResubscribeNodeFailureListener;
-import net.consensys.eventeum.chain.websocket.RetryableWebSocketClient;
+import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
+import net.consensys.eventeum.chain.service.health.listener.ResubscribeNodeFailureListener;
 import net.consensys.eventeum.chain.websocket.WebSocketReconnectionManager;
-import net.consensys.eventeum.chain.websocket.WebSocketResubscribeNodeFailureListener;
+import net.consensys.eventeum.chain.service.health.listener.WebSocketResubscribeNodeFailureListener;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.protocol.websocket.EventeumWebSocketService;
 import org.web3j.protocol.websocket.WebSocketClient;
 import org.web3j.protocol.websocket.WebSocketService;
 
@@ -32,7 +31,6 @@ import java.net.URISyntaxException;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Configuration
-@EnableScheduling
 public class Web3jConfiguration {
 
     @Bean
@@ -41,22 +39,21 @@ public class Web3jConfiguration {
         return Web3j.build(service);
     }
 
-    @ConditionalOnExpression("'${ethereum.node.url}'.contains('wss://') || '${ethereum.node.url}'.contains('ws://')")
+    @ConditionalOnWebsocket
     @Configuration
     public class WebSocketConfiguration {
 
         @Bean
-        WebSocketClient webSocketClient(@Value("${ethereum.node.url}") String url,
-                                        AsyncTaskService asyncTaskService,
-                                        WebSocketReconnectionManager reconnectionManager) {
+        WebSocketClient webSocketClient(@Value("${ethereum.node.url}") String url) {
             final URI uri = parseURI(url);
 
-            return new RetryableWebSocketClient(uri, reconnectionManager);
+            //return new RetryableWebSocketClient(uri, reconnectionManager, resubscribeService);
+            return new WebSocketClient(uri);
         }
 
         @Bean
         WebSocketService webSocketService(WebSocketClient client) {
-            WebSocketService wsService = new WebSocketService(client, false);
+            WebSocketService wsService = new EventeumWebSocketService(client, false);
 
             try {
                 wsService.connect();
@@ -68,7 +65,7 @@ public class Web3jConfiguration {
         }
 
         @Bean
-        RetryTemplate websocketRetryTemplate() {
+        RetryTemplate foreverRetryTemplate() {
             final RetryTemplate retryTemplate = new RetryTemplate();
 
             final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
@@ -88,7 +85,7 @@ public class Web3jConfiguration {
 
         @Bean
         WebSocketReconnectionManager reconnectionManager(AsyncTaskService asyncTaskService) {
-            return new WebSocketReconnectionManager(websocketRetryTemplate(), asyncTaskService);
+            return new WebSocketReconnectionManager(foreverRetryTemplate(), asyncTaskService);
         }
 
         @Bean
@@ -109,7 +106,7 @@ public class Web3jConfiguration {
         }
     }
 
-    @ConditionalOnExpression("!('${ethereum.node.url}'.contains('wss://') || '${ethereum.node.url}'.contains('ws://'))")
+    @ConditionalOnWebsocket(false)
     @Configuration
     public class HttpConfiguration {
 

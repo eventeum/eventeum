@@ -1,5 +1,7 @@
 package net.consensys.eventeum.chain.service;
 
+import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
+import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,7 +34,7 @@ public class NodeHealthCheckServiceTest {
 
     @Test
     public void testEverythingUpHappyPath() {
-        wireBlockchainServiceUp();
+        wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
         verify(mockFailureListener1, never()).onNodeFailure();
@@ -42,8 +44,8 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testBlockchainServiceGoesDown() {
-        wireBlockchainServiceDown();
+    public void testNodeDisconnected() {
+        wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
         verify(mockFailureListener1, times(1)).onNodeFailure();
@@ -53,8 +55,8 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testBlockchainServiceStaysDown() {
-        wireBlockchainServiceDown();
+    public void testNodeStaysDown() {
+        wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
         verify(mockFailureListener1, times(1)).onNodeFailure();
@@ -68,59 +70,148 @@ public class NodeHealthCheckServiceTest {
         verify(mockFailureListener2, never()).onNodeRecovery();
     }
 
+
     @Test
-    public void testBlockchainServiceComesBackUp() {
-        wireBlockchainServiceDown();
+    public void testNodeComesBackUpNotSubscribed() {
+        wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
         verify(mockFailureListener1, times(1)).onNodeFailure();
         verify(mockFailureListener1, never()).onNodeRecovery();
+        verify(mockFailureListener1, never()).onNodeSubscribed();
+        verify(mockFailureListener2, times(1)).onNodeFailure();
+        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockFailureListener2, never()).onNodeSubscribed();
+
+        reset(mockBlockchainService);
+        wireBlockchainServiceUp(false);
+        underTest.checkHealth();
+
+        verify(mockFailureListener1, times(1)).onNodeFailure();
+        verify(mockFailureListener1, times(1)).onNodeRecovery();
+        verify(mockFailureListener1, never()).onNodeSubscribed();
+        verify(mockFailureListener2, times(1)).onNodeFailure();
+        verify(mockFailureListener2, times(1)).onNodeRecovery();
+        verify(mockFailureListener2, never()).onNodeSubscribed();
+    }
+
+    @Test
+    public void testNodeComesBackUpSubscribed() {
+        wireBlockchainServiceDown(false, false);
+        underTest.checkHealth();
+
+        verify(mockFailureListener1, times(1)).onNodeFailure();
+        verify(mockFailureListener1, never()).onNodeRecovery();
+        verify(mockFailureListener1, never()).onNodeSubscribed();
         verify(mockFailureListener2, times(1)).onNodeFailure();
         verify(mockFailureListener2, never()).onNodeRecovery();
 
         reset(mockBlockchainService);
-        wireBlockchainServiceUp();
+        wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
         verify(mockFailureListener1, times(1)).onNodeFailure();
         verify(mockFailureListener1, times(1)).onNodeRecovery();
+        verify(mockFailureListener1, times(1)).onNodeSubscribed();
         verify(mockFailureListener2, times(1)).onNodeFailure();
         verify(mockFailureListener2, times(1)).onNodeRecovery();
+        verify(mockFailureListener2, times(1)).onNodeSubscribed();
     }
 
     @Test
-    public void testBlockchainServiceComesBackUpAndStaysUp() {
-        wireBlockchainServiceDown();
+    public void testNodeFromConnectedToSubscribed() {
+        wireBlockchainServiceUp(false);
+        underTest.checkHealth();
+
+        verify(mockFailureListener1, never()).onNodeFailure();
+        verify(mockFailureListener1, times(1)).onNodeRecovery();
+        verify(mockFailureListener1, never()).onNodeSubscribed();
+        verify(mockFailureListener2, never()).onNodeFailure();
+        verify(mockFailureListener2, times(1)).onNodeRecovery();
+        verify(mockFailureListener2, never()).onNodeSubscribed();
+
+        reset(mockBlockchainService);
+        wireBlockchainServiceUp(true);
+        underTest.checkHealth();
+
+        verify(mockFailureListener1, never()).onNodeFailure();
+        verify(mockFailureListener1, times(1)).onNodeRecovery();
+        verify(mockFailureListener1, times(1)).onNodeSubscribed();
+        verify(mockFailureListener2, never()).onNodeFailure();
+        verify(mockFailureListener2, times(1)).onNodeRecovery();
+        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+    }
+
+    @Test
+    public void testNodeFromSubscribedToConnected() {
+        wireBlockchainServiceUp(true);
+        underTest.checkHealth();
+
+        verify(mockFailureListener1, never()).onNodeFailure();
+        verify(mockFailureListener1, never()).onNodeRecovery();
+        verify(mockFailureListener1, never()).onNodeSubscribed();
+        verify(mockFailureListener2, never()).onNodeFailure();
+        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockFailureListener2, never()).onNodeSubscribed();
+
+        reset(mockBlockchainService);
+        wireBlockchainServiceUp(false);
+        underTest.checkHealth();
+
+        verify(mockFailureListener1, never()).onNodeFailure();
+        verify(mockFailureListener1, times(1)).onNodeRecovery();
+        verify(mockFailureListener1, never()).onNodeSubscribed();
+        verify(mockFailureListener2, never()).onNodeFailure();
+        verify(mockFailureListener2, times(1)).onNodeRecovery();
+        verify(mockFailureListener2, never()).onNodeSubscribed();
+    }
+
+    @Test
+    public void testNodeComesBackUpAndStaysUp() {
+        wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
         verify(mockFailureListener1, times(1)).onNodeFailure();
         verify(mockFailureListener1, never()).onNodeRecovery();
+        verify(mockFailureListener1, never()).onNodeSubscribed();
         verify(mockFailureListener2, times(1)).onNodeFailure();
         verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockFailureListener2, never()).onNodeSubscribed();
 
         reset(mockBlockchainService);
-        wireBlockchainServiceUp();
+        wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
         verify(mockFailureListener1, times(1)).onNodeFailure();
         verify(mockFailureListener1, times(1)).onNodeRecovery();
+        verify(mockFailureListener1, times(1)).onNodeSubscribed();
         verify(mockFailureListener2, times(1)).onNodeFailure();
         verify(mockFailureListener2, times(1)).onNodeRecovery();
+        verify(mockFailureListener2, times(1)).onNodeSubscribed();
 
         underTest.checkHealth();
 
         verify(mockFailureListener1, times(1)).onNodeFailure();
         verify(mockFailureListener1, times(1)).onNodeRecovery();
+        verify(mockFailureListener1, times(1)).onNodeSubscribed();
         verify(mockFailureListener2, times(1)).onNodeFailure();
         verify(mockFailureListener2, times(1)).onNodeRecovery();
+        verify(mockFailureListener2, times(1)).onNodeSubscribed();
     }
 
-    private void wireBlockchainServiceUp() {
+    private void wireBlockchainServiceUp(boolean isSubscribed) {
         when(mockBlockchainService.getClientVersion()).thenReturn(VERSION);
+        when(mockBlockchainService.isConnected()).thenReturn(isSubscribed);
     }
 
-    private void wireBlockchainServiceDown() {
-        when(mockBlockchainService.getClientVersion()).thenThrow(
-                new BlockchainException("Error!", new IOException("")));
+    private void wireBlockchainServiceDown(boolean isConnected, boolean isSubscribed) {
+
+        when(mockBlockchainService.isConnected()).thenReturn(isSubscribed);
+        if (isConnected) {
+            when(mockBlockchainService.getClientVersion()).thenReturn(VERSION);
+        } else {
+            when(mockBlockchainService.getClientVersion()).thenThrow(
+                    new BlockchainException("Error!", new IOException("")));
+        }
     }
 }

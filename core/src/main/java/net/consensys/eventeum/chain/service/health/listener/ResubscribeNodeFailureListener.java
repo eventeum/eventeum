@@ -1,8 +1,9 @@
-package net.consensys.eventeum.chain.service;
+package net.consensys.eventeum.chain.service.health.listener;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * An NodeFailureListener that reconnects the blockchain service and resubscribes to all
@@ -12,17 +13,12 @@ import org.springframework.stereotype.Component;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@AllArgsConstructor
+@Slf4j
 public class ResubscribeNodeFailureListener implements NodeFailureListener {
 
     private SubscriptionService subscriptionService;
     private BlockchainService blockchainService;
-
-    @Autowired
-    public ResubscribeNodeFailureListener(SubscriptionService subscriptionService,
-                                          BlockchainService blockchainService) {
-        this.subscriptionService = subscriptionService;
-        this.blockchainService = blockchainService;
-    }
 
     @Override
     public void onNodeFailure() {
@@ -30,10 +26,15 @@ public class ResubscribeNodeFailureListener implements NodeFailureListener {
     }
 
     @Override
-    public void onNodeRecovery() {
-        blockchainService.reconnect();
-
+    public synchronized void onNodeRecovery() {
         //TODO need to figure out if we need to unregister
         subscriptionService.resubscribeToAllSubscriptions(true);
+
+        blockchainService.reconnect();
+    }
+
+    @Override
+    public void onNodeSubscribed() {
+        log.info("Resubscribed after failure");
     }
 }

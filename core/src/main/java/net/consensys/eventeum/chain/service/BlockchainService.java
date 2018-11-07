@@ -63,4 +63,10 @@ public interface BlockchainService {
      * Reconnects to the Ethereum node (useful after node failure)
      */
     void reconnect();
+
+    /**
+     *
+     * @return true if the service is correctly connected to the ethereum node.
+     */
+    boolean isConnected();
 }
