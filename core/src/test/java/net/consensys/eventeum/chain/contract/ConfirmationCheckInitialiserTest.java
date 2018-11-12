@@ -6,6 +6,8 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
+import net.consensys.eventeum.service.AsyncTaskService;
+import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,6 +21,7 @@ public class ConfirmationCheckInitialiserTest {
 
      private BlockchainService mockBlockchainService;
      private BlockListener mockBlockListener;
+     private AsyncTaskService asyncTaskService = new DummyAsyncTaskService();
 
      @Before
      public void init() {
@@ -58,7 +61,7 @@ public class ConfirmationCheckInitialiserTest {
          public ConfirmationCheckInitialiserForTest(BlockchainService blockchainService,
                                                     BlockchainEventBroadcaster eventBroadcaster,
                                                     EventConfirmationConfig eventConfirmationConfig) {
-             super(blockchainService, eventBroadcaster, eventConfirmationConfig);
+             super(blockchainService, eventBroadcaster, eventConfirmationConfig, asyncTaskService);
          }
 
          @Override

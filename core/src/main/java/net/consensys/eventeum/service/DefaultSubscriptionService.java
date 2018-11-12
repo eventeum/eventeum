@@ -2,15 +2,15 @@ package net.consensys.eventeum.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.utils.JSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Subscription;
@@ -24,10 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Slf4j
 @Component
 public class DefaultSubscriptionService implements SubscriptionService {
-
-    private static final Logger logger = LoggerFactory.getLogger(DefaultSubscriptionService.class);
 
     private BlockchainService blockchainService;
 
@@ -82,7 +81,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
             return filter;
         } else {
-            logger.info("Already registered contract event filter with id: " + filter.getId());
+            log.info("Already registered contract event filter with id: " + filter.getId());
             return getFilterSubscription(filter.getId()).getFilter();
         }
     }
@@ -120,8 +119,13 @@ public class DefaultSubscriptionService implements SubscriptionService {
      */
     @Override
     public void resubscribeToAllSubscriptions(boolean unsubscribeFirst) {
-        if (unsubscribeFirst) {
-            unregisterFilterSubscriptions();
+        try {
+            if (unsubscribeFirst) {
+                unregisterFilterSubscriptions();
+            }
+        } catch (Throwable t) {
+            log.info("Unable to unregister filter...this is probably because the " +
+                    "node has restarted or we're in websocket mode");
         }
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();
@@ -131,6 +135,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
         });
 
         filterSubscriptions = newFilterSubscriptions;
+
+        log.info("Resubscribed to event filters: {}", JSON.stringify(filterSubscriptions));
     }
 
     @PreDestroy
@@ -143,14 +149,22 @@ public class DefaultSubscriptionService implements SubscriptionService {
     }
 
     private void registerContractEventFilter(ContractEventFilter filter, Map<String, FilterSubscription> allFilterSubscriptions) {
-        logger.info("Registering filter: " + JSON.stringify(filter));
+        log.info("Registering filter: " + JSON.stringify(filter));
         final Subscription sub = blockchainService.registerEventListener(filter, contractEvent -> {
             contractEventListeners.forEach(
-                    listener -> asyncTaskService.execute(
-                            () -> listener.onEvent(contractEvent)));
+                    listener -> triggerListener(listener, contractEvent));
         });
 
         allFilterSubscriptions.put(filter.getId(), new FilterSubscription(filter, sub));
+    }
+
+    private void triggerListener(ContractEventListener listener, ContractEventDetails contractEventDetails) {
+        try {
+            listener.onEvent(contractEventDetails);
+        } catch (Throwable t) {
+            log.error(String.format(
+                    "An error occurred when processing contractEvent with id %s", contractEventDetails.getId()), t);
+        }
     }
 
     private ContractEventFilter saveContractEventFilter(ContractEventFilter contractEventFilter) {

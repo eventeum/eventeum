@@ -73,8 +73,8 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenReturn(blockNumber);
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
 
-        underTest = new Web3jService(mockWeb3j, mockContractEventDetailsFactory,
-                mockBlockManagement, new DummyAsyncTaskService(), mockBlockSubscriptionStrategy);
+        underTest = new Web3jService(mockWeb3j,
+                mockContractEventDetailsFactory, mockBlockManagement, mockBlockSubscriptionStrategy);
     }
 
     @Test

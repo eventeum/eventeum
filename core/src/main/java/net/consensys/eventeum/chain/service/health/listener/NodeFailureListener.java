@@ -1,4 +1,4 @@
-package net.consensys.eventeum.chain.service;
+package net.consensys.eventeum.chain.service.health.listener;
 
 /**
  * A listener interface that is triggered on node failure and recovery events.
@@ -16,4 +16,9 @@ public interface NodeFailureListener {
      * Triggered when it has been detected that the Ethereum node has recovered after failure.
      */
     void onNodeRecovery();
+
+    /**
+     * Triggered when it has been detected that block / event subscriptions on the Ethereum are valid.
+     */
+    void onNodeSubscribed();
 }

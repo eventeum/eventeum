@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.contract;
 
+import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.EventConfirmationBlockListener;
@@ -7,7 +8,7 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,20 +20,13 @@ import org.springframework.stereotype.Component;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Component
+@AllArgsConstructor
 public class ConfirmationCheckInitialiser implements ContractEventListener {
 
     private BlockchainService blockchainService;
     private BlockchainEventBroadcaster eventBroadcaster;
     private EventConfirmationConfig eventConfirmationConfig;
-
-    @Autowired
-    public ConfirmationCheckInitialiser(BlockchainService blockchainService,
-                                        BlockchainEventBroadcaster eventBroadcaster,
-                                        EventConfirmationConfig eventConfirmationConfig) {
-        this.blockchainService = blockchainService;
-        this.eventBroadcaster = eventBroadcaster;
-        this.eventConfirmationConfig = eventConfirmationConfig;
-    }
+    private AsyncTaskService asyncTaskService;
 
     @Override
     public void onEvent(ContractEventDetails eventDetails) {
@@ -43,6 +37,6 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
 
     protected BlockListener createEventConfirmationBlockListener(ContractEventDetails eventDetails) {
         return new EventConfirmationBlockListener(eventDetails, blockchainService,
-                eventBroadcaster, eventConfirmationConfig);
+                eventBroadcaster, eventConfirmationConfig, asyncTaskService);
     }
 }

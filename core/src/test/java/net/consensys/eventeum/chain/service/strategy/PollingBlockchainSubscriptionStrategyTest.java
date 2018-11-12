@@ -24,6 +24,8 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private static final BigInteger BLOCK_NUMBER = BigInteger.valueOf(123);
 
+    private static final BigInteger BLOCK_TIMESTAMP = BigInteger.valueOf(12345678);
+
     private PollingBlockSubscriptionStrategy underTest;
 
     private PublishSubject<EthBlock> blockSubject;
@@ -43,12 +45,13 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
         when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
         when(mockBlock.getHash()).thenReturn(BLOCK_HASH);
+        when(mockBlock.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
         when(mockEthBlock.getBlock()).thenReturn(mockBlock);
 
         blockSubject = PublishSubject.create();
         when(mockWeb3j.blockObservable(false)).thenReturn(blockSubject);
 
-        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, new DummyAsyncTaskService());
+        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j);
     }
 
     @Test
@@ -104,6 +107,14 @@ public class PollingBlockchainSubscriptionStrategyTest {
         final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
 
         assertEquals(BLOCK_NUMBER, blockDetails.getNumber());
+    }
+
+    @Test
+    public void testBlockTimestampPassedToListenerIsCorrect() {
+        underTest.subscribe();
+        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+
+        assertEquals(BLOCK_TIMESTAMP, blockDetails.getTimestamp());
     }
 
     private BlockDetails doRegisterBlockListenerAndTrigger() {

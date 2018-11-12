@@ -1,6 +1,14 @@
 # Eventeum
 A bridge between your Ethereum smart contract events and backend microservices.  Eventeum listens for specified event emissions from the Ethereum network, and broadcasts these events into your middleware layer.  This provides a distinct seperation of concerns and means that your microservices do not have to subscribe to events directly to an Ethereum node.
 
+**Master**
+
+[![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/master.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/master)
+
+**Development**
+  
+[![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/development.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/development)
+
 ## Features
 * Dynamically Configurable - Eventeum exposes a REST api so that smart contract events can be dynamically subscribed / unsubscribed.
 
@@ -13,6 +21,7 @@ A bridge between your Ethereum smart contract events and backend microservices. 
 ## Supported Broadcast Mechanisms
 * Kafka
 * HTTP Post
+* [RabbitMQ](https://www.rabbitmq.com/)
 
 ## Getting Started
 Follow the instructions below in order to run Eventeum on your local machine for development and testing purposes.
@@ -44,6 +53,7 @@ $ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
 $ export ETHEREUM_NODE_URL=http://<node-host:port>
 $ export ZOOKEEPER_ADDRESS=<zookeeper-host:port>
 $ export KAFKA_ADDRESSES=<kafka-host:port>
+$ export RABBIT_ADDRESSES=<rabbit-host:port>
 
 $ java -jar target/eventeum-server.jar
 ```
@@ -58,6 +68,7 @@ $ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
 $ export ETHEREUM_NODE_URL=http://<node-host:port>
 $ export ZOOKEEPER_ADDRESS=<zookeeper-host:port>
 $ export KAFKA_ADDRESSES=<kafka-host:port>
+$ export RABBIT_ADDRESSES=<rabbit-host:port>
 
 $ docker run -p 8060:8060 kauri/eventeum
 ```
@@ -180,7 +191,7 @@ eventFilters:
 ## Broadcast Messages Format
 
 ###  Contract Events
-When a subscribed event is emitted, a JSON message is broadcast to the configured kafka topic (contract-events by default), with the following format:
+When a subscribed event is emitted, a JSON message is broadcast to the configured kafka topic or rabbit exchange (contract-events by default), with the following format:
 
 ```
 {
@@ -207,7 +218,7 @@ When a subscribed event is emitted, a JSON message is broadcast to the configure
 ```
 
 ### Block Events
-When a new block is mined, a JSON message is broadcast to the configured kafka topic (block-events by default), with the following format:
+When a new block is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (block-events by default), with the following format:
 
 ```
  {
@@ -215,7 +226,8 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 	"type":"BLOCK",
 	"details":{
 		"number":257,
-		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8"},
+		"hash":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8",
+		"timestamp":12345678},
 	"retries":0
 }
 ```
@@ -230,7 +242,7 @@ Many values within Eventeum are configurable either by changing the values in th
 | ETHEREUM_NODE_URL | http://localhost:8545 | The ethereum node url. |
 | ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
-| BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP) |
+| BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
 | BROADCASTER_CACHE _EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
 | BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
 | BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
@@ -243,6 +255,9 @@ Many values within Eventeum are configurable either by changing the values in th
 | KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
 | SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
+| RABBIT_ADDRESS | localhost:5672 | property spring.rabbitmq.host (The rabbitmq address) |
+| RABBIT_EXCHANGE | ThisIsAExchange | property rabbitmq.exchange |
+| RABBIT_ROUTING_KEY | thisIsRoutingKey | property rabbitmq.routingKeyPrefix |
 
 ### INFURA Support Configuration
 Connecting to an INFURA node is only supported if connecting via websockets (`wss://<...>` node url).  The blockstrategy must also be set to PUBSUB.

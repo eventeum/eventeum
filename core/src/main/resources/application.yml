@@ -16,6 +16,7 @@ logging:
 ethereum:
   node:
     url: http://localhost:8545
+
     healthcheck:
       pollInterval: 2000
 

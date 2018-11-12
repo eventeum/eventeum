@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.FixedHostPortGenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.admin.Admin;
@@ -46,6 +48,8 @@ public class BaseIntegrationTest {
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
     //protected static final Credentials CREDS = Credentials.create("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d");
 
+    private static FixedHostPortGenericContainer parityContainer;
+
     private List<ContractEventDetails> broadcastContractEvents = new ArrayList<>();
 
     @LocalServerPort
@@ -69,14 +73,39 @@ public class BaseIntegrationTest {
     @BeforeClass
     public static void setupEnvironment() throws IOException {
         StubEventStoreService.start();
+
+        parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
+        parityContainer.waitingFor(Wait.forListeningPort());
+        parityContainer.withFixedExposedPort(8545, 8545);
+        parityContainer.withFixedExposedPort(8546, 8546);
+        parityContainer.start();
+
+        waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
     }
+
+
 
     @Before
     public void setUp() throws Exception {
+
         restUrl = "http://localhost:" + port;
         restTemplate = new RestTemplate();
         this.web3j = Web3j.build(new HttpService("http://localhost:8545"));
         this.admin = Admin.build(new HttpService("http://localhost:8545"));
+
+        this.web3j.ethSendTransaction(Transaction.createEtherTransaction(
+                this.web3j.ethAccounts().send().getAccounts().get(0),
+
+                this.web3j.ethGetTransactionCount(
+                    this.web3j.ethAccounts().send().getAccounts().get(0),
+                        DefaultBlockParameterName.fromString("latest")
+                ).send().getTransactionCount(),
+
+                BigInteger.valueOf(2000),
+                BigInteger.valueOf(6721975),
+                CREDS.getAddress(),
+                new BigInteger("9460000000000000000"))
+        ).send();
 
         dummyEventFilterId = UUID.randomUUID().toString();
         dummyEventNotOrderedFilterId = UUID.randomUUID().toString();
@@ -88,6 +117,8 @@ public class BaseIntegrationTest {
     @AfterClass
     public static void teardownEnvironment() {
         StubEventStoreService.stop();
+
+        parityContainer.stop();
     }
 
     @After
@@ -162,6 +193,7 @@ public class BaseIntegrationTest {
         assertEquals(CREDS.getAddress(), eventDetails.getIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.TEN, eventDetails.getNonIndexedParameters().get(0).getValue());
         assertEquals("StringValue", eventDetails.getNonIndexedParameters().get(1).getValue());
+        assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
     }
@@ -231,7 +263,8 @@ public class BaseIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(2, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING)));
+                              new ParameterDefinition(3, ParameterType.STRING),
+                              new ParameterDefinition(4, ParameterType.UINT8)));
 
         eventSpec.setEventName(DUMMY_EVENT_NAME);
 
@@ -251,7 +284,8 @@ public class BaseIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING)));
+                              new ParameterDefinition(3, ParameterType.STRING),
+                              new ParameterDefinition(4, ParameterType.UINT8)));
 
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
@@ -265,5 +299,28 @@ public class BaseIntegrationTest {
         contractEventFilter.setEventSpecification(eventSpec);
 
         return contractEventFilter;
+    }
+
+    private static void waitForParityToStart(long timeToWait, Web3j web3j) {
+        final long startTime = System.currentTimeMillis();
+
+        while (true) {
+            if (System.currentTimeMillis() > startTime + timeToWait) {
+                throw new IllegalStateException("Parity failed to start...");
+            }
+
+            try {
+                web3j.web3ClientVersion().send();
+                break;
+            } catch (Throwable t) {
+                //If an error occurs, the node is not yet up
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();;
+            }
+        }
     }
 }

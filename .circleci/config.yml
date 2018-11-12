@@ -3,11 +3,12 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2
+executorType: machine
 jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/openjdk:8-jdk
+      - image: circleci/openjdk:8u171-jdk
 
     working_directory: ~/repo
 
@@ -35,6 +36,21 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
+
+      - run:
+          name: integration tests
+          command: mvn clean verify -DskipIntegrationTests=false
+
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
 
       # Build and deploy latest artifacts
       - run: mvn -s ./.circleci/.circleci.settings.xml deploy
