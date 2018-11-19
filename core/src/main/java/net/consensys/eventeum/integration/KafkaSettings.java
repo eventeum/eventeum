@@ -1,11 +1,8 @@
 package net.consensys.eventeum.integration;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import net.consensys.eventeum.annotation.ConditionalOnKafkaRequired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
@@ -17,6 +14,7 @@ import java.net.UnknownHostException;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Component("eventeumKafkaSettings")
+@ConditionalOnKafkaRequired
 @Data
 public class KafkaSettings {
 

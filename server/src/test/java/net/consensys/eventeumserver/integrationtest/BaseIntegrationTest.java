@@ -2,6 +2,7 @@ package net.consensys.eventeumserver.integrationtest;
 
 import junit.framework.TestCase;
 import net.consensys.eventeum.chain.util.Web3jUtil;
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -10,6 +11,7 @@ import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
+import net.consensys.eventeum.utils.JSON;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
@@ -51,6 +53,8 @@ public class BaseIntegrationTest {
     private static FixedHostPortGenericContainer parityContainer;
 
     private List<ContractEventDetails> broadcastContractEvents = new ArrayList<>();
+
+    private List<BlockDetails> broadcastBlockMessages = new ArrayList<>();
 
     @LocalServerPort
     private int port = 12345;
@@ -128,6 +132,10 @@ public class BaseIntegrationTest {
 
     protected List<ContractEventDetails> getBroadcastContractEvents() {
         return broadcastContractEvents;
+    }
+
+    protected List<BlockDetails> getBroadcastBlockMessages() {
+        return broadcastBlockMessages;
     }
 
     protected ContractEventFilterRepository getFilterRepo() {
@@ -214,7 +222,8 @@ public class BaseIntegrationTest {
     }
 
     protected void clearMessages() {
-        broadcastContractEvents.clear();
+        getBroadcastContractEvents().clear();
+        getBroadcastBlockMessages().clear();
     }
 
     protected void waitForContractEventMessages(int expectedContractEventMessages) {
@@ -229,7 +238,7 @@ public class BaseIntegrationTest {
         //Wait for another 20 seconds maximum if messages have not yet arrived
         final long startTime = System.currentTimeMillis();
         while(true) {
-            if (broadcastContractEvents.size() == expectedContractEventMessages) {
+            if (getBroadcastContractEvents().size() == expectedContractEventMessages) {
                 break;
             }
 
@@ -237,7 +246,39 @@ public class BaseIntegrationTest {
                 final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
                 builder.append("\n");
                 builder.append("Expected contract event messages: " + expectedContractEventMessages);
-                builder.append(", received: " + broadcastContractEvents.size());
+                builder.append(", received: " + getBroadcastContractEvents().size());
+                builder.append("\n");
+                builder.append(JSON.stringify(getBroadcastContractEvents()));
+
+                TestCase.fail(builder.toString());
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    protected void waitForBlockMessages(int expectedBlockMessages) {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        final long startTime = System.currentTimeMillis();
+        while(true) {
+            if (getBroadcastBlockMessages().size() >= expectedBlockMessages) {
+                break;
+            }
+
+            if (System.currentTimeMillis() > startTime + 20000) {
+                final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
+                builder.append("\n");
+                builder.append("Expected block messages: " + expectedBlockMessages);
+                builder.append(", received: " + broadcastBlockMessages.size());
 
                 TestCase.fail(builder.toString());
             }
