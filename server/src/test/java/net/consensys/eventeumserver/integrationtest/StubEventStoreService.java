@@ -9,8 +9,8 @@ import net.consensys.eventeum.integration.mixin.SimplePageImpl;
 import org.springframework.data.domain.Page;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
-import javax.ws.rs.core.MediaType;
 import java.math.BigInteger;
 import java.util.Arrays;
 
@@ -30,7 +30,7 @@ public class StubEventStoreService {
         wireMockServer.addStubMapping(get(urlPathEqualTo("/api/rest/v1/event"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON.toString())
                         .withBody(JSON.stringify(dummyPage))).build());
     }
 

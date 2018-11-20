@@ -10,19 +10,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.*;
 
 public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
     public void doTestRegisterEventFilterSavesFilterInDb() {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
-        final ContractEventFilter saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved);
+        final Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertEquals(registeredFilter, saved.get());
     }
 
     public void doTestRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
@@ -112,13 +112,13 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
     public void doTestUnregisterEventFilterDeletesFilterInDb() {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
-        ContractEventFilter saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved);
+        Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertEquals(registeredFilter, saved.get());
 
         unregisterDummyEventFilter();
 
-        saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertNull(saved);
+        saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertFalse(saved.isPresent());
     }
 
     public void doTestUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
@@ -144,13 +144,13 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
     private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {
         final ContractEventFilter registeredFilter = registerDummyEventFilter(contractAddress);
-        ContractEventFilter saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved);
+        Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertEquals(registeredFilter, saved.get());
 
         unregisterDummyEventFilter();
 
-        saved = getFilterRepo().findOne(getDummyEventFilterId());
-        assertNull(saved);
+        saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertFalse(saved.isPresent());
 
         return registeredFilter;
     }

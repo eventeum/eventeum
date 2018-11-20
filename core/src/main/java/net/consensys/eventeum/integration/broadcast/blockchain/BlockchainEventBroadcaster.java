@@ -4,7 +4,7 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 
 /**
- * An interface for a class that broadcasts etheruem blockchain details to the wider system.
+ * An interface for a class that broadcasts ethereum blockchain details to the wider system.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */

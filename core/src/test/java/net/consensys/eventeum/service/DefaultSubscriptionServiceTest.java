@@ -148,7 +148,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.unregisterContractEventFilter(FILTER_ID);
 
         verify(sub1, times(1)).unsubscribe();
-        verify(mockRepo, times(1)).delete(FILTER_ID);
+        verify(mockRepo, times(1)).deleteById(FILTER_ID);
         verify(mockFilterBroadcaster, times(1)).broadcastEventFilterRemoved(filter);
 
         boolean exceptionThrown = false;

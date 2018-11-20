@@ -156,6 +156,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
         });
 
         allFilterSubscriptions.put(filter.getId(), new FilterSubscription(filter, sub));
+
+        log.debug("Registered filters: {}", JSON.stringify(allFilterSubscriptions));
     }
 
     private void triggerListener(ContractEventListener listener, ContractEventDetails contractEventDetails) {
@@ -172,7 +174,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
     }
 
     private void deleteContractEventFilter(ContractEventFilter contractEventFilter) {
-        eventFilterRepository.delete(contractEventFilter.getId());
+        eventFilterRepository.deleteById(contractEventFilter.getId());
     }
 
     private void broadcastContractEventFilterAdded(ContractEventFilter filter) {

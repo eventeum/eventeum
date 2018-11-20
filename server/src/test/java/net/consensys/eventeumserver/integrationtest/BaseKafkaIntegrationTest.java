@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.utils.JSON;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.After;
@@ -14,9 +15,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
-import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
@@ -38,10 +40,13 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     @Value("#{eventeumKafkaSettings.contractEventsTopic}")
     private String contractEventsTopic;
 
+    @Value("#{eventeumKafkaSettings.filterEventsTopic}")
+    private String filterEventsTopic;
+
     @ClassRule
     public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 3);
 
-    private KafkaMessageListenerContainer<String, String> contractEventsContainer;
+    private KafkaMessageListenerContainer<String, String> testContainer;
 
     @Before
     public void setUp() throws Exception {
@@ -49,38 +54,48 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
         // set up the Kafka consumer properties
         final Map<String, Object> consumerProperties =
-                KafkaTestUtils.consumerProps("testGroup", "false", embeddedKafka);
+                KafkaTestUtils.consumerProps(generateTestGroupId(), "false", embeddedKafka);
 
         // create a Kafka consumer factory
         DefaultKafkaConsumerFactory<String, String> consumerFactory =
                 new DefaultKafkaConsumerFactory<>(consumerProperties, new StringDeserializer(), new StringDeserializer());
 
         // set the topic that needs to be consumed
-        ContainerProperties containerProperties = new ContainerProperties(contractEventsTopic);
+        ContainerProperties containerProperties = new ContainerProperties(contractEventsTopic, filterEventsTopic);
 
         // create a Kafka MessageListenerContainer
-        contractEventsContainer = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
+        testContainer = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
 
         // setup a Kafka message listener
-        contractEventsContainer.setupMessageListener(new MessageListener<String, String>() {
+        testContainer.setupMessageListener(new MessageListener<String, String>() {
             @Override
             public void onMessage(ConsumerRecord<String, String> record) {
+                System.out.println("Received message: " + JSON.stringify(record.value()));
                 try {
-                    final EventeumMessage<ContractEventDetails> message =
-                            objectMapper.readValue(record.value(), EventeumMessage.class);
+                    if (record.topic().equals(contractEventsTopic)) {
+                        final EventeumMessage<ContractEventDetails> message =
+                                objectMapper.readValue(record.value(), EventeumMessage.class);
 
-                    getBroadcastContractEvents().add(message.getDetails());
-                } catch(IOException e) {
+                        getBroadcastContractEvents().add(message.getDetails());
+                    }
+
+                    if (record.topic().equals(filterEventsTopic)) {
+                        final EventeumMessage<ContractEventFilter> message =
+                                objectMapper.readValue(record.value(), EventeumMessage.class);
+
+                        getBroadcastFilterEventMessages().add(message);
+                    }
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
         });
 
         // start the container and underlying message listener
-        contractEventsContainer.start();
+        testContainer.start();
 
-//        Thread.sleep(15000);
-        ContainerTestUtils.waitForAssignment(contractEventsContainer, embeddedKafka.getPartitionsPerTopic());
+        ContainerTestUtils.waitForAssignment(testContainer,
+                embeddedKafka.getPartitionsPerTopic() * testContainer.getContainerProperties().getTopics().length);
 
         clearMessages();
     }
@@ -88,7 +103,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     @After
     public void tearDown() {
         // stop the container
-        contractEventsContainer.stop();
+        testContainer.stop();
     }
 
     public List<EventeumMessage<ContractEventFilter>> getBroadcastFilterEventMessages() {
@@ -100,9 +115,8 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
         broadcastFiltersEventMessages.clear();
     }
 
-    @KafkaListener(containerFactory = "eventeumKafkaListenerContainerFactory",
-            topics = "#{eventeumKafkaSettings.filterEventsTopic}", groupId="testGroup")
-    public void onFilterEventMessage(EventeumMessage<ContractEventFilter> message) {
-        broadcastFiltersEventMessages.add(message);
+    private String generateTestGroupId() {
+        return "testGroup-" + UUID.randomUUID().toString();
     }
+
 }

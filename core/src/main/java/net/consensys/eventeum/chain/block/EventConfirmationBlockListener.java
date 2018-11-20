@@ -74,6 +74,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
         if (isEventAnOrphan(log)) {
             processInvalidatedEvent();
         } else if (currentBlockNumber.compareTo(targetBlock) >= 0) {
+            LOG.debug("Target block reached for event: {}", contractEvent.getId());
             broadcastEventConfirmed();
             unregister();
         }
@@ -118,6 +119,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
 
     private void broadcastEvent(ContractEventDetails contractEvent) {
         if (!isInvalidated.get()) {
+            LOG.debug(String.format("Sending confirmed event for contract event: %s", contractEvent.getId()));
             eventBroadcaster.broadcastContractEvent(contractEvent);
         }
     }
