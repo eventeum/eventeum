@@ -83,6 +83,7 @@ public class Web3jService implements BlockchainService {
     @Override
     public Subscription registerEventListener(
             ContractEventFilter eventFilter, ContractEventListener eventListener) {
+        log.debug("Registering event filter for event: {}", eventFilter.getId());
         final ContractEventSpecification eventSpec = eventFilter.getEventSpecification();
 
         EthFilter ethFilter = new EthFilter(
@@ -95,12 +96,13 @@ public class Web3jService implements BlockchainService {
 
         final Observable<Log> observable = web3j.ethLogObservable(ethFilter);
 
-        final Subscription sub = observable.subscribe(log -> {
+        final Subscription sub = observable.subscribe(theLog -> {
             lock.lock();
 
             try {
+                log.debug("Dispatching log: {}", theLog);
                 eventListener.onEvent(
-                        eventDetailsFactory.createEventDetails(eventFilter, log));
+                        eventDetailsFactory.createEventDetails(eventFilter, theLog));
             } finally {
                 lock.unlock();
             }

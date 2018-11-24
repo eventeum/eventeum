@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.util.Optional;
+
 /**
  * A BlockchainEventBroadcaster that broadcasts the events to a Kafka queue.
  *
@@ -45,7 +47,7 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
     @Override
     public void broadcastNewBlock(BlockDetails block) {
         final EventeumMessage<BlockDetails> message = createBlockEventMessage(block);
-        LOG.info("Sending message: " + JSON.stringify(message));
+        LOG.info("Sending block message: " + JSON.stringify(message));
 
         kafkaTemplate.send(kafkaSettings.getBlockEventsTopic(), message.getId(), message);
     }
@@ -53,7 +55,7 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
         final EventeumMessage<ContractEventDetails> message = createContractEventMessage(eventDetails);
-        LOG.info("Sending message: " + JSON.stringify(message));
+        LOG.info("Sending contract event message: " + JSON.stringify(message));
 
         kafkaTemplate.send(kafkaSettings.getContractEventsTopic(), getContractEventCorrelationId(message), message);
     }
@@ -67,12 +69,15 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
     }
 
     private String getContractEventCorrelationId(EventeumMessage<ContractEventDetails> message) {
-        final ContractEventFilter filter = filterRespository.findOne(message.getDetails().getFilterId());
+        final Optional<ContractEventFilter> filter = filterRespository.findById(message.getDetails().getFilterId());
 
-        if (filter == null || filter.getCorrelationIdStrategy() == null) {
+        if (!filter.isPresent() || filter.get().getCorrelationIdStrategy() == null) {
             return message.getId();
         }
 
-        return filter.getCorrelationIdStrategy().getCorrelationId(message.getDetails());
+        return filter
+                .get()
+                .getCorrelationIdStrategy()
+                .getCorrelationId(message.getDetails());
     }
 }

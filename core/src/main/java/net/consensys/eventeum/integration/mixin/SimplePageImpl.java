@@ -8,6 +8,7 @@ import org.springframework.data.domain.*;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SimplePageImpl<T> implements Page<T> {
@@ -109,8 +110,8 @@ public class SimplePageImpl<T> implements Page<T> {
 
     @JsonIgnore
     @Override
-    public <S> Page<S> map(Converter<? super T, ? extends S> converter) {
-        return delegate.map(converter);
+    public <U> Page<U> map(Function<? super T, ? extends U> function) {
+        return delegate.map(function);
     }
 
     @JsonIgnore

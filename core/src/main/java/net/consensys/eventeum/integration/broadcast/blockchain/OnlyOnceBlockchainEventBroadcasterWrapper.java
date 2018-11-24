@@ -40,9 +40,11 @@ public class OnlyOnceBlockchainEventBroadcasterWrapper implements BlockchainEven
 
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
-        if (contractEventCache.getIfPresent(Integer.valueOf(eventDetails.hashCode())) == null) {
-            contractEventCache.put(Integer.valueOf(eventDetails.hashCode()), eventDetails);
-            wrapped.broadcastContractEvent(eventDetails);
+        synchronized(this) {
+            if (contractEventCache.getIfPresent(Integer.valueOf(eventDetails.hashCode())) == null) {
+                contractEventCache.put(Integer.valueOf(eventDetails.hashCode()), eventDetails);
+                wrapped.broadcastContractEvent(eventDetails);
+            }
         }
     }
 

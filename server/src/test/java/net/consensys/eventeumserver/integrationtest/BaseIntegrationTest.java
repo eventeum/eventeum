@@ -1,6 +1,7 @@
 package net.consensys.eventeumserver.integrationtest;
 
 import junit.framework.TestCase;
+import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -14,7 +15,8 @@ import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.utils.JSON;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
@@ -73,6 +75,10 @@ public class BaseIntegrationTest {
     private String dummyEventFilterId;
 
     private String dummyEventNotOrderedFilterId;
+
+    //Mock this so that websockets don't try to reconnect inbetween tests
+    @MockBean
+    private NodeHealthCheckService mockNodeHealthCheckService;
 
     @BeforeClass
     public static void setupEnvironment() throws IOException {
@@ -214,7 +220,7 @@ public class BaseIntegrationTest {
     }
 
     protected void waitForBroadcast() throws InterruptedException {
-        Thread.sleep(2000);
+        Thread.sleep(3000);
     }
 
     protected void waitForFilterPoll() throws InterruptedException {

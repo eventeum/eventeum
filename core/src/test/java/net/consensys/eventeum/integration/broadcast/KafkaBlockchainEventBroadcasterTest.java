@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigInteger;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -101,7 +102,7 @@ public class KafkaBlockchainEventBroadcasterTest {
         final ContractEventFilter mockFilter = mock(ContractEventFilter.class);
         when(mockFilter.getCorrelationIdStrategy()).thenReturn(mockIdStrategy);
 
-        when(mockFilterRepository.findOne(FILTER_ID)).thenReturn(mockFilter);
+        when(mockFilterRepository.findById(FILTER_ID)).thenReturn(Optional.of(mockFilter));
 
         underTest.broadcastContractEvent(eventDetails);
 

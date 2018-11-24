@@ -1,6 +1,7 @@
 package net.consensys.eventeum.chain.contract;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.EventConfirmationBlockListener;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
+@Slf4j
 public class ConfirmationCheckInitialiser implements ContractEventListener {
 
     private BlockchainService blockchainService;
@@ -31,6 +33,7 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
     @Override
     public void onEvent(ContractEventDetails eventDetails) {
         if (eventDetails.getStatus() == ContractEventStatus.UNCONFIRMED) {
+            log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
             blockchainService.addBlockListener(createEventConfirmationBlockListener(eventDetails));
         }
     }
