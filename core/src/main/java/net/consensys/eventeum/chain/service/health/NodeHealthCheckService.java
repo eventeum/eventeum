@@ -66,11 +66,13 @@ public class NodeHealthCheckService {
                 nodeStatus = NodeStatus.CONNECTED;
             }
         } else {
-            LOGGER.error("Node is down!!");
 
             if (nodeStatus != NodeStatus.DOWN) {
+                LOGGER.error("Node is down!!");
                 //First sign of failure
                 failureListeners.forEach((listener) -> listener.onNodeFailure());
+            } else {
+                LOGGER.error("Node is still down!!");
             }
             nodeStatus = NodeStatus.DOWN;
         }

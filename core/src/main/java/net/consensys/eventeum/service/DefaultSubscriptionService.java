@@ -8,10 +8,10 @@ import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
-import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import rx.Subscription;
 
@@ -30,7 +30,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private BlockchainService blockchainService;
 
-    private ContractEventFilterRepository eventFilterRepository;
+    private CrudRepository<ContractEventFilter, String> eventFilterRepository;
 
     private FilterEventBroadcaster filterEventBroadcaster;
 
@@ -42,7 +42,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     @Autowired
     public DefaultSubscriptionService(BlockchainService blockchainService,
-                                      ContractEventFilterRepository eventFilterRepository,
+                                      CrudRepository<ContractEventFilter, String> eventFilterRepository,
                                       FilterEventBroadcaster filterEventBroadcaster,
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
