@@ -70,7 +70,7 @@ kafka:
       msConfig: ${KAFKA_RETRY_BACKOFF_MS:500}
   endpoint:
     identification:
-      algorithm: ${KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM:""}
+      algorithm: ${KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM:null}
   sasl:
     mechanism: ${KAFKA_SASL_MECHANISM:PLAIN}
     username: ${KAFKA_USERNAME:""}
