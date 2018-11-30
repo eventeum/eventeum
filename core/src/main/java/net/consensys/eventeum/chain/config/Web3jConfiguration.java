@@ -20,6 +20,7 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.protocol.websocket.EventeumWebSocketService;
 import org.web3j.protocol.websocket.WebSocketClient;
 import org.web3j.protocol.websocket.WebSocketService;
+import org.web3j.utils.Async;
 
 import java.net.ConnectException;
 import java.net.URI;
@@ -34,9 +35,9 @@ import java.net.URISyntaxException;
 public class Web3jConfiguration {
 
     @Bean
-    Web3j web3j(Web3jService service) {
+    Web3j web3j(Web3jService service, @Value("${ethereum.node.blockTime}") long blockTime) {
 
-        return Web3j.build(service);
+        return Web3j.build(service, blockTime, Async.defaultExecutorService());
     }
 
     @ConditionalOnWebsocket
