@@ -21,6 +21,24 @@ public class KafkaSettings {
     @Value("${kafka.bootstrap.addresses}")
     private String bootstrapAddresses;
 
+    @Value("${kafka.endpoint.identification.algorithm}")
+    private String endpointIdentificationAlgorithm;
+
+    @Value("${kafka.request.timeout.msConfig}")
+    private Int requestTimeoutMsConfig;
+
+    @Value("${kafka.retries}")
+    private Int retries;
+
+    @Value("${kafka.retry.backoff.msConfig}")
+    private Int retryBackoffMsConfig;
+
+    @Value("${kafka.sasl.mechanism}")
+    private String saslMechanism;
+
+    @Value("${kafka.security.protocol}")
+    private String securityProtocol;
+
     @Value("${kafka.topic.contractEvents}")
     private String contractEventsTopic;
 

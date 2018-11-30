@@ -50,6 +50,13 @@ public class KafkaConfiguration {
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+        configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
+        configProps.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
+        configProps.put("ssl.endpoint.identification.algorithm", settings.getEndpointIdentificationAlgorithm());
+        configProps.put("sasl.mechanism", settings.getSaslMechanism());
+        configProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + settings.getUsername() + "\" password=\"" + settings.getPassword() + "\";");
+        configProps.put("security.protocol", settings.getSecurityProtocol());
+        configProps.put("retries", settings.getRetries());
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
@@ -59,7 +66,12 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, settings.getBootstrapAddresses());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, settings.getGroupId());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
+        props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
+        props.put("ssl.endpoint.identification.algorithm", settings.getEndpointIdentificationAlgorithm());
+        props.put("sasl.mechanism", settings.getSaslMechanism());
+        props.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + settings.getUsername() + "\" password=\"" + settings.getPassword() + "\";");
+        props.put("security.protocol", settings.getSecurityProtocol());
         return new DefaultKafkaConsumerFactory<>(props, null, new JsonDeserializer<>(EventeumMessage.class));
     }
 
