@@ -6,7 +6,7 @@ A bridge between your Ethereum smart contract events and backend microservices. 
 [![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/master.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/master)
 
 **Development**
-  
+
 [![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/development.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/development)
 
 ## Features
@@ -89,12 +89,12 @@ Eventeum exposes a REST api that can be used to register events that should be s
 -   **Method:** `POST`
 -   **Headers:**  
 
-| Key | Value | 
+| Key | Value |
 | -------- | -------- |
 | content-type | application/json |
 
 -   **URL Params:** `N/A`
--   **Body:** 
+-   **Body:**
 ```
 {
 	"id": "event-identifier",
@@ -145,7 +145,7 @@ Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
 
 -   **Success Response:**
     -   **Code:** 200  
-        **Content:** 
+        **Content:**
 ```
 {
     "id": "event-identifier"
@@ -187,7 +187,7 @@ eventFilters:
 -   **Success Response:**
     -   **Code:** 200  
         **Content:** `N/A`
-	
+
 ## Broadcast Messages Format
 
 ###  Contract Events
@@ -208,7 +208,7 @@ When a subscribed event is emitted, a JSON message is broadcast to the configure
 		"logIndex":0,
 		"blockNumber":258,
 		"blockHash":"0x65d1956c2850677f75ec9adcd7b2cfab89e31ad1e7a5ba93b6fad11e6cd15e4a",
-		"address":"0x9ec580fa364159a09ea15cd39505fc0a926d3a00",	
+		"address":"0x9ec580fa364159a09ea15cd39505fc0a926d3a00",
 		"status":"UNCONFIRMED",
 		"eventSpecificationSignature":"0x46aca551d5bafd01d98f8cadeb9b50f1b3ee44c33007f2a13d969dab7e7cf2a8",
 		"id":"unique-event-id"},
@@ -253,6 +253,14 @@ Many values within Eventeum are configurable either by changing the values in th
 | KAFKA_ADDRESSES | localhost:9092 | Comma seperated list of kafka addresses |
 | KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages |
 | KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
+| KAFKA_REQUEST_TIMEOUT_MS | 20000 | The duration after which a request timeouts |
+| KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM | null | The endpoint identification algorithm to validate server hostname using server certificate |
+| KAFKA_SASL_MECHANISM | PLAIN | The mechanism used for SASL authentication |
+| KAFKA_USERNAME | "" | The username used to connect to a SASL secured Kafka cluster |
+| KAFKA_PASSWORD | "" | The password used to connect to a SASL secured Kafka cluster |
+| KAFKA_SECURITY_PROTOCOL | PLAINTEXT | Protocol used to communicate with Kafka brokers |
+| KAFKA_RETRIES | 10 | The number of times a Kafka consumer will try to publish a message before throwing an error |
+| KAFKA_RETRY_BACKOFF_MS | 500 | The duration between each retry |
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
 | SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
 | RABBIT_ADDRESS | localhost:5672 | property spring.rabbitmq.host (The rabbitmq address) |
@@ -300,13 +308,13 @@ The implemented REST service should have a pageable endpoint which accepts a req
 -   **Method:** `GET`
 -   **Headers:**  
 
-| Key | Value | 
+| Key | Value |
 | -------- | -------- |
 | content-type | application/json |
 
--   **URL Params:** 
+-   **URL Params:**
 
-| Key | Value | 
+| Key | Value |
 | -------- | -------- |
 | page | The page number |
 | size | The page size |
@@ -318,7 +326,7 @@ The implemented REST service should have a pageable endpoint which accepts a req
 
 -   **Success Response:**
     -   **Code:** 200  
-        **Content:** 
+        **Content:**
 ```
 {
 	"content":[
