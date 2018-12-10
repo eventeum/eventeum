@@ -1,7 +1,10 @@
 package net.consensys.eventeum.integration.eventstore.rest;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.EventStore;
+import net.consensys.eventeum.integration.eventstore.rest.client.EventStoreClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
@@ -19,21 +22,19 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
-@ConditionalOnProperty(name = "eventStore.type", havingValue = "REST")
 public class RESTEventStore implements EventStore {
 
-    private FeignEventStore integration;
+    private EventStoreClient client;
 
-    public RESTEventStore(FeignEventStore integration) {
-        this.integration = integration;
+    public RESTEventStore(EventStoreClient client) {
+        this.client = client;
     }
 
     @Override
     public Page<ContractEventDetails> getContractEventsForSignature(String eventSignature, PageRequest pagination) {
 
         final Sort.Order firstOrder = pagination.getSort().iterator().next();
-        return integration.getContractEvents(pagination.getPageNumber(),
+        return client.getContractEvents(pagination.getPageNumber(),
                                              pagination.getPageSize(),
                                              firstOrder.getProperty(),
                                              firstOrder.getDirection(),
@@ -43,18 +44,5 @@ public class RESTEventStore implements EventStore {
     @Override
     public boolean isPagingZeroIndexed() {
         return true;
-    }
-
-    @ConditionalOnProperty(name = "eventStore.type", havingValue = "REST")
-    @FeignClient(name="eventStore", url="${eventStore.url}")
-    private interface FeignEventStore {
-
-        @RequestMapping(method = RequestMethod.GET, value="${eventStore.eventPath}")
-        Page<ContractEventDetails> getContractEvents(
-                @RequestParam(value = "page") int pageNo,
-                @RequestParam(value = "size") int pageSize,
-                @RequestParam(value = "sort") String sortAttribute,
-                @RequestParam(value = "dir") Sort.Direction sortDirection,
-                @RequestParam(value = "signature") String signature);
     }
 }
