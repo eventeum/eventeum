@@ -6,7 +6,7 @@ A bridge between your Ethereum smart contract events and backend microservices. 
 [![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/master.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/master)
 
 **Development**
-  
+
 [![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/development.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/development)
 
 ## Features
@@ -89,12 +89,12 @@ Eventeum exposes a REST api that can be used to register events that should be s
 -   **Method:** `POST`
 -   **Headers:**  
 
-| Key | Value | 
+| Key | Value |
 | -------- | -------- |
 | content-type | application/json |
 
 -   **URL Params:** `N/A`
--   **Body:** 
+-   **Body:**
 ```
 {
 	"id": "event-identifier",
@@ -145,7 +145,7 @@ Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
 
 -   **Success Response:**
     -   **Code:** 200  
-        **Content:** 
+        **Content:**
 ```
 {
     "id": "event-identifier"
@@ -187,7 +187,7 @@ eventFilters:
 -   **Success Response:**
     -   **Code:** 200  
         **Content:** `N/A`
-	
+
 ## Broadcast Messages Format
 
 ###  Contract Events
@@ -208,7 +208,7 @@ When a subscribed event is emitted, a JSON message is broadcast to the configure
 		"logIndex":0,
 		"blockNumber":258,
 		"blockHash":"0x65d1956c2850677f75ec9adcd7b2cfab89e31ad1e7a5ba93b6fad11e6cd15e4a",
-		"address":"0x9ec580fa364159a09ea15cd39505fc0a926d3a00",	
+		"address":"0x9ec580fa364159a09ea15cd39505fc0a926d3a00",
 		"status":"UNCONFIRMED",
 		"eventSpecificationSignature":"0x46aca551d5bafd01d98f8cadeb9b50f1b3ee44c33007f2a13d969dab7e7cf2a8",
 		"id":"unique-event-id"},
@@ -241,6 +241,7 @@ Many values within Eventeum are configurable either by changing the values in th
 | ETHEREUM_BLOCKSTRATEGY | POLL | The strategy for obtaining block events from an ethereum node (POLL or PUBSUB) |
 | ETHEREUM_NODE_URL | http://localhost:8545 | The ethereum node url. |
 | ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
+| BLOCK_TIME | 10000 | The polling interval used by Web3j to get events from the blockchain. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
 | BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
 | BROADCASTER_CACHE _EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
@@ -300,13 +301,13 @@ The implemented REST service should have a pageable endpoint which accepts a req
 -   **Method:** `GET`
 -   **Headers:**  
 
-| Key | Value | 
+| Key | Value |
 | -------- | -------- |
 | content-type | application/json |
 
--   **URL Params:** 
+-   **URL Params:**
 
-| Key | Value | 
+| Key | Value |
 | -------- | -------- |
 | page | The page number |
 | size | The page size |
@@ -318,7 +319,7 @@ The implemented REST service should have a pageable endpoint which accepts a req
 
 -   **Success Response:**
     -   **Code:** 200  
-        **Content:** 
+        **Content:**
 ```
 {
 	"content":[
