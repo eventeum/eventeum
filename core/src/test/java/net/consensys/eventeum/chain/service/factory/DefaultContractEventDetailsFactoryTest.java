@@ -135,7 +135,7 @@ public class DefaultContractEventDetailsFactoryTest {
         final ContractEventDetails eventDetails = underTest.createEventDetails(filter, mockLog);
 
         assertEquals(Arrays.asList(mockParam1), eventDetails.getIndexedParameters());
-        assertEquals(BigInteger.valueOf(456), argumentCaptor.getAllValues().get(2).getValue());
+        assertEquals(BigInteger.valueOf(456), argumentCaptor.getAllValues().get(3).getValue());
     }
 
     @Test
@@ -149,7 +149,7 @@ public class DefaultContractEventDetailsFactoryTest {
 
         final ContractEventDetails eventDetails = underTest.createEventDetails(filter, mockLog);
 
-        assertEquals(Arrays.asList(mockParam1, mockParam1), eventDetails.getNonIndexedParameters());
+        assertEquals(Arrays.asList(mockParam1, mockParam1, mockParam1), eventDetails.getNonIndexedParameters());
         assertEquals(BigInteger.valueOf(123), argumentCaptor.getAllValues().get(0).getValue());
         assertEquals("0x00a329c0648769a73afac7f9381e08fb43dbea72",
                 argumentCaptor.getAllValues().get(1).toString());
