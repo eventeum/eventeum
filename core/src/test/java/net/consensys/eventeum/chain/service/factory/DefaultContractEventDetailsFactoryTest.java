@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 
 public class DefaultContractEventDetailsFactoryTest {
 
-    //Values: 123, 0x00a329c0648769a73afac7f9381e08fb43dbea72
-    private static final String LOG_DATA = "0x000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000a329c0648769a73afac7f9381e08fb43dbea72";
+    //Values: 123, 0x00a329c0648769a73afac7f9381e08fb43dbea72, -42
+    private static final String LOG_DATA = "0x000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000a329c0648769a73afac7f9381e08fb43dbea72ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd6";
 
     //Values: 456
     private static final String INDEXED_PARAM = "0x00000000000000000000000000000000000000000000000000000000000001c8";
@@ -64,7 +64,8 @@ public class DefaultContractEventDetailsFactoryTest {
 
         eventSpec.setNonIndexedParameterDefinitions(Arrays.asList(
                 new ParameterDefinition(1, ParameterType.UINT256),
-                new ParameterDefinition(2, ParameterType.ADDRESS)));
+                new ParameterDefinition(2, ParameterType.ADDRESS),
+                new ParameterDefinition(3, ParameterType.INT256)));
     }
 
     @Before
@@ -152,6 +153,7 @@ public class DefaultContractEventDetailsFactoryTest {
         assertEquals(BigInteger.valueOf(123), argumentCaptor.getAllValues().get(0).getValue());
         assertEquals("0x00a329c0648769a73afac7f9381e08fb43dbea72",
                 argumentCaptor.getAllValues().get(1).toString());
+        assertEquals(BigInteger.valueOf(-42), argumentCaptor.getAllValues().get(2).getValue());
     }
 
     private DefaultContractEventDetailsFactory createFactory(BigInteger confirmations) {
