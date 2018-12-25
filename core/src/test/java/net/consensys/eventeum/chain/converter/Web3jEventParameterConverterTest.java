@@ -14,7 +14,7 @@ import java.math.BigInteger;
 import static org.junit.Assert.assertEquals;
 
 public class Web3jEventParameterConverterTest {
-    private static String ADDRESS = "0xbb4f53c05e50574c5fedbfe89c13cc5feb634ae3";
+    private static String ADDRESS = "0xBb4F53C05e50574C5fEdbFE89c13Cc5fEb634ae3";
 
     private Web3jEventParameterConverter underTest;
 

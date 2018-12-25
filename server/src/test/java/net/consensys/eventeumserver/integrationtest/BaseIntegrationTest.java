@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.admin.Admin;
 import org.web3j.protocol.admin.methods.response.PersonalUnlockAccount;
@@ -50,7 +51,6 @@ public class BaseIntegrationTest {
     protected static final String FAKE_CONTRACT_ADDRESS = "0xb4f391500fc66e6a1ac5d345f58bdcbea66c1a6f";
 
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
-    //protected static final Credentials CREDS = Credentials.create("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d");
 
     private static FixedHostPortGenericContainer parityContainer;
 
@@ -204,7 +204,8 @@ public class BaseIntegrationTest {
         assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(status, eventDetails.getStatus());
         assertEquals("BytesValue", eventDetails.getIndexedParameters().get(0).getValue());
-        assertEquals(CREDS.getAddress(), eventDetails.getIndexedParameters().get(1).getValue());
+        assertEquals(Keys.toChecksumAddress(CREDS.getAddress()),
+                eventDetails.getIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.TEN, eventDetails.getNonIndexedParameters().get(0).getValue());
         assertEquals("StringValue", eventDetails.getNonIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());

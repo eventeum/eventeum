@@ -5,6 +5,7 @@ import net.consensys.eventeum.dto.event.parameter.NumberParameter;
 import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
@@ -23,7 +24,7 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
 
     public Web3jEventParameterConverter() {
         typeConverters.put("address",
-                (type) -> new StringParameter(type.getTypeAsString(), type.toString()));
+                (type) -> new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
         typeConverters.put("uint8",
                 (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
         typeConverters.put("uint256",
