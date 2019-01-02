@@ -52,11 +52,10 @@ public class KafkaConfiguration {
         configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
         configProps.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
-        configProps.put("ssl.endpoint.identification.algorithm", settings.getEndpointIdentificationAlgorithm());
-        configProps.put("sasl.mechanism", settings.getSaslMechanism());
-        configProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + settings.getUsername() + "\" password=\"" + settings.getPassword() + "\";");
-        configProps.put("security.protocol", settings.getSecurityProtocol());
         configProps.put("retries", settings.getRetries());
+        if ("PLAINTEXT".equals(settings.getSecurityProtocol())) {
+            configurePlaintextSecurityProtocol(configProps);
+        }
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
@@ -68,10 +67,9 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
         props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
-        props.put("ssl.endpoint.identification.algorithm", settings.getEndpointIdentificationAlgorithm());
-        props.put("sasl.mechanism", settings.getSaslMechanism());
-        props.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + settings.getUsername() + "\" password=\"" + settings.getPassword() + "\";");
-        props.put("security.protocol", settings.getSecurityProtocol());
+        if ("PLAINTEXT".equals(settings.getSecurityProtocol())) {
+            configurePlaintextSecurityProtocol(props);
+        }
         return new DefaultKafkaConsumerFactory<>(props, null, new JsonDeserializer<>(EventeumMessage.class));
     }
 
@@ -113,5 +111,12 @@ public class KafkaConfiguration {
     @Bean
     public NewTopic filterEventsTopic(KafkaSettings kafkaSettings) {
         return new NewTopic(kafkaSettings.getFilterEventsTopic(), 3, Short.parseShort("1"));
+    }
+
+    private void configurePlaintextSecurityProtocol(Map<String, Object> configProps) {
+        configProps.put("ssl.endpoint.identification.algorithm", settings.getEndpointIdentificationAlgorithm());
+        configProps.put("sasl.mechanism", settings.getSaslMechanism());
+        configProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + settings.getUsername() + "\" password=\"" + settings.getPassword() + "\";");
+        configProps.put("security.protocol", settings.getSecurityProtocol());
     }
 }
