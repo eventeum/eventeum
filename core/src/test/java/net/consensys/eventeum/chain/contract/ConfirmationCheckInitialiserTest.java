@@ -64,6 +64,7 @@ public class ConfirmationCheckInitialiserTest {
          final ContractEventDetails eventDetails = mock(ContractEventDetails.class);
 
          when(eventDetails.getStatus()).thenReturn(status);
+         when(eventDetails.getNodeName()).thenReturn(ContractEventFilter.DEFAULT_NODE_NAME);
 
          return eventDetails;
      }

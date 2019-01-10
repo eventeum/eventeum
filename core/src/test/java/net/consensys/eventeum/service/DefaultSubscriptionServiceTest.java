@@ -1,5 +1,6 @@
 package net.consensys.eventeum.service;
 
+import java.util.Collections;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
@@ -71,6 +72,8 @@ public class DefaultSubscriptionServiceTest {
     public void init() {
         when(mockChainServicesContainer.getNodeServices(
                 ContractEventFilter.DEFAULT_NODE_NAME)).thenReturn(mockNodeServices);
+        when(mockChainServicesContainer.getNodeNames()).thenReturn(
+                Collections.singletonList(ContractEventFilter.DEFAULT_NODE_NAME));
         when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
 
         underTest = new DefaultSubscriptionService(mockChainServicesContainer,
