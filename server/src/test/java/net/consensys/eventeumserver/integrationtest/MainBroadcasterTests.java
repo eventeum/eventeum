@@ -6,6 +6,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.utils.JSON;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -135,10 +136,13 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
     public void doTestContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
+        System.out.println("Contract address: " + emitter.getContractAddress());
         doRegisterAndUnregister(emitter.getContractAddress());
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForBroadcast();
+        System.out.println("doTestContractEventForUnregisteredEventFilterNotBroadcast messages: " +
+                JSON.stringify(getBroadcastContractEvents()));
         assertEquals(0, getBroadcastContractEvents().size());
     }
 
