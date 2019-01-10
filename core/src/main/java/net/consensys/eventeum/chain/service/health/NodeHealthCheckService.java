@@ -2,6 +2,7 @@ package net.consensys.eventeum.chain.service.health;
 
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
+import net.consensys.eventeum.chain.service.health.listener.NodeFailureListeners;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,6 @@ import java.util.List;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Service
 public class NodeHealthCheckService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeHealthCheckService.class);
@@ -29,17 +29,17 @@ public class NodeHealthCheckService {
 
     private NodeStatus nodeStatus;
 
-    private List<NodeFailureListener> failureListeners;
+    private NodeFailureListeners failureListeners;
 
     @Autowired
     public NodeHealthCheckService(BlockchainService blockchainService,
-                                  List<NodeFailureListener> failureListeners) {
+                                  NodeFailureListeners failureListeners) {
         this.blockchainService = blockchainService;
         this.failureListeners = failureListeners;
         nodeStatus = NodeStatus.SUBSCRIBED;
     }
 
-    @Scheduled(fixedDelayString = "${ethereum.node.healthcheck.pollInterval}")
+    @Scheduled(fixedDelayString = "${ethereum.healthcheck.pollInterval}")
     public void checkHealth() {
         final NodeStatus statusAtStart = nodeStatus;
 
@@ -48,21 +48,21 @@ public class NodeHealthCheckService {
                 LOGGER.info("Node has come back up.");
 
                 //We've come back up
-                failureListeners.forEach((listener) -> listener.onNodeRecovery());
+                failureListeners.getListeners().forEach((listener) -> listener.onNodeRecovery());
                 nodeStatus = NodeStatus.CONNECTED;
             }
 
             if (isSubscribed()) {
                 //We weren't previously subscribed, but we are now!
                 if (statusAtStart != NodeStatus.SUBSCRIBED) {
-                    failureListeners.forEach((listener) -> listener.onNodeSubscribed());
+                    failureListeners.getListeners().forEach((listener) -> listener.onNodeSubscribed());
                 }
 
                 nodeStatus = NodeStatus.SUBSCRIBED;
             } else if (statusAtStart == NodeStatus.SUBSCRIBED) {
                 //We were previously subscribed, but not any longer
                 LOGGER.info("Node subscriptions have been lost, attempting to resubscribe");
-                failureListeners.forEach((listener) -> listener.onNodeRecovery());
+                failureListeners.getListeners().forEach((listener) -> listener.onNodeRecovery());
                 nodeStatus = NodeStatus.CONNECTED;
             }
         } else {
@@ -70,7 +70,7 @@ public class NodeHealthCheckService {
             if (nodeStatus != NodeStatus.DOWN) {
                 LOGGER.error("Node is down!!");
                 //First sign of failure
-                failureListeners.forEach((listener) -> listener.onNodeFailure());
+                failureListeners.getListeners().forEach((listener) -> listener.onNodeFailure());
             } else {
                 LOGGER.error("Node is still down!!");
             }

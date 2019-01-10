@@ -14,10 +14,11 @@ logging:
   file: /logs/application.log
 
 ethereum:
-  node:
-    url: http://localhost:8545
-    healthcheck:
-      pollInterval: 2000
+  nodes:
+    - name: default
+      url: http://localhost:8545
+  healthcheck:
+    pollInterval: 2000
   blockStrategy: POLL
 
 #eventFilters:

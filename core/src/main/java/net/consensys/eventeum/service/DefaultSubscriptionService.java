@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
@@ -28,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class DefaultSubscriptionService implements SubscriptionService {
 
-    private BlockchainService blockchainService;
+    private ChainServicesContainer chainServices;
 
     private CrudRepository<ContractEventFilter, String> eventFilterRepository;
 
@@ -41,19 +42,20 @@ public class DefaultSubscriptionService implements SubscriptionService {
     private Map<String, FilterSubscription> filterSubscriptions = new ConcurrentHashMap<>();
 
     @Autowired
-    public DefaultSubscriptionService(BlockchainService blockchainService,
+    public DefaultSubscriptionService(ChainServicesContainer chainServices,
                                       CrudRepository<ContractEventFilter, String> eventFilterRepository,
                                       FilterEventBroadcaster filterEventBroadcaster,
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
                                       List<ContractEventListener> contractEventListeners) {
         this.contractEventListeners = contractEventListeners;
-        this.blockchainService = blockchainService;
+        this.chainServices = chainServices;
         this.asyncTaskService = asyncTaskService;
         this.eventFilterRepository = eventFilterRepository;
         this.filterEventBroadcaster = filterEventBroadcaster;
 
-        subscribeToNewBlockEvents(blockListeners);
+        chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
+                chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
     }
 
     /**
@@ -144,12 +146,17 @@ public class DefaultSubscriptionService implements SubscriptionService {
         filterSubscriptions.values().forEach(filterSub -> filterSub.getSubscription().unsubscribe());
     }
 
-    private void subscribeToNewBlockEvents(List<BlockListener> blockListeners) {
+    private void subscribeToNewBlockEvents(
+            BlockchainService blockchainService, List<BlockListener> blockListeners) {
         blockListeners.forEach(listener -> blockchainService.addBlockListener(listener));
     }
 
     private void registerContractEventFilter(ContractEventFilter filter, Map<String, FilterSubscription> allFilterSubscriptions) {
         log.info("Registering filter: " + JSON.stringify(filter));
+
+        final BlockchainService blockchainService =
+                chainServices.getNodeServices(filter.getNode()).getBlockchainService();
+
         final Subscription sub = blockchainService.registerEventListener(filter, contractEvent -> {
             contractEventListeners.forEach(
                     listener -> triggerListener(listener, contractEvent));

@@ -77,8 +77,10 @@ public class BaseIntegrationTest {
     private String dummyEventNotOrderedFilterId;
 
     //Mock this so that websockets don't try to reconnect inbetween tests
-    @MockBean
+    @MockBean(name="defaultNodeHealthCheck")
     private NodeHealthCheckService mockNodeHealthCheckService;
+    @MockBean(name="anotherNodeHealthCheck")
+    private NodeHealthCheckService mockAnnotherNodeHealthCheckService;
 
     @BeforeClass
     public static void setupEnvironment() throws IOException {

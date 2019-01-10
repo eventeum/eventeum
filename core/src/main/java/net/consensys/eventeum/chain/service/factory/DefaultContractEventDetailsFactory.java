@@ -23,17 +23,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@Component
 public class DefaultContractEventDetailsFactory implements ContractEventDetailsFactory {
 
     private EventParameterConverter<Type> parameterConverter;
     private EventConfirmationConfig eventConfirmationConfig;
     private String networkName;
 
-    @Autowired
-    DefaultContractEventDetailsFactory(EventParameterConverter<Type> parameterConverter,
+    public DefaultContractEventDetailsFactory(EventParameterConverter<Type> parameterConverter,
                                        EventConfirmationConfig eventConfirmationConfig,
-                                       @Value("${ethereum.node.networkName:}") String networkName) {
+                                       String networkName) {
         this.parameterConverter = parameterConverter;
         this.eventConfirmationConfig = eventConfirmationConfig;
         this.networkName = networkName;
@@ -58,6 +56,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
         eventDetails.setBlockHash(log.getBlockHash());
         eventDetails.setEventSpecificationSignature(Web3jUtil.getSignature(eventSpec));
         eventDetails.setNetworkName(this.networkName);
+        eventDetails.setNodeName(eventFilter.getNode());
 
         if (log.isRemoved()) {
             eventDetails.setStatus(ContractEventStatus.INVALIDATED);

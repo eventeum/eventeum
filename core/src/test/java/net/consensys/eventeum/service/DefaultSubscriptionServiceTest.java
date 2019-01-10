@@ -1,6 +1,8 @@
 package net.consensys.eventeum.service;
 
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
@@ -36,6 +38,10 @@ public class DefaultSubscriptionServiceTest {
     private DefaultSubscriptionService underTest;
 
     @Mock
+    private ChainServicesContainer mockChainServicesContainer;
+    @Mock
+    private NodeServices mockNodeServices;
+    @Mock
     private BlockchainService mockBlockchainService;
     @Mock
     private ContractEventFilterRepository mockRepo;
@@ -63,7 +69,11 @@ public class DefaultSubscriptionServiceTest {
 
     @Before
     public void init() {
-        underTest = new DefaultSubscriptionService(mockBlockchainService,
+        when(mockChainServicesContainer.getNodeServices(
+                ContractEventFilter.DEFAULT_NODE_NAME)).thenReturn(mockNodeServices);
+        when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
+
+        underTest = new DefaultSubscriptionService(mockChainServicesContainer,
                 mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),
                 Arrays.asList(mockBlockListener1, mockBlockListener2),
                 Arrays.asList(mockEventListener1, mockEventListener2));

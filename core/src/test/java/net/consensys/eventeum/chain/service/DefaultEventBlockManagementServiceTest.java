@@ -1,6 +1,9 @@
 package net.consensys.eventeum.chain.service;
 
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
@@ -21,11 +24,17 @@ public class DefaultEventBlockManagementServiceTest {
 
     private static final ContractEventSpecification EVENT_SPEC;
 
+    private static final ContractEventFilter EVENT_FILTER;
+
     private DefaultEventBlockManagementService underTest;
 
     private BlockchainService mockBlockchainService;
 
     private EventStoreService mockEventStoreService;
+
+    private NodeServices mockNodeServices;
+
+    private ChainServicesContainer mockChainServicesContainer;
 
     static {
         EVENT_SPEC = new ContractEventSpecification();
@@ -34,22 +43,32 @@ public class DefaultEventBlockManagementServiceTest {
                  new ParameterDefinition(0, ParameterType.ADDRESS),
                  new ParameterDefinition(1, ParameterType.UINT256)));
 
+        EVENT_FILTER = new ContractEventFilter();
+        EVENT_FILTER.setNode(ContractEventFilter.DEFAULT_NODE_NAME);
+        EVENT_FILTER.setEventSpecification(EVENT_SPEC);
+
         EVENT_SPEC.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(2, ParameterType.BYTES32)));
     }
 
     @Before
     public void init() {
+        mockNodeServices = mock(NodeServices.class);
+        mockChainServicesContainer = mock(ChainServicesContainer.class);
         mockBlockchainService = mock(BlockchainService.class);
         mockEventStoreService = mock(EventStoreService.class);
 
-        underTest = new DefaultEventBlockManagementService(mockBlockchainService, mockEventStoreService);
+        when(mockChainServicesContainer.getNodeServices(ContractEventFilter.DEFAULT_NODE_NAME))
+                .thenReturn(mockNodeServices);
+        when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
+
+        underTest = new DefaultEventBlockManagementService(mockChainServicesContainer, mockEventStoreService);
     }
 
     @Test
     public void testUpdateAndGetNoMatch() {
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN);
-        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_SPEC);
+        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.TEN, result);
     }
@@ -58,7 +77,7 @@ public class DefaultEventBlockManagementServiceTest {
     public void testUpdateAndGetLowerMatch() {
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE);
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN);
-        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_SPEC);
+        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.TEN, result);
     }
@@ -67,7 +86,7 @@ public class DefaultEventBlockManagementServiceTest {
     public void testUpdateAndGetHigherMatch() {
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN);
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE);
-        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_SPEC);
+        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.TEN, result);
     }
@@ -78,7 +97,7 @@ public class DefaultEventBlockManagementServiceTest {
         when(mockEventDetails.getBlockNumber()).thenReturn(BigInteger.ONE);
         when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH)).thenReturn(mockEventDetails);
 
-        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_SPEC);
+        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.ONE, result);
     }
@@ -88,7 +107,7 @@ public class DefaultEventBlockManagementServiceTest {
         when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH)).thenReturn(null);
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(BigInteger.valueOf(20));
 
-        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_SPEC);
+        final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.valueOf(20), result);
     }
