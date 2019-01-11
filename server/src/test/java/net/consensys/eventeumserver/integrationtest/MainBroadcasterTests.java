@@ -136,14 +136,17 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
     public void doTestContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
-        System.out.println("Contract address: " + emitter.getContractAddress());
-        doRegisterAndUnregister(emitter.getContractAddress());
+        final ContractEventFilter filter = doRegisterAndUnregister(emitter.getContractAddress());
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForBroadcast();
-        System.out.println("doTestContractEventForUnregisteredEventFilterNotBroadcast messages: " +
-                JSON.stringify(getBroadcastContractEvents()));
-        assertEquals(0, getBroadcastContractEvents().size());
+
+        //For some reason events are sometimes consumed for old tests on circleci
+        //Allow events as long as they aren't for this tests registered filter
+        if (getBroadcastContractEvents().size() > 0) {
+            getBroadcastContractEvents().forEach(
+                    event -> assertNotEquals(filter.getId(), event.getFilterId()));
+        }
     }
 
     private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {
