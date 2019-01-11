@@ -159,6 +159,8 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         saved = getFilterRepo().findById(getDummyEventFilterId());
         assertFalse(saved.isPresent());
 
+        Thread.sleep(2000);
+
         return registeredFilter;
     }
 }
