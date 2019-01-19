@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.service.factory;
 
+import java.util.Collections;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
@@ -8,11 +9,7 @@ import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.Type;
@@ -71,6 +68,10 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
     }
 
     private List<EventParameter> typeListToParameterList(List<Type> typeList) {
+        if (isNullOrEmpty(typeList)) {
+            return Collections.EMPTY_LIST;
+        }
+
         return typeList
                 .stream()
                 .map(type -> parameterConverter.convert(type))
@@ -78,6 +79,10 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
     }
 
     private List<Type> getNonIndexedParametersFromLog(ContractEventSpecification eventSpec, Log log) {
+        if (isNullOrEmpty(eventSpec.getNonIndexedParameterDefinitions())) {
+            return Collections.EMPTY_LIST;
+        }
+
         return FunctionReturnDecoder.decode(
                 log.getData(),
                 Utils.convert(Web3jUtil.getTypeReferencesFromParameterDefinitions(
@@ -85,6 +90,10 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
     }
 
     private List<Type> getIndexedParametersFromLog(ContractEventSpecification eventSpec, Log log) {
+        if (isNullOrEmpty(eventSpec.getIndexedParameterDefinitions())) {
+            return Collections.EMPTY_LIST;
+        }
+
         final List<String> encodedParameters = log.getTopics().subList(1, log.getTopics().size());
         final List<ParameterDefinition> definitions = eventSpec.getIndexedParameterDefinitions();
 
@@ -92,5 +101,9 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
                 .mapToObj(i -> FunctionReturnDecoder.decodeIndexedValue(encodedParameters.get(i),
                         Web3jUtil.getTypeReferenceFromParameterType(definitions.get(i).getType())))
                 .collect(Collectors.toList());
+    }
+
+    private boolean isNullOrEmpty(List<?> toCheck) {
+        return toCheck == null || toCheck.isEmpty();
     }
 }
