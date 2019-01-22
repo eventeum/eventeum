@@ -15,7 +15,4 @@ import java.util.List;
 @ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
 @ConditionalOnMissingBean(EventStoreFactory.class)
 public interface ContractEventDetailsRepository extends MongoRepository<ContractEventDetails, String> {
-    Page<ContractEventDetails> findByEventSpecificationSignature(String signature, Pageable pagination);
-
-    List<ContractEventDetails> findByEventSpecificationSignature(String signature);
 }

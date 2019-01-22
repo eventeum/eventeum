@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 @Configuration
 public class EventStoreConfiguration {
@@ -21,8 +22,9 @@ public class EventStoreConfiguration {
     @Bean
     @ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
     @ConditionalOnMissingBean(EventStoreFactory.class)
-    public EventStore dbEventStore(ContractEventDetailsRepository repository) {
-        return new DBEventStore(repository);
+    public EventStore dbEventStore(
+        ContractEventDetailsRepository repository, MongoTemplate mongoTemplate) {
+        return new DBEventStore(repository, mongoTemplate);
     }
 
     @Bean
