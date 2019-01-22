@@ -15,9 +15,13 @@ import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdStrate
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ContractEventFilter {
 
+    public static final String DEFAULT_NODE_NAME = "default";
+
     private String id;
 
     private String contractAddress;
+
+    private String node = DEFAULT_NODE_NAME;
 
     private ContractEventSpecification eventSpecification;
 

@@ -1,5 +1,8 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import junit.framework.TestCase;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
@@ -76,9 +79,13 @@ public class BaseIntegrationTest {
 
     private String dummyEventNotOrderedFilterId;
 
+    private Map<String, ContractEventFilter> registeredFilters = new HashMap<>();
+
     //Mock this so that websockets don't try to reconnect inbetween tests
-    @MockBean
+    @MockBean(name="defaultNodeHealthCheck")
     private NodeHealthCheckService mockNodeHealthCheckService;
+    @MockBean(name="anotherNodeHealthCheck")
+    private NodeHealthCheckService mockAnnotherNodeHealthCheckService;
 
     @BeforeClass
     public static void setupEnvironment() throws IOException {
@@ -133,6 +140,9 @@ public class BaseIntegrationTest {
 
     @After
     public void cleanup() {
+        final ArrayList<String> filterIds = new ArrayList<>(registeredFilters.keySet());
+        filterIds.forEach(filterId -> unregisterEventFilter(filterId));
+
         filterRepo.deleteAll();
     }
 
@@ -161,6 +171,8 @@ public class BaseIntegrationTest {
                 restTemplate.postForEntity(restUrl + "/api/rest/v1/event-filter", filter, AddEventFilterResponse.class);
 
         filter.setId(response.getBody().getId());
+
+        registeredFilters.put(filter.getId(), filter);
         return filter;
     }
 
@@ -170,6 +182,8 @@ public class BaseIntegrationTest {
 
     protected void unregisterEventFilter(String filterId) {
         restTemplate.delete(restUrl + "/api/rest/v1/event-filter/" + filterId);
+
+        registeredFilters.remove(filterId);
     }
 
     protected boolean unlockAccount() throws IOException {

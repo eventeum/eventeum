@@ -26,6 +26,8 @@ public class ContractEventDetails {
 
     private String filterId;
 
+    private String nodeName;
+
     private List<EventParameter> indexedParameters;
 
     private List<EventParameter> nonIndexedParameters;

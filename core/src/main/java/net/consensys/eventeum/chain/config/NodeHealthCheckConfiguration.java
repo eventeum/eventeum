@@ -11,28 +11,28 @@ import org.web3j.protocol.websocket.WebSocketClient;
 
 import java.util.List;
 
-@Configuration
-@EnableScheduling
-public class NodeHealthCheckConfiguration {
-
-    @ConditionalOnWebsocket
-    @Configuration
-    public class WebSocketHeathCheckConfiguration {
-
-        public WebSocketHealthCheckService websocketHealthCheckService(BlockchainService blockchainService,
-                                                                       List<NodeFailureListener> failureListeners,
-                                                                       WebSocketClient webSocketClient) {
-            return new WebSocketHealthCheckService(blockchainService, failureListeners, webSocketClient);
-        }
-    }
-
-    @ConditionalOnWebsocket(false)
-    @Configuration
-    public class WebSocketHttpHeathCheckConfiguration {
-
-        public NodeHealthCheckService httpWebSocketHealthCheckService(BlockchainService blockchainService,
-                                                                      List<NodeFailureListener> failureListeners) {
-            return new NodeHealthCheckService(blockchainService, failureListeners);
-        }
-    }
-}
+//@Configuration
+//@EnableScheduling
+//public class NodeHealthCheckConfiguration {
+//
+//    @ConditionalOnWebsocket
+//    @Configuration
+//    public class WebSocketHeathCheckConfiguration {
+//
+//        public WebSocketHealthCheckService websocketHealthCheckService(BlockchainService blockchainService,
+//                                                                       List<NodeFailureListener> failureListeners,
+//                                                                       WebSocketClient webSocketClient) {
+//            return new WebSocketHealthCheckService(blockchainService, failureListeners, webSocketClient);
+//        }
+//    }
+//
+//    @ConditionalOnWebsocket(false)
+//    @Configuration
+//    public class WebSocketHttpHeathCheckConfiguration {
+//
+//        public NodeHealthCheckService httpWebSocketHealthCheckService(BlockchainService blockchainService,
+//                                                                      List<NodeFailureListener> failureListeners) {
+//            return new NodeHealthCheckService(blockchainService, failureListeners);
+//        }
+//    }
+//}

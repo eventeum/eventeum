@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.web3j.protocol.Web3j;
 
-@Configuration
+//@Configuration
 public class BlockSubscriptionStrategyConfiguration {
 
     @Bean
