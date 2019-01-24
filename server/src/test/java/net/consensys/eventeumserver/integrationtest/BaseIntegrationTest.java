@@ -95,6 +95,7 @@ public class BaseIntegrationTest {
         parityContainer.waitingFor(Wait.forListeningPort());
         parityContainer.withFixedExposedPort(8545, 8545);
         parityContainer.withFixedExposedPort(8546, 8546);
+        parityContainer.addEnv("NO_BLOCKS", "true");
         parityContainer.start();
 
         waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
