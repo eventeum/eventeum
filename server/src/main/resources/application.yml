@@ -16,7 +16,7 @@ logging:
 ethereum:
   nodes:
     - name: default
-      url: http://localhost:8545
+      url: ${ETHEREUM_NODE_URL:http://localhost:8545}
   healthcheck:
     pollInterval: 2000
   blockStrategy: POLL

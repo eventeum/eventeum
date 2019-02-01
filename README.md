@@ -80,6 +80,20 @@ $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
 ```
 
+## Configuring Nodes
+Listening for events from multiple different nodes is supported in Eventeum, and these nodes can be configured in the properties file.
+
+```
+ethereum:
+  nodes:
+    - name: default
+      url: http://mainnet:8545
+    - name: sidechain
+      url: wss://sidechain/ws
+```
+
+If an event does not specify a node, then it will be registered against the 'default' node.
+
 ## Registering Events
 
 ### REST
@@ -239,7 +253,7 @@ Many values within Eventeum are configurable either by changing the values in th
 | -------- | -------- | -------- |
 | SERVER_PORT | 8060 | The port for the eventeum instance. |
 | ETHEREUM_BLOCKSTRATEGY | POLL | The strategy for obtaining block events from an ethereum node (POLL or PUBSUB) |
-| ETHEREUM_NODE_URL | http://localhost:8545 | The ethereum node url. |
+| ETHEREUM_NODE_URL | http://localhost:8545 | The default ethereum node url. |
 | ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
 | BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
