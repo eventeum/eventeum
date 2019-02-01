@@ -14,8 +14,8 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
 
     private Lock lock = new ReentrantLock();
 
-    public PubSubBlockSubscriptionStrategy(Web3j web3j) {
-        super(web3j);
+    public PubSubBlockSubscriptionStrategy(Web3j web3j, String nodeName) {
+        super(web3j, nodeName);
     }
 
     @Override
@@ -33,6 +33,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         blockDetails.setHash(blockObject.getHash());
         blockDetails.setNumber(Numeric.decodeQuantity(blockObject.getNumber()));
         blockDetails.setTimestamp(Numeric.decodeQuantity(blockObject.getTimestamp()));
+        blockDetails.setNodeName(nodeName);
 
         return blockDetails;
     }

@@ -19,9 +19,11 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
     protected Subscription blockSubscription;
     protected Web3j web3j;
+    protected String nodeName;
 
-    public AbstractBlockSubscriptionStrategy(Web3j web3j) {
+    public AbstractBlockSubscriptionStrategy(Web3j web3j, String nodeName) {
         this.web3j = web3j;
+        this.nodeName = nodeName;
     }
 
     @Override

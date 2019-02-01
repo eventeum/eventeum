@@ -43,6 +43,7 @@ public class Web3jService implements BlockchainService {
 
     @Getter
     private String nodeName;
+
     @Getter
     @Setter
     private Web3j web3j;

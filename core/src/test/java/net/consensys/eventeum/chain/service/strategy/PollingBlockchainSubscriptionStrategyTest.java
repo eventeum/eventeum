@@ -26,6 +26,8 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private static final BigInteger BLOCK_TIMESTAMP = BigInteger.valueOf(12345678);
 
+    private static final String NODE_NAME = "mainnet";
+
     private PollingBlockSubscriptionStrategy underTest;
 
     private PublishSubject<EthBlock> blockSubject;
@@ -51,7 +53,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
         blockSubject = PublishSubject.create();
         when(mockWeb3j.blockObservable(false)).thenReturn(blockSubject);
 
-        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j);
+        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, NODE_NAME);
     }
 
     @Test
@@ -115,6 +117,14 @@ public class PollingBlockchainSubscriptionStrategyTest {
         final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
 
         assertEquals(BLOCK_TIMESTAMP, blockDetails.getTimestamp());
+    }
+
+    @Test
+    public void testBlockNodeNamePassedToListenerIsCorrect() {
+        underTest.subscribe();
+        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+
+        assertEquals(NODE_NAME, blockDetails.getNodeName());
     }
 
     private BlockDetails doRegisterBlockListenerAndTrigger() {
