@@ -32,6 +32,8 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     //12345678
     private static final String BLOCK_TIMESTAMP = "0xbc614e";
 
+    private static final String NODE_NAME = "mainnet";
+
     private PubSubBlockSubscriptionStrategy underTest;
 
     private PublishSubject<NewHeadsNotification> blockSubject;
@@ -59,7 +61,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         blockSubject = PublishSubject.create();
         when(mockWeb3j.newHeadsNotifications()).thenReturn(blockSubject);
 
-        underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j);
+        underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME);
     }
 
     @Test
@@ -123,6 +125,14 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
 
         assertEquals(BigInteger.valueOf(12345678), blockDetails.getTimestamp());
+    }
+
+    @Test
+    public void testBlockNodeNamePassedToListenerIsCorrect() {
+        underTest.subscribe();
+        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+
+        assertEquals(NODE_NAME, blockDetails.getNodeName());
     }
 
     private BlockDetails doRegisterBlockListenerAndTrigger() {

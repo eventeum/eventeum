@@ -1,19 +1,13 @@
 package net.consensys.eventeum.chain.config;
 
-import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.AllArgsConstructor;
-import net.consensys.eventeum.chain.config.factory.BlockchainServiceFactoryBean;
 import net.consensys.eventeum.chain.config.factory.ContractEventDetailsFactoryFactoryBean;
-import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.chain.converter.Web3jEventParameterConverter;
 import net.consensys.eventeum.chain.service.BlockchainException;
-import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.EventBlockManagementService;
 import net.consensys.eventeum.chain.service.container.NodeServices;
-import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.service.health.WebSocketHealthCheckService;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
@@ -21,8 +15,6 @@ import net.consensys.eventeum.chain.service.strategy.PollingBlockSubscriptionStr
 import net.consensys.eventeum.chain.service.strategy.PubSubBlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
-import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.web3j.protocol.Web3j;
@@ -92,7 +84,7 @@ public class NodeBeanRegistrationStrategy {
     }
 
     private String registerBlockchainServiceBean(Node node, Web3j web3j, BeanDefinitionRegistry registry) {
-        final BlockSubscriptionStrategy blockSubscriptionStrategy = buildBlockSubscriptionStrategy(web3j);
+        final BlockSubscriptionStrategy blockSubscriptionStrategy = buildBlockSubscriptionStrategy(node, web3j);
 
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 net.consensys.eventeum.chain.service.Web3jService.class);
@@ -159,11 +151,11 @@ public class NodeBeanRegistrationStrategy {
         return Web3j.build(web3jService);
     }
 
-    private BlockSubscriptionStrategy buildBlockSubscriptionStrategy(Web3j web3j) {
+    private BlockSubscriptionStrategy buildBlockSubscriptionStrategy(Node node, Web3j web3j) {
         if (nodeSettings.getBlockStrategy().equals("POLL")) {
-            return new PollingBlockSubscriptionStrategy(web3j);
+            return new PollingBlockSubscriptionStrategy(web3j, node.getName());
         } else if (nodeSettings.getBlockStrategy().equals("PUBSUB")) {
-            return new PubSubBlockSubscriptionStrategy(web3j);
+            return new PubSubBlockSubscriptionStrategy(web3j, node.getName());
         }
 
         throw new BlockchainException("Invalid blockstrategy configured");
