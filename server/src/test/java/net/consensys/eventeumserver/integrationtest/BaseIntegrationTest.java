@@ -1,5 +1,8 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import junit.framework.TestCase;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
@@ -22,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.admin.Admin;
 import org.web3j.protocol.admin.methods.response.PersonalUnlockAccount;
@@ -50,7 +54,6 @@ public class BaseIntegrationTest {
     protected static final String FAKE_CONTRACT_ADDRESS = "0xb4f391500fc66e6a1ac5d345f58bdcbea66c1a6f";
 
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
-    //protected static final Credentials CREDS = Credentials.create("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d");
 
     private static FixedHostPortGenericContainer parityContainer;
 
@@ -76,9 +79,13 @@ public class BaseIntegrationTest {
 
     private String dummyEventNotOrderedFilterId;
 
+    private Map<String, ContractEventFilter> registeredFilters = new HashMap<>();
+
     //Mock this so that websockets don't try to reconnect inbetween tests
-    @MockBean
+    @MockBean(name="defaultNodeHealthCheck")
     private NodeHealthCheckService mockNodeHealthCheckService;
+    @MockBean(name="anotherNodeHealthCheck")
+    private NodeHealthCheckService mockAnnotherNodeHealthCheckService;
 
     @BeforeClass
     public static void setupEnvironment() throws IOException {
@@ -88,6 +95,7 @@ public class BaseIntegrationTest {
         parityContainer.waitingFor(Wait.forListeningPort());
         parityContainer.withFixedExposedPort(8545, 8545);
         parityContainer.withFixedExposedPort(8546, 8546);
+        parityContainer.addEnv("NO_BLOCKS", "true");
         parityContainer.start();
 
         waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
@@ -133,6 +141,9 @@ public class BaseIntegrationTest {
 
     @After
     public void cleanup() {
+        final ArrayList<String> filterIds = new ArrayList<>(registeredFilters.keySet());
+        filterIds.forEach(filterId -> unregisterEventFilter(filterId));
+
         filterRepo.deleteAll();
     }
 
@@ -161,6 +172,8 @@ public class BaseIntegrationTest {
                 restTemplate.postForEntity(restUrl + "/api/rest/v1/event-filter", filter, AddEventFilterResponse.class);
 
         filter.setId(response.getBody().getId());
+
+        registeredFilters.put(filter.getId(), filter);
         return filter;
     }
 
@@ -170,6 +183,8 @@ public class BaseIntegrationTest {
 
     protected void unregisterEventFilter(String filterId) {
         restTemplate.delete(restUrl + "/api/rest/v1/event-filter/" + filterId);
+
+        registeredFilters.remove(filterId);
     }
 
     protected boolean unlockAccount() throws IOException {
@@ -204,7 +219,8 @@ public class BaseIntegrationTest {
         assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(status, eventDetails.getStatus());
         assertEquals("BytesValue", eventDetails.getIndexedParameters().get(0).getValue());
-        assertEquals(CREDS.getAddress(), eventDetails.getIndexedParameters().get(1).getValue());
+        assertEquals(Keys.toChecksumAddress(CREDS.getAddress()),
+                eventDetails.getIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.TEN, eventDetails.getNonIndexedParameters().get(0).getValue());
         assertEquals("StringValue", eventDetails.getNonIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());

@@ -16,6 +16,12 @@ import java.math.BigInteger;
 public interface BlockchainService {
 
     /**
+     *
+     * @return The ethereum node name that this service is connected to.
+     */
+    String getNodeName();
+
+    /**
      * Add a listener that gets notified when a new block is mined.
      *
      * @param blockListener the listener to add

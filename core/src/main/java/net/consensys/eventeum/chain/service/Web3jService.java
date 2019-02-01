@@ -1,5 +1,7 @@
 package net.consensys.eventeum.chain.service;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
@@ -36,10 +38,14 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Service
 @Slf4j
 public class Web3jService implements BlockchainService {
 
+    @Getter
+    private String nodeName;
+
+    @Getter
+    @Setter
     private Web3j web3j;
     private ContractEventDetailsFactory eventDetailsFactory;
     private EventBlockManagementService blockManagement;
@@ -47,8 +53,8 @@ public class Web3jService implements BlockchainService {
 
     private BlockSubscriptionStrategy blockSubscriptionStrategy;
 
-    @Autowired
-    public Web3jService(Web3j web3j,
+    public Web3jService(String nodeName,
+                        Web3j web3j,
                         ContractEventDetailsFactory eventDetailsFactory,
                         EventBlockManagementService blockManagement,
                         BlockSubscriptionStrategy blockSubscriptionStrategy) {
@@ -87,7 +93,7 @@ public class Web3jService implements BlockchainService {
         final ContractEventSpecification eventSpec = eventFilter.getEventSpecification();
 
         EthFilter ethFilter = new EthFilter(
-                new DefaultBlockParameterNumber(getStartBlockForEventSpec(eventSpec)),
+                new DefaultBlockParameterNumber(getStartBlockForEventFilter(eventFilter)),
                 DefaultBlockParameterName.LATEST, eventFilter.getContractAddress());
 
         if (eventFilter.getEventSpecification() != null) {
@@ -185,7 +191,7 @@ public class Web3jService implements BlockchainService {
         blockSubscriptionStrategy.subscribe();
     }
 
-    private BigInteger getStartBlockForEventSpec(ContractEventSpecification spec) {
-        return blockManagement.getLatestBlockForEvent(spec);
+    private BigInteger getStartBlockForEventFilter(ContractEventFilter filter) {
+        return blockManagement.getLatestBlockForEvent(filter);
     }
 }

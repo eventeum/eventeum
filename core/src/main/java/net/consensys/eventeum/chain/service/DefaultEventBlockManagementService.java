@@ -1,7 +1,9 @@
 package net.consensys.eventeum.chain.service;
 
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.service.EventStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +28,14 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
 
     private AbstractMap<String, BigInteger> latestBlocks = new ConcurrentHashMap<>();
 
-    private BlockchainService blockchainService;
+    private ChainServicesContainer chainServicesContainer;
 
     private EventStoreService eventStoreService;
 
     @Autowired
-    public DefaultEventBlockManagementService(@Lazy BlockchainService blockchainService,
+    public DefaultEventBlockManagementService(@Lazy ChainServicesContainer chainServicesContainer,
                                               EventStoreService eventStoreService) {
-        this.blockchainService = blockchainService;
+        this.chainServicesContainer = chainServicesContainer;
         this.eventStoreService = eventStoreService;
     }
 
@@ -53,8 +55,8 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
      * {@inheritDoc}
      */
     @Override
-    public BigInteger getLatestBlockForEvent(ContractEventSpecification eventSpec) {
-        final String eventSignature = Web3jUtil.getSignature(eventSpec);
+    public BigInteger getLatestBlockForEvent(ContractEventFilter eventFilter) {
+        final String eventSignature = Web3jUtil.getSignature(eventFilter.getEventSpecification());
         final BigInteger latestBlockNumber = latestBlocks.get(eventSignature);
 
         if (latestBlockNumber != null) {
@@ -66,6 +68,9 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
         if (contractEvent != null) {
             return contractEvent.getBlockNumber();
         }
+
+        final BlockchainService blockchainService =
+                chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
 
         return blockchainService.getCurrentBlockNumber();
     }

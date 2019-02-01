@@ -3,6 +3,7 @@ package net.consensys.eventeumserver.integrationtest;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,14 +30,23 @@ public class FromBlockDBEventStoreIT extends BaseFromBlockIntegrationTest {
     public void testFromBlockCorrectForRegisteredFilter() {
         final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
-        final ContractEventDetails eventDetails = new ContractEventDetails();
-        eventDetails.setBlockNumber(BigInteger.valueOf(123));
-        eventDetails.setEventSpecificationSignature(Web3jUtil.getSignature(filter.getEventSpecification()));
-
-        repo.save(eventDetails);
+        repo.save(createContractEventDetails(filter.getEventSpecification(), BigInteger.valueOf(15)));
+        repo.save(createContractEventDetails(filter.getEventSpecification(), BigInteger.valueOf(123)));
+        repo.save(createContractEventDetails(filter.getEventSpecification(), BigInteger.valueOf(1002)));
+        repo.save(createContractEventDetails(filter.getEventSpecification(), BigInteger.valueOf(2004)));
+        repo.save(createContractEventDetails(filter.getEventSpecification(), BigInteger.valueOf(209)));
 
         registerEventFilter(filter);
 
-        assertEquals(BigInteger.valueOf(123), getFromBlockNumberForLatestRegisteredFilter());
+        assertEquals(BigInteger.valueOf(2004), getFromBlockNumberForLatestRegisteredFilter());
+    }
+
+    private ContractEventDetails createContractEventDetails(ContractEventSpecification eventSpec, BigInteger blockNumber) {
+
+        final ContractEventDetails eventDetails = new ContractEventDetails();
+        eventDetails.setBlockNumber(blockNumber);
+        eventDetails.setEventSpecificationSignature(Web3jUtil.getSignature(eventSpec));
+
+        return eventDetails;
     }
 }

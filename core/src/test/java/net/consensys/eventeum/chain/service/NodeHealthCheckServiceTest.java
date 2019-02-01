@@ -2,6 +2,7 @@ package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
+import net.consensys.eventeum.chain.service.health.listener.NodeFailureListeners;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,7 +30,7 @@ public class NodeHealthCheckServiceTest {
         mockFailureListener2 = mock(NodeFailureListener.class);
 
         underTest = new NodeHealthCheckService(mockBlockchainService,
-                Arrays.asList(mockFailureListener1, mockFailureListener2));
+                new NodeFailureListeners(Arrays.asList(mockFailureListener1, mockFailureListener2)));
     }
 
     @Test
