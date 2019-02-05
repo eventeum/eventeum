@@ -58,10 +58,10 @@ public class Web3jService implements BlockchainService {
                         ContractEventDetailsFactory eventDetailsFactory,
                         EventBlockManagementService blockManagement,
                         BlockSubscriptionStrategy blockSubscriptionStrategy) {
+        this.nodeName = nodeName;
         this.web3j = web3j;
         this.eventDetailsFactory = eventDetailsFactory;
         this.blockManagement = blockManagement;
-
         this.blockSubscriptionStrategy = blockSubscriptionStrategy;
 
         connect();

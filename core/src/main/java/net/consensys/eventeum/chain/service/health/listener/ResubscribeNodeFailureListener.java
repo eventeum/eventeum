@@ -35,6 +35,6 @@ public class ResubscribeNodeFailureListener implements NodeFailureListener {
 
     @Override
     public void onNodeSubscribed() {
-        log.info("Resubscribed after failure");
+        log.info("Resubscribed on {} node after failure", blockchainService.getNodeName());
     }
 }

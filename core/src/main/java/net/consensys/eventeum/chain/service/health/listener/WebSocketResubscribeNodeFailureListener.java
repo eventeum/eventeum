@@ -20,6 +20,7 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribeNodeFail
 
     private WebSocketReconnectionManager reconnectionManager;
     private WebSocketClient client;
+    private BlockchainService blockchainService;
 
     public WebSocketResubscribeNodeFailureListener(SubscriptionService subscriptionService,
                                                    BlockchainService blockchainService,
@@ -29,11 +30,12 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribeNodeFail
 
         this.reconnectionManager = reconnectionManager;
         this.client = client;
+        this.blockchainService = blockchainService;
     }
 
     @Override
     public void onNodeFailure() {
-        log.info("Reconnecting web socket because of node failure");
+        log.info("Reconnecting web socket because of {} node failure", blockchainService.getNodeName());
         reconnectionManager.reconnect(client);
     }
 }

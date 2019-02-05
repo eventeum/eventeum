@@ -2,7 +2,6 @@ package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
-import net.consensys.eventeum.chain.service.health.listener.NodeFailureListeners;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,18 +18,14 @@ public class NodeHealthCheckServiceTest {
 
     private BlockchainService mockBlockchainService;
 
-    private NodeFailureListener mockFailureListener1;
-
-    private NodeFailureListener mockFailureListener2;
+    private NodeFailureListener mockFailureListener;
 
     @Before
     public void init() {
         mockBlockchainService = mock(BlockchainService.class);
-        mockFailureListener1 = mock(NodeFailureListener.class);
-        mockFailureListener2 = mock(NodeFailureListener.class);
+        mockFailureListener = mock(NodeFailureListener.class);
 
-        underTest = new NodeHealthCheckService(mockBlockchainService,
-                new NodeFailureListeners(Arrays.asList(mockFailureListener1, mockFailureListener2)));
+        underTest = new NodeHealthCheckService(mockBlockchainService, mockFailureListener);
     }
 
     @Test
@@ -38,10 +33,8 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockFailureListener, never()).onNodeFailure();
+        verify(mockFailureListener, never()).onNodeRecovery();
     }
 
     @Test
@@ -49,10 +42,8 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, never()).onNodeRecovery();
     }
 
     @Test
@@ -60,15 +51,12 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeFailure();
 
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, never()).onNodeRecovery();
     }
 
 
@@ -77,23 +65,16 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, never()).onNodeSubscribed();
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeRecovery();
+        verify(mockFailureListener, never()).onNodeSubscribed();
     }
 
     @Test
@@ -101,22 +82,17 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, never()).onNodeRecovery();
+        verify(mockFailureListener, never()).onNodeSubscribed();
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeRecovery();
+        verify(mockFailureListener, times(1)).onNodeSubscribed();
     }
 
     @Test
@@ -124,23 +100,18 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockFailureListener, never()).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeRecovery();
+        verify(mockFailureListener, never()).onNodeSubscribed();
+
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockFailureListener, never()).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeRecovery();
+        verify(mockFailureListener, times(1)).onNodeSubscribed();
     }
 
     @Test
@@ -148,23 +119,17 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockFailureListener, never()).onNodeFailure();
+        verify(mockFailureListener, never()).onNodeRecovery();
+        verify(mockFailureListener, never()).onNodeSubscribed();
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockFailureListener, never()).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeRecovery();
+        verify(mockFailureListener, never()).onNodeSubscribed();
     }
 
     @Test
@@ -172,32 +137,23 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, never()).onNodeRecovery();
+        verify(mockFailureListener, never()).onNodeSubscribed();
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeRecovery();
+        verify(mockFailureListener, times(1)).onNodeSubscribed();
 
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockFailureListener, times(1)).onNodeFailure();
+        verify(mockFailureListener, times(1)).onNodeRecovery();
+        verify(mockFailureListener, times(1)).onNodeSubscribed();
     }
 
     private void wireBlockchainServiceUp(boolean isSubscribed) {

@@ -10,11 +10,15 @@ import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.service.health.WebSocketHealthCheckService;
+import net.consensys.eventeum.chain.service.health.listener.ResubscribeNodeFailureListener;
+import net.consensys.eventeum.chain.service.health.listener.WebSocketResubscribeNodeFailureListener;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.service.strategy.PollingBlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.service.strategy.PubSubBlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.web3j.protocol.Web3j;
@@ -38,6 +42,11 @@ public class NodeBeanRegistrationStrategy {
     private static final String NODE_HEALTH_CHECM_BEAN_NAME =
             "%sNodeHealthCheck";
 
+    private static final String NODE_FAILURE_LISTENER_BEAN_NAME =
+            "%sNodeFailureListener";
+
+    private static final String WEB_SOCKET_CLIENT_BEAN_NAME = "%sWebSocketClient";
+
     private NodeSettings nodeSettings;
 
     public void register(Node node, BeanDefinitionRegistry registry) {
@@ -47,7 +56,9 @@ public class NodeBeanRegistrationStrategy {
         final Web3j web3j = buildWeb3j(node, web3jService);
         final String blockchainServiceBeanName = registerBlockchainServiceBean(node, web3j, registry);
         registerNodeServicesBean(node, web3j, blockchainServiceBeanName, registry);
-        registerNodeHealthCheckBean(node, blockchainServiceBeanName, web3jService, registry);
+        final String nodeFailureListenerBeanName =
+                registerNodeFailureListener(node, blockchainServiceBeanName, web3jService, registry);
+        registerNodeHealthCheckBean(node, blockchainServiceBeanName, web3jService, nodeFailureListenerBeanName, registry);
 
     }
 
@@ -104,6 +115,7 @@ public class NodeBeanRegistrationStrategy {
     private String registerNodeHealthCheckBean(Node node,
                                                String blockchainServiceBeanName,
                                                Web3jService web3jService,
+                                               String nodeFailureListenerBeanName,
                                                BeanDefinitionRegistry registry) {
         final BeanDefinitionBuilder builder;
 
@@ -115,9 +127,39 @@ public class NodeBeanRegistrationStrategy {
         }
 
         builder.addConstructorArgReference(blockchainServiceBeanName);
+        builder.addConstructorArgReference(nodeFailureListenerBeanName);
 
         final String beanName = String.format(NODE_HEALTH_CHECM_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
+
+        return beanName;
+    }
+
+    private String registerNodeFailureListener(Node node,
+                                               String blockchainServiceBeanName,
+                                               Web3jService web3jService,
+                                               BeanDefinitionRegistry registry) {
+        final BeanDefinition beanDefinition;
+
+        if (isWebSocketUrl(node.getUrl())) {
+            final EventeumWebSocketService webSocketService = (EventeumWebSocketService) web3jService;
+            beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(WebSocketResubscribeNodeFailureListener.class)
+                    .getBeanDefinition();
+
+            beanDefinition.getConstructorArgumentValues()
+                    .addIndexedArgumentValue(3, webSocketService.getWebSocketClient());
+
+        } else {
+            beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResubscribeNodeFailureListener.class)
+                    .getBeanDefinition();
+        }
+
+        beanDefinition.getConstructorArgumentValues()
+                .addIndexedArgumentValue(1, new RuntimeBeanReference(blockchainServiceBeanName));
+
+
+        final String beanName = String.format(NODE_FAILURE_LISTENER_BEAN_NAME, node.getName());
+        registry.registerBeanDefinition(beanName, beanDefinition);
 
         return beanName;
     }

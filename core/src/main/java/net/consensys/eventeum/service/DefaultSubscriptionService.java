@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
@@ -154,8 +155,14 @@ public class DefaultSubscriptionService implements SubscriptionService {
     private void registerContractEventFilter(ContractEventFilter filter, Map<String, FilterSubscription> allFilterSubscriptions) {
         log.info("Registering filter: " + JSON.stringify(filter));
 
-        final BlockchainService blockchainService =
-                chainServices.getNodeServices(filter.getNode()).getBlockchainService();
+        final NodeServices nodeServices = chainServices.getNodeServices(filter.getNode());
+
+        if (nodeServices == null) {
+            log.warn("No node configured with name {}, not registering filter", filter.getNode());
+            return;
+        }
+
+        final BlockchainService blockchainService = nodeServices.getBlockchainService();
 
         final Subscription sub = blockchainService.registerEventListener(filter, contractEvent -> {
             contractEventListeners.forEach(
