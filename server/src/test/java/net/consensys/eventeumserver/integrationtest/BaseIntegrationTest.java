@@ -125,11 +125,12 @@ public class BaseIntegrationTest {
     }
 
     @AfterClass
-    public static void teardownEnvironment() throws IOException {
+    public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
 
         stopParity();
 
+        Thread.sleep(2000);
         //Clear parity data
         final File file = new File("src/test/resources/parity");
         FileUtils.deleteDirectory(file);
@@ -367,12 +368,8 @@ public class BaseIntegrationTest {
         parityContainer.waitingFor(Wait.forListeningPort());
         parityContainer.withFixedExposedPort(8545, 8545);
         parityContainer.withFixedExposedPort(8546, 8546);
-//        parityContainer.withClasspathResourceMapping(
-//                "parity", "$HOME/.local/share/io.parity.ethereum", BindMode.READ_WRITE);
         parityContainer.withFileSystemBind("src/test/resources/parity",
                 "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
-//        parityContainer.withClasspathResourceMapping(
-//                "EventEmitter.sol", "/EventEmitter.sol", BindMode.READ_WRITE);
         parityContainer.addEnv("NO_BLOCKS", "true");
         parityContainer.start();
 
