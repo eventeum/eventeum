@@ -20,8 +20,6 @@ public class NodeHealthCheckServiceTest {
 
     private ReconnectionStrategy mockReconnectionStrategy;
 
-    private AtomicBoolean isConnnected = new AtomicBoolean(false);
-
     @Before
     public void init() {
         mockBlockchainService = mock(BlockchainService.class);
@@ -97,7 +95,7 @@ public class NodeHealthCheckServiceTest {
         verify(mockReconnectionStrategy, never()).reconnect();
         verify(mockReconnectionStrategy, times(1)).resubscribe();
 
-        reset(mockBlockchainService);
+        reset(mockBlockchainService, mockReconnectionStrategy);
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
@@ -158,20 +156,22 @@ public class NodeHealthCheckServiceTest {
         }
     }
 
+    private AtomicBoolean isConnected = new AtomicBoolean(false);
+
     private void wireReconnectResult(boolean reconnectSuccess) {
-        isConnnected.set(false);
+        isConnected.set(false);
 
         doAnswer((invocation) -> {
             if (reconnectSuccess) {
-                isConnnected.set(true);
+                isConnected.set(true);
             } else {
-                isConnnected.set(false);
+                isConnected.set(false);
             }
             return null;
         }).when(mockReconnectionStrategy).reconnect();
 
         doAnswer((invocation) -> {
-            if (isConnnected.get()) {
+            if (isConnected.get()) {
                 return VERSION;
             } else {
                 throw new BlockchainException("Error!", new IOException(""));
