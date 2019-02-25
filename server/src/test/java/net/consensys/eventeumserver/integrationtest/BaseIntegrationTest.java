@@ -130,10 +130,13 @@ public class BaseIntegrationTest {
 
         stopParity();
 
-        Thread.sleep(2000);
-        //Clear parity data
-        final File file = new File("src/test/resources/parity");
-        FileUtils.deleteDirectory(file);
+        try {
+            //Clear parity data
+            final File file = new File("src/test/resources/parity");
+            FileUtils.deleteDirectory(file);
+        } catch (Throwable t) {
+            //When running on circleci the parity dir cannot be deleted but this does no affect tests
+        }
     }
 
     @After
