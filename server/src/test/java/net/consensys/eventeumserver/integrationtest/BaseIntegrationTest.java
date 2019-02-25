@@ -50,6 +50,8 @@ import static org.junit.Assert.assertEquals;
 
 public class BaseIntegrationTest {
 
+    private static final String PARITY_VOLUME_PATH = "target/parity";
+
     protected static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     protected static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000);
 
@@ -89,7 +91,7 @@ public class BaseIntegrationTest {
     public static void setupEnvironment() throws IOException {
         StubEventStoreService.start();
 
-        final File file = new File("src/test/resources/parity");
+        final File file = new File(PARITY_VOLUME_PATH);
         file.mkdirs();
 
         startParity();
@@ -132,7 +134,7 @@ public class BaseIntegrationTest {
 
         try {
             //Clear parity data
-            final File file = new File("src/test/resources/parity");
+            final File file = new File(PARITY_VOLUME_PATH);
             FileUtils.deleteDirectory(file);
         } catch (Throwable t) {
             //When running on circleci the parity dir cannot be deleted but this does no affect tests
@@ -371,7 +373,7 @@ public class BaseIntegrationTest {
         parityContainer.waitingFor(Wait.forListeningPort());
         parityContainer.withFixedExposedPort(8545, 8545);
         parityContainer.withFixedExposedPort(8546, 8546);
-        parityContainer.withFileSystemBind("src/test/resources/parity",
+        parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
                 "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
         parityContainer.addEnv("NO_BLOCKS", "true");
         parityContainer.start();
