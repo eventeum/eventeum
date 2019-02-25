@@ -3,6 +3,9 @@ package net.consensys.eventeum.chain.config;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.bind.DatatypeConverter;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.config.factory.ContractEventDetailsFactoryFactoryBean;
 import net.consensys.eventeum.chain.converter.Web3jEventParameterConverter;
@@ -167,10 +170,21 @@ public class NodeBeanRegistrationStrategy {
     private Web3jService buildWeb3jService(Node node) {
         Web3jService web3jService = null;
 
+        Map<String, String> authHeaders;
+        if (node.getUsername() != null && node.getPassword() != null) {
+            authHeaders = new HashMap<>();
+            authHeaders.put(
+                    "Authorization",
+                    "Basic " + DatatypeConverter.printBase64Binary(
+                            String.format("%s:%s", node.getUsername(), node.getPassword()).getBytes()));
+        } else {
+            authHeaders = null;
+        }
+
         if (isWebSocketUrl(node.getUrl())) {
             final URI uri = parseURI(node.getUrl());
 
-            final WebSocketClient client = new WebSocketClient(uri);
+            final WebSocketClient client = authHeaders != null ? new WebSocketClient(uri, authHeaders) : new WebSocketClient(uri);
 
             WebSocketService wsService = new EventeumWebSocketService(client, false);
 
@@ -182,7 +196,11 @@ public class NodeBeanRegistrationStrategy {
 
             web3jService = wsService;
         } else {
-            web3jService = new HttpService(node.getUrl());
+            HttpService httpService = new HttpService(node.getUrl());
+            if (authHeaders != null) {
+                httpService.addHeaders(authHeaders);
+            }
+            web3jService = httpService;
         }
 
         return web3jService;
