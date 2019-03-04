@@ -2,7 +2,7 @@ package net.consensys.eventeum.chain.service.health;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
+import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
@@ -21,12 +21,12 @@ public class NodeHealthCheckService {
 
     private NodeStatus nodeStatus;
 
-    private NodeFailureListener failureListener;
+    private ReconnectionStrategy reconnectionStrategy;
 
     public NodeHealthCheckService(BlockchainService blockchainService,
-                                  NodeFailureListener failureListener) {
+                                  ReconnectionStrategy reconnectionStrategy) {
         this.blockchainService = blockchainService;
-        this.failureListener = failureListener;
+        this.reconnectionStrategy = reconnectionStrategy;
         nodeStatus = NodeStatus.SUBSCRIBED;
     }
 
@@ -39,33 +39,18 @@ public class NodeHealthCheckService {
                 log.info("Node {} has come back up.", blockchainService.getNodeName());
 
                 //We've come back up
-                failureListener.onNodeRecovery();
-                nodeStatus = NodeStatus.CONNECTED;
-            }
-
-            if (isSubscribed()) {
-                //We weren't previously subscribed, but we are now!
-                if (statusAtStart != NodeStatus.SUBSCRIBED) {
-                    failureListener.onNodeSubscribed();
-                }
-
-                nodeStatus = NodeStatus.SUBSCRIBED;
-            } else if (statusAtStart == NodeStatus.SUBSCRIBED) {
-                //We were previously subscribed, but not any longer
-                log.info("Node {} subscriptions have been lost, attempting to resubscribe", blockchainService.getNodeName());
-                failureListener.onNodeRecovery();
-                nodeStatus = NodeStatus.CONNECTED;
-            }
-        } else {
-
-            if (nodeStatus != NodeStatus.DOWN) {
-                log.error("Node {} is down!!", blockchainService.getNodeName());
-                //First sign of failure
-                failureListener.onNodeFailure();
+                doResubscribe();
             } else {
-                log.error("Node {} is still down!!", blockchainService.getNodeName());
+                if (statusAtStart != NodeStatus.SUBSCRIBED || !isSubscribed()) {
+                    log.info("Node {} not subscribed", blockchainService.getNodeName());
+                    doResubscribe();
+                }
             }
+
+        } else {
+            log.error("Node {} is down!!", blockchainService.getNodeName());
             nodeStatus = NodeStatus.DOWN;
+            doReconnect();
         }
     }
 
@@ -83,6 +68,21 @@ public class NodeHealthCheckService {
 
     protected boolean isSubscribed() {
         return blockchainService.isConnected();
+    }
+
+    private void doReconnect() {
+        reconnectionStrategy.reconnect();
+
+        if (isNodeConnected()) {
+            nodeStatus = NodeStatus.CONNECTED;
+            doResubscribe();
+        }
+    }
+
+    private void doResubscribe() {
+        reconnectionStrategy.resubscribe();
+
+        nodeStatus = isSubscribed() ? NodeStatus.SUBSCRIBED : NodeStatus.CONNECTED;
     }
 
     private enum NodeStatus {
