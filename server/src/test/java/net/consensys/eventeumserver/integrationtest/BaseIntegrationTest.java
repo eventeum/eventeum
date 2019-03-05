@@ -1,5 +1,6 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,12 +17,14 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.utils.JSON;
+import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Credentials;
@@ -33,6 +36,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.http.HttpService;
+import scala.math.BigInt;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -45,6 +49,8 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.assertEquals;
 
 public class BaseIntegrationTest {
+
+    private static final String PARITY_VOLUME_PATH = "target/parity";
 
     protected static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     protected static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000);
@@ -81,27 +87,15 @@ public class BaseIntegrationTest {
 
     private Map<String, ContractEventFilter> registeredFilters = new HashMap<>();
 
-    //Mock this so that websockets don't try to reconnect inbetween tests
-    @MockBean(name="defaultNodeHealthCheck")
-    private NodeHealthCheckService mockNodeHealthCheckService;
-    @MockBean(name="anotherNodeHealthCheck")
-    private NodeHealthCheckService mockAnnotherNodeHealthCheckService;
-
     @BeforeClass
     public static void setupEnvironment() throws IOException {
         StubEventStoreService.start();
 
-        parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
-        parityContainer.waitingFor(Wait.forListeningPort());
-        parityContainer.withFixedExposedPort(8545, 8545);
-        parityContainer.withFixedExposedPort(8546, 8546);
-        parityContainer.addEnv("NO_BLOCKS", "true");
-        parityContainer.start();
+        final File file = new File(PARITY_VOLUME_PATH);
+        file.mkdirs();
 
-        waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
+        startParity();
     }
-
-
 
     @Before
     public void setUp() throws Exception {
@@ -133,10 +127,18 @@ public class BaseIntegrationTest {
     }
 
     @AfterClass
-    public static void teardownEnvironment() {
+    public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
 
-        parityContainer.stop();
+        stopParity();
+
+        try {
+            //Clear parity data
+            final File file = new File(PARITY_VOLUME_PATH);
+            FileUtils.deleteDirectory(file);
+        } catch (Throwable t) {
+            //When running on circleci the parity dir cannot be deleted but this does no affect tests
+        }
     }
 
     @After
@@ -216,13 +218,24 @@ public class BaseIntegrationTest {
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
                                          ContractEventDetails eventDetails, ContractEventStatus status) {
+        verifyDummyEventDetails(registeredFilter, eventDetails, status,
+                "BytesValue", Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.TEN, "StringValue");
+    }
+
+    protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
+                                           ContractEventDetails eventDetails,
+                                           ContractEventStatus status,
+                                           String valueOne,
+                                           String valueTwo,
+                                           BigInteger valueThree,
+                                           String valueFour) {
         assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(status, eventDetails.getStatus());
-        assertEquals("BytesValue", eventDetails.getIndexedParameters().get(0).getValue());
-        assertEquals(Keys.toChecksumAddress(CREDS.getAddress()),
+        assertEquals(valueOne, eventDetails.getIndexedParameters().get(0).getValue());
+        assertEquals(valueTwo,
                 eventDetails.getIndexedParameters().get(1).getValue());
-        assertEquals(BigInteger.TEN, eventDetails.getNonIndexedParameters().get(0).getValue());
-        assertEquals("StringValue", eventDetails.getNonIndexedParameters().get(1).getValue());
+        assertEquals(valueThree, eventDetails.getNonIndexedParameters().get(0).getValue());
+        assertEquals(valueFour, eventDetails.getNonIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
@@ -353,6 +366,23 @@ public class BaseIntegrationTest {
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
         return createFilter(getDummyEventNotOrderedFilterId(), contractAddress, eventSpec);
+    }
+
+    protected static void startParity() {
+        parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
+        parityContainer.waitingFor(Wait.forListeningPort());
+        parityContainer.withFixedExposedPort(8545, 8545);
+        parityContainer.withFixedExposedPort(8546, 8546);
+        parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
+                "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        parityContainer.addEnv("NO_BLOCKS", "true");
+        parityContainer.start();
+
+        waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
+    }
+
+    protected static void stopParity() {
+        parityContainer.stop();
     }
 
     private ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {

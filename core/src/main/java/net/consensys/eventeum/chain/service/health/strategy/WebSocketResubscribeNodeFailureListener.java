@@ -1,4 +1,4 @@
-package net.consensys.eventeum.chain.service.health.listener;
+package net.consensys.eventeum.chain.service.health.strategy;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
@@ -16,7 +16,7 @@ import org.web3j.protocol.websocket.WebSocketClient;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Slf4j
-public class WebSocketResubscribeNodeFailureListener extends ResubscribeNodeFailureListener {
+public class WebSocketResubscribeNodeFailureListener extends ResubscribingReconnectionStrategy {
 
     private WebSocketReconnectionManager reconnectionManager;
     private WebSocketClient client;
@@ -26,7 +26,7 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribeNodeFail
                                                    BlockchainService blockchainService,
                                                    WebSocketReconnectionManager reconnectionManager,
                                                    WebSocketClient client) {
-        super(subscriptionService,blockchainService);
+        super(subscriptionService, blockchainService);
 
         this.reconnectionManager = reconnectionManager;
         this.client = client;
@@ -34,7 +34,7 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribeNodeFail
     }
 
     @Override
-    public void onNodeFailure() {
+    public void reconnect() {
         log.info("Reconnecting web socket because of {} node failure", blockchainService.getNodeName());
         reconnectionManager.reconnect(client);
     }

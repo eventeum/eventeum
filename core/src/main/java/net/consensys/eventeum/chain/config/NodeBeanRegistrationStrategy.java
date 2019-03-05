@@ -10,8 +10,8 @@ import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.service.health.WebSocketHealthCheckService;
-import net.consensys.eventeum.chain.service.health.listener.ResubscribeNodeFailureListener;
-import net.consensys.eventeum.chain.service.health.listener.WebSocketResubscribeNodeFailureListener;
+import net.consensys.eventeum.chain.service.health.strategy.HttpReconnectionStrategy;
+import net.consensys.eventeum.chain.service.health.strategy.WebSocketResubscribeNodeFailureListener;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.service.strategy.PollingBlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.service.strategy.PubSubBlockSubscriptionStrategy;
@@ -150,7 +150,7 @@ public class NodeBeanRegistrationStrategy {
                     .addIndexedArgumentValue(3, webSocketService.getWebSocketClient());
 
         } else {
-            beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(ResubscribeNodeFailureListener.class)
+            beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(HttpReconnectionStrategy.class)
                     .getBeanDefinition();
         }
 
