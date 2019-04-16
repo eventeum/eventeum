@@ -17,6 +17,10 @@ public class NodeSettings {
 
     private static final String NODE_NAME_ATTRIBUTE = "name";
 
+    private static final String NODE_USERNAME_ATTRIBUTE = "username";
+
+    private static final String NODE_PASSWORD_ATTRIBUTE = "password";
+
     private static final String BLOCK_STRATEGY_ATTRIBUTE = "blockStrategy";
 
     private List<Node> nodes;
@@ -37,7 +41,9 @@ public class NodeSettings {
         while (nodeExistsAtIndex(environment, index)) {
             nodes.add(new Node(
                     getNodeNameProperty(environment, index),
-                    getNodeUrlProperty(environment, index)));
+                    getNodeUrlProperty(environment, index),
+                    getNodeUsernameProperty(environment, index),
+                    getNodePasswordProperty(environment, index)));
 
             index++;
         }
@@ -57,6 +63,14 @@ public class NodeSettings {
 
     private String getNodeUrlProperty(Environment environment, int index) {
         return getProperty(environment, buildNodeAttribute(NODE_URL_ATTRIBUTE, index));
+    }
+
+    private String getNodeUsernameProperty(Environment environment, int index) {
+        return getProperty(environment, buildNodeAttribute(NODE_USERNAME_ATTRIBUTE, index));
+    }
+
+    private String getNodePasswordProperty(Environment environment, int index) {
+        return getProperty(environment, buildNodeAttribute(NODE_PASSWORD_ATTRIBUTE, index));
     }
 
     private String getProperty(Environment environment, String property) {
