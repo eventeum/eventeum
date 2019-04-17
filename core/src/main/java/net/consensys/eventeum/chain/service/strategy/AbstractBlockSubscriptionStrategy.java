@@ -29,7 +29,9 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     @Override
     public void unsubscribe() {
         try {
-            blockSubscription.unsubscribe();
+            if (blockSubscription != null) {
+                blockSubscription.unsubscribe();
+            }
         } finally {
             blockSubscription = null;
         }

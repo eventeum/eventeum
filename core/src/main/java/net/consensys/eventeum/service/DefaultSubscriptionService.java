@@ -20,6 +20,7 @@ import rx.Subscription;
 import javax.annotation.PreDestroy;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * {@inheritDoc}
@@ -108,7 +109,13 @@ public class DefaultSubscriptionService implements SubscriptionService {
             throw new FilterNotFoundException(String.format("Filter with id %s, doesn't exist", filterId));
         }
 
-        filterSubscription.getSubscription().unsubscribe();
+        try {
+            filterSubscription.getSubscription().unsubscribe();
+        } catch (Throwable t) {
+            log.info("Unable to unregister filter...this is probably because the " +
+                    "node has restarted or we're in websocket mode");
+        }
+
         deleteContractEventFilter(filterSubscription.getFilter());
         removeFilterSubscription(filterId);
 
@@ -122,20 +129,19 @@ public class DefaultSubscriptionService implements SubscriptionService {
      */
     @Override
     public void resubscribeToAllSubscriptions(boolean unsubscribeFirst) {
-        try {
-            if (unsubscribeFirst) {
-                unregisterFilterSubscriptions();
-            }
-        } catch (Throwable t) {
-            log.info("Unable to unregister filter...this is probably because the " +
-                    "node has restarted or we're in websocket mode");
+        final List<ContractEventFilter> currentFilters = filterSubscriptions
+                .values()
+                .stream()
+                .map(filterSubscription -> filterSubscription.getFilter())
+                .collect(Collectors.toList());
+
+        if (unsubscribeFirst) {
+            unregisterAllContractEventFilters();
         }
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();
 
-        filterSubscriptions.values().forEach(filterSubscription -> {
-            registerContractEventFilter(filterSubscription.getFilter(), newFilterSubscriptions);
-        });
+        currentFilters.forEach(filter -> registerContractEventFilter(filter, newFilterSubscriptions));
 
         filterSubscriptions = newFilterSubscriptions;
 
@@ -143,8 +149,14 @@ public class DefaultSubscriptionService implements SubscriptionService {
     }
 
     @PreDestroy
-    private void unregisterFilterSubscriptions() {
-        filterSubscriptions.values().forEach(filterSub -> filterSub.getSubscription().unsubscribe());
+    private void unregisterAllContractEventFilters() {
+        filterSubscriptions.values().forEach(filterSub -> {
+            try {
+                unregisterContractEventFilter(filterSub.getFilter().getId(), false);
+            } catch (FilterNotFoundException e) {
+                log.error("Error in unregisterAllContractEventFilters", e);
+            }
+        });
     }
 
     private void subscribeToNewBlockEvents(
