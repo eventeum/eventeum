@@ -16,6 +16,7 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.PulsarSettings;
 import net.consensys.eventeum.integration.PulsarSettings.Authentication;
+import net.consensys.eventeum.integration.broadcast.BroadcastException;
 
 @Slf4j
 public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcaster {
@@ -75,8 +76,7 @@ public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcas
 		try {
 			producer.send(mapper.writeValueAsBytes(data));
 		} catch (PulsarClientException e) {
-			// TODO how do we handle this?
-			e.printStackTrace();
+			throw new BroadcastException("Unable to send message", e);
 		} catch (JsonProcessingException e) {
 			// shouldn't happen
 			throw new RuntimeException(e);
