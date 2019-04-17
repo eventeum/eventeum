@@ -1,5 +1,7 @@
 package net.consensys.eventeum.integration;
 
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,6 +11,13 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "pulsar")
 @Data
 public class PulsarSettings {
-	private String url;
+	@Data
+	public static class Authentication {
+		private String pluginClassName;
+		private Map<String, String> params;
+	}
+
+	private Map<String, Object> config;
+	private Authentication authentication;
 	private String topic;
 }

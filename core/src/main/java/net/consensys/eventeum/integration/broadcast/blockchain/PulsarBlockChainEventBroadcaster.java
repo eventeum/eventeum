@@ -1,8 +1,8 @@
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.pulsar.client.api.ClientBuilder;
 import org.apache.pulsar.client.api.CompressionType;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
@@ -15,22 +15,31 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.PulsarSettings;
+import net.consensys.eventeum.integration.PulsarSettings.Authentication;
 
 @Slf4j
 public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcaster {
-	private final PulsarSettings settings;
 	private final ObjectMapper mapper;
 	private PulsarClient client;
 	private Producer<byte[]> producer;
 
 	public PulsarBlockChainEventBroadcaster(PulsarSettings settings, ObjectMapper mapper) throws PulsarClientException {
-		this.settings = settings;
 		this.mapper = mapper;
 
-		// TODO support other settings, such as authentication
-		client = PulsarClient.builder()
-				.serviceUrl(settings.getUrl())
-				.build();
+		ClientBuilder builder = PulsarClient.builder();
+
+		if (settings.getConfig() != null) {
+			builder.loadConf(settings.getConfig());
+		}
+
+		Authentication authSettings = settings.getAuthentication();
+		if (authSettings != null) {
+			builder.authentication(
+					authSettings.getPluginClassName(),
+					authSettings.getParams());
+		}
+
+		client = builder.build();
 
 		producer = client.newProducer()
 				.topic(settings.getTopic())
