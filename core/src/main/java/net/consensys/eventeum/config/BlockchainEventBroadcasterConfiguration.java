@@ -1,10 +1,6 @@
 package net.consensys.eventeum.config;
 
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.EventeumMessage;
-import net.consensys.eventeum.integration.KafkaSettings;
-import net.consensys.eventeum.integration.RabbitSettings;
-import net.consensys.eventeum.integration.broadcast.blockchain.*;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +13,21 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.integration.KafkaSettings;
+import net.consensys.eventeum.integration.PulsarSettings;
+import net.consensys.eventeum.integration.RabbitSettings;
+import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.blockchain.HttpBlockchainEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.blockchain.HttpBroadcasterSettings;
+import net.consensys.eventeum.integration.broadcast.blockchain.KafkaBlockchainEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.blockchain.OnlyOnceBlockchainEventBroadcasterWrapper;
+import net.consensys.eventeum.integration.broadcast.blockchain.PulsarBlockChainEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.blockchain.RabbitBlockChainEventBroadcaster;
 
 /**
  * Spring bean configuration for the BlockchainEventBroadcaster.
@@ -68,6 +79,16 @@ public class BlockchainEventBroadcasterConfiguration {
                 new RabbitBlockChainEventBroadcaster(rabbitTemplate,rabbitSettings);
 
         return onlyOnceWrap(broadcaster);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name=BROADCASTER_PROPERTY, havingValue="PULSAR")
+    public BlockchainEventBroadcaster pulsarBlockChainEventBroadcaster(PulsarSettings settings, ObjectMapper mapper) throws PulsarClientException {
+    	final BlockchainEventBroadcaster broadcaster =
+    			new PulsarBlockChainEventBroadcaster(settings, mapper);
+
+    	return onlyOnceWrap(broadcaster);
     }
 
     @Bean
