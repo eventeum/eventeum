@@ -22,6 +22,7 @@ A bridge between your Ethereum smart contract events and backend microservices. 
 * Kafka
 * HTTP Post
 * [RabbitMQ](https://www.rabbitmq.com/)
+* [Pulsar](https://pulsar.apache.org)
 
 ## Getting Started
 Follow the instructions below in order to run Eventeum on your local machine for development and testing purposes.
@@ -47,7 +48,8 @@ $ mvn clean package
 a. If you have a running instance of MongoDB, Kafka, Zookeeper and an Ethereum node:
 
 **Executable JAR:**
-```
+
+```sh
 $ cd server
 $ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
 $ export ETHEREUM_NODE_URL=http://<node-host:port>
@@ -60,7 +62,7 @@ $ java -jar target/eventeum-server.jar
 
 **Docker:**
 
-```
+```sh
 $ cd server
 $ docker build  . -t kauri/eventeum:latest
 
@@ -74,7 +76,8 @@ $ docker run -p 8060:8060 kauri/eventeum
 ```
 
 b. If you prefer build an all-in-one test environment with a parity dev node, use docker-compose:
-```
+
+```sh
 $ cd server
 $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
@@ -83,7 +86,7 @@ $ docker-compose -f docker-compose.yml up
 ## Configuring Nodes
 Listening for events from multiple different nodes is supported in Eventeum, and these nodes can be configured in the properties file.
 
-```
+```yaml
 ethereum:
   nodes:
     - name: default
@@ -109,7 +112,8 @@ Eventeum exposes a REST api that can be used to register events that should be s
 
 -   **URL Params:** `N/A`
 -   **Body:**
-```
+
+```json
 {
 	"id": "event-identifier",
 	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
@@ -160,7 +164,8 @@ Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
 -   **Success Response:**
     -   **Code:** 200  
         **Content:**
-```
+
+```json
 {
     "id": "event-identifier"
 }
@@ -169,7 +174,7 @@ Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
 ### Hard Coded Configuration
 Static events can be configured within the application.yml file of Eventeum.
 
-```
+```yaml
 eventFilters:
   - id: RequestCreated
     contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
@@ -207,7 +212,7 @@ eventFilters:
 ###  Contract Events
 When a subscribed event is emitted, a JSON message is broadcast to the configured kafka topic or rabbit exchange (contract-events by default), with the following format:
 
-```
+```json
 {
 	"id":"unique-event-id",
 	"type":"CONTRACT_EVENT",
@@ -234,7 +239,7 @@ When a subscribed event is emitted, a JSON message is broadcast to the configure
 ### Block Events
 When a new block is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (block-events by default), with the following format:
 
-```
+```json
  {
  	"id":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8",
 	"type":"BLOCK",
@@ -247,7 +252,10 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 ```
 
 ## Configuration
-Many values within Eventeum are configurable either by changing the values in the application.yml file or by setting the associated environment variable.
+Eventeum can either be configured by:
+
+1. storing an `application.yml` next to the built JAR (copy one from `config-examples`). This overlays the defaults from `server/src/main/resources/application.yml`.
+2. Setting the associated environment variables.
 
 | Env Variable | Default | Description |
 | -------- | -------- | -------- |
@@ -341,7 +349,8 @@ The implemented REST service should have a pageable endpoint which accepts a req
 -   **Success Response:**
     -   **Code:** 200  
         **Content:**
-```
+
+```json
 {
 	"content":[
 		{"blockNumber":10,"id":<unique event id>}],
@@ -372,7 +381,7 @@ Eventeum can be embedded into an existing Spring Application via an annotation.
 
 1. Add the Consensys Kauri bintray repository into your `pom.xml` file:
 
-```
+```xml
 <repositories>
   <repository>
     <id>bintray-consensys-kauri</id>
@@ -383,7 +392,7 @@ Eventeum can be embedded into an existing Spring Application via an annotation.
 
 2. Add the eventeum-core dependency to your `pom.xml` file:
 
-```
+```xml
 <dependency>
   <groupId>net.consensys.eventeum</groupId>
   <artifactId>eventeum-core</artifactId>
