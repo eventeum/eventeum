@@ -2,6 +2,7 @@ package net.consensys.eventeum.integration;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,7 +18,15 @@ public class PulsarSettings {
 		private Map<String, String> params;
 	}
 
+	@Data
+	public static class Topics {
+		private String blockEvents;
+
+		private String contractEvents;
+	}
+
 	private Map<String, Object> config;
 	private Authentication authentication;
-	private String topic;
+
+	private Topics topic;
 }

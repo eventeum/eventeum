@@ -22,7 +22,8 @@ import net.consensys.eventeum.integration.broadcast.BroadcastException;
 public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcaster {
 	private final ObjectMapper mapper;
 	private PulsarClient client;
-	private Producer<byte[]> producer;
+	private Producer<byte[]> blockEventProducer;
+	private Producer<byte[]> contractEventProducer;
 
 	public PulsarBlockChainEventBroadcaster(PulsarSettings settings, ObjectMapper mapper) throws PulsarClientException {
 		this.mapper = mapper;
@@ -42,10 +43,8 @@ public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcas
 
 		client = builder.build();
 
-		producer = client.newProducer()
-				.topic(settings.getTopic())
-				.compressionType(CompressionType.LZ4)
-				.create();
+		blockEventProducer = createProducer(settings.getTopic().getBlockEvents());
+		contractEventProducer = createProducer(settings.getTopic().getContractEvents());
 	}
 
 	@PreDestroy
@@ -57,22 +56,30 @@ public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcas
 				log.warn("couldn't close Pulsar client", e);
 			} finally {
 				client = null;
-				producer = null;
+				blockEventProducer = null;
+				contractEventProducer = null;
 			}
 		}
 	}
 
 	@Override
 	public void broadcastNewBlock(BlockDetails block) {
-		send(block);
+		send(block, blockEventProducer);
 	}
 
 	@Override
 	public void broadcastContractEvent(ContractEventDetails eventDetails) {
-		send(eventDetails);
+		send(eventDetails, contractEventProducer);
 	}
 
-	private void send(Object data) {
+	protected Producer<byte[]> createProducer(String topic) throws PulsarClientException {
+		return client.newProducer()
+				.topic(topic)
+				.compressionType(CompressionType.LZ4)
+				.create();
+	}
+
+	private void send(Object data, Producer<byte[]> producer) {
 		try {
 			producer.send(mapper.writeValueAsBytes(data));
 		} catch (PulsarClientException e) {
@@ -82,4 +89,5 @@ public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcas
 			throw new RuntimeException(e);
 		}
 	}
+
 }

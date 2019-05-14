@@ -22,4 +22,6 @@ pulsar:
   #     password: my-password
 
   # Topic can also be set to 'just the name' (which will default to tenant 'public' and namespace 'default')
-  topic: persistent://public/default/eventeum
+  topic:
+    blockEvents: persistent://public/default/block-events
+    contractEvents: persistent://public/default/contract-events
