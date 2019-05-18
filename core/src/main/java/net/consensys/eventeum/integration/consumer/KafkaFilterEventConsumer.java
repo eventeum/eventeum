@@ -5,7 +5,7 @@ import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.integration.KafkaSettings;
-import net.consensys.eventeum.service.FilterNotFoundException;
+import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class KafkaFilterEventConsumer implements FilterEventConsumer {
         messageConsumers.put(ContractEventFilterRemoved.TYPE, (message) -> {
             try {
                 subscriptionService.unregisterContractEventFilter(message.getDetails().getId(), false);
-            } catch (FilterNotFoundException e) {
+            } catch (NotFoundException e) {
                 logger.debug("Received filter removed message but filter doesn't exist. (We probably sent message)");
             }
         });

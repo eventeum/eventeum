@@ -1,5 +1,6 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -7,6 +8,8 @@ import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.utils.JSON;
+import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -147,6 +150,18 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
             getBroadcastContractEvents().forEach(
                     event -> assertNotEquals(filter.getId(), event.getFilterId()));
         }
+    }
+
+    public void doTestBroadcastBlock() throws Exception {
+        triggerBlocks(1);
+
+        waitForBlockMessages(1);
+
+        Assert.assertTrue("No blocks received", getBroadcastBlockMessages().size() >= 1);
+
+        BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
+        assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
+        assertNotNull(blockDetails.getHash());
     }
 
     private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {

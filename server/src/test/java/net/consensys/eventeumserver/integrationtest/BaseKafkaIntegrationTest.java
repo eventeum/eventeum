@@ -1,6 +1,7 @@
 package net.consensys.eventeumserver.integrationtest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.EventeumMessage;
@@ -40,6 +41,9 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     @Value("#{eventeumKafkaSettings.contractEventsTopic}")
     private String contractEventsTopic;
 
+    @Value("#{eventeumKafkaSettings.blockEventsTopic}")
+    private String blockEventsTopic;
+
     @Value("#{eventeumKafkaSettings.filterEventsTopic}")
     private String filterEventsTopic;
 
@@ -61,7 +65,8 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                 new DefaultKafkaConsumerFactory<>(consumerProperties, new StringDeserializer(), new StringDeserializer());
 
         // set the topic that needs to be consumed
-        ContainerProperties containerProperties = new ContainerProperties(contractEventsTopic, filterEventsTopic);
+        ContainerProperties containerProperties = new ContainerProperties(
+                contractEventsTopic, filterEventsTopic, blockEventsTopic);
 
         // create a Kafka MessageListenerContainer
         testContainer = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
@@ -84,6 +89,13 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                                 objectMapper.readValue(record.value(), EventeumMessage.class);
 
                         getBroadcastFilterEventMessages().add(message);
+                    }
+
+                    if (record.topic().equals(blockEventsTopic)) {
+                        final EventeumMessage<BlockDetails> message =
+                                objectMapper.readValue(record.value(), EventeumMessage.class);
+
+                        getBroadcastBlockMessages().add(message.getDetails());
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);

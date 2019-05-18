@@ -11,6 +11,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
@@ -94,7 +95,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void unregisterContractEventFilter(String filterId) throws FilterNotFoundException {
+    public void unregisterContractEventFilter(String filterId) throws NotFoundException {
         unregisterContractEventFilter(filterId, true);
     }
 
@@ -102,11 +103,11 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void unregisterContractEventFilter(String filterId, boolean broadcast) throws FilterNotFoundException {
+    public void unregisterContractEventFilter(String filterId, boolean broadcast) throws NotFoundException {
         final FilterSubscription filterSubscription = getFilterSubscription(filterId);
 
         if (filterSubscription == null) {
-            throw new FilterNotFoundException(String.format("Filter with id %s, doesn't exist", filterId));
+            throw new NotFoundException(String.format("Filter with id %s, doesn't exist", filterId));
         }
 
         try {
@@ -153,7 +154,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
         filterSubscriptions.values().forEach(filterSub -> {
             try {
                 unregisterContractEventFilter(filterSub.getFilter().getId(), false);
-            } catch (FilterNotFoundException e) {
+            } catch (NotFoundException e) {
                 log.error("Error in unregisterAllContractEventFilters", e);
             }
         });

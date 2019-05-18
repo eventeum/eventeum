@@ -2,6 +2,7 @@ package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
@@ -44,7 +45,7 @@ public class DefaultEventBlockManagementServiceTest {
                  new ParameterDefinition(1, ParameterType.UINT256)));
 
         EVENT_FILTER = new ContractEventFilter();
-        EVENT_FILTER.setNode(ContractEventFilter.DEFAULT_NODE_NAME);
+        EVENT_FILTER.setNode(Constants.DEFAULT_NODE_NAME);
         EVENT_FILTER.setEventSpecification(EVENT_SPEC);
 
         EVENT_SPEC.setNonIndexedParameterDefinitions(
@@ -58,7 +59,7 @@ public class DefaultEventBlockManagementServiceTest {
         mockBlockchainService = mock(BlockchainService.class);
         mockEventStoreService = mock(EventStoreService.class);
 
-        when(mockChainServicesContainer.getNodeServices(ContractEventFilter.DEFAULT_NODE_NAME))
+        when(mockChainServicesContainer.getNodeServices(Constants.DEFAULT_NODE_NAME))
                 .thenReturn(mockNodeServices);
         when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
 

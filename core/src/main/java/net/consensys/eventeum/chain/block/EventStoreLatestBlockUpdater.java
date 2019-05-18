@@ -1,7 +1,8 @@
-package net.consensys.eventeum.chain.contract;
+package net.consensys.eventeum.chain.block;
 
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
+import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -11,16 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-public class SaveableEventStoreUpdater implements ContractEventListener {
+public class EventStoreLatestBlockUpdater implements BlockListener {
 
     private SaveableEventStore saveableEventStore;
 
     @Autowired
-    public SaveableEventStoreUpdater(SaveableEventStore saveableEventStore) {
+    public EventStoreLatestBlockUpdater(SaveableEventStore saveableEventStore) {
         this.saveableEventStore = saveableEventStore;
     }
+
     @Override
-    public void onEvent(ContractEventDetails eventDetails) {
-        saveableEventStore.save(eventDetails);
+    public void onBlock(BlockDetails blockDetails) {
+        saveableEventStore.save(new LatestBlock(blockDetails));
     }
 }

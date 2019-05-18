@@ -2,6 +2,7 @@ package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.broadcast.BroadcastException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +52,11 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
             checkForSuccessResponse(response);
             return null;
         });
+    }
+
+    @Override
+    public void broadcastTransaction(TransactionDetails transactionDetails) {
+
     }
 
     private void checkForSuccessResponse(ResponseEntity<Void> response) {

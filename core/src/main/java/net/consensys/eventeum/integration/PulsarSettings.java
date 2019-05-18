@@ -23,6 +23,8 @@ public class PulsarSettings {
 		private String blockEvents;
 
 		private String contractEvents;
+
+		private String transactionEvents;
 	}
 
 	private Map<String, Object> config;

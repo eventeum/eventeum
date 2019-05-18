@@ -3,19 +3,17 @@ package net.consensys.eventeum.chain.service;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
-import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
-import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
-import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
@@ -28,8 +26,7 @@ import rx.Subscription;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -174,6 +171,21 @@ public class Web3jService implements BlockchainService {
         } catch (IOException e) {
             throw new BlockchainException("Error when obtaining the current block number", e);
         }
+    }
+
+    public Optional<Block> getBlock(String blockHash, boolean fullTransactionObjects) {
+        try {
+            final EthBlock blockResponse = web3j.ethGetBlockByHash(blockHash, fullTransactionObjects).send();
+
+            if (blockResponse.getBlock() == null) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new Web3jBlock(blockResponse.getBlock()));
+        } catch (IOException e) {
+            throw new BlockchainException("Error when obtaining block with hash: " + blockHash, e);
+        }
+
     }
 
     @Override

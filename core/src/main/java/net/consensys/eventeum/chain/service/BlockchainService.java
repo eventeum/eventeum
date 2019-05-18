@@ -2,11 +2,13 @@ package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import rx.Subscription;
 
 import java.math.BigInteger;
+import java.util.Optional;
 
 /**
  * Interface for a service that interacts directly with an Ethereum blockchain node.
@@ -56,6 +58,14 @@ public interface BlockchainService {
      * @return the current block number of the network that the Ethereum node is connected to.
      */
     BigInteger getCurrentBlockNumber();
+
+    /**
+     *
+     * @param blockHash The hash of the block to obtain
+     * @param fullTransactionObjects If full transaction details should be populated
+     * @return The block for the specified hash or nothing if a block with the specified hash does not exist.
+     */
+    public Optional<Block> getBlock(String blockHash, boolean fullTransactionObjects);
 
     /**
      * Obtain the transaction receipt for a specified transaction id.

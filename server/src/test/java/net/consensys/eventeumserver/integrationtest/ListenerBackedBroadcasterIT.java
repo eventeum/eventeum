@@ -2,6 +2,7 @@ package net.consensys.eventeumserver.integrationtest;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.ListenerInvokingBlockchainEventBroadcaster;
 import org.junit.runner.RunWith;
@@ -40,6 +41,8 @@ public class ListenerBackedBroadcasterIT extends BroadcasterSmokeTest {
 
         private static List<ContractEventDetails> broadcastContractEvents = new ArrayList<>();
 
+        private static List<TransactionDetails> broadcastTransactionMessages = new ArrayList<>();
+
         @Bean
         public BlockchainEventBroadcaster listenerBroadcaster() {
 
@@ -52,6 +55,11 @@ public class ListenerBackedBroadcasterIT extends BroadcasterSmokeTest {
                 @Override
                 public void onContractEvent(ContractEventDetails eventDetails) {
                     broadcastContractEvents.add(eventDetails);
+                }
+
+                @Override
+                public void onTransactionEvent(TransactionDetails transactionDetails) {
+                    broadcastTransactionMessages.add(transactionDetails);
                 }
             });
         }

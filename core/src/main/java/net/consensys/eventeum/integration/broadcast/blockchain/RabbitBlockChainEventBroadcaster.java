@@ -5,6 +5,8 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.BlockEvent;
 import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.message.TransactionEvent;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.RabbitSettings;
 import net.consensys.eventeum.utils.JSON;
 import org.slf4j.Logger;
@@ -63,12 +65,30 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
                 eventDetails.getFilterId()));
     }
 
+    @Override
+    public void broadcastTransaction(TransactionDetails transactionDetails) {
+        final EventeumMessage<TransactionDetails> message = createTransactionEventMessage(transactionDetails);
+        rabbitTemplate.convertAndSend(this.rabbitSettings.getExchange(),
+                String.format("%s.%s", this.rabbitSettings.getRoutingKeyPrefix(), transactionDetails.getHash()),
+                message);
+
+        LOG.info(String.format("New transaction event sent: [%s] to exchange [%s] with routing key [%s.%s]",
+                JSON.stringify(message),
+                this.rabbitSettings.getExchange(),
+                this.rabbitSettings.getRoutingKeyPrefix(),
+                transactionDetails.getHash()));
+    }
+
     protected EventeumMessage<BlockDetails> createBlockEventMessage(BlockDetails blockDetails) {
         return new BlockEvent(blockDetails);
     }
 
     protected EventeumMessage<ContractEventDetails> createContractEventMessage(ContractEventDetails contractEventDetails) {
         return new ContractEvent(contractEventDetails);
+    }
+
+    protected EventeumMessage<TransactionDetails> createTransactionEventMessage(TransactionDetails transactionDetails) {
+        return new TransactionEvent(transactionDetails);
     }
 
 }

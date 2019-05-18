@@ -4,9 +4,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
+
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.eventstore.EventStore;
+import net.consensys.eventeum.model.LatestBlock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +86,11 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testBroadcastBlock() throws Exception {
+        doTestBroadcastBlock();
+    }
+
+    @Test
     public void testBroadcastEventAddedToEventStore() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
@@ -100,5 +109,20 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
 
         assertEquals(1, savedEvents.size());
         assertEquals(eventDetails, savedEvents.get(0));
+    }
+
+    @Test
+    public void testBroadcastBlockAddedToEventStore() throws Exception {
+        doTestBroadcastBlock();
+
+        Thread.sleep(2000);
+
+        final Optional<LatestBlock> latestBlock = eventStore.getLatestBlockForNode("default");
+
+        assertEquals(true, latestBlock.isPresent());
+
+        final List<BlockDetails> broadcastBlocks = getBroadcastBlockMessages();
+        assertEquals(broadcastBlocks.get(broadcastBlocks.size() - 1).getNumber(),
+                latestBlock.get().getNumber());
     }
 }
