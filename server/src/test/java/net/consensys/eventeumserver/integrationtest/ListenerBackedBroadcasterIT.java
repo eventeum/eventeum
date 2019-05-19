@@ -34,6 +34,11 @@ public class ListenerBackedBroadcasterIT extends BroadcasterSmokeTest {
         return ListenerConfig.broadcastContractEvents;
     }
 
+    @Override
+    protected List<TransactionDetails> getBroadcastTransactionMessages() {
+        return ListenerConfig.broadcastTransactionMessages;
+    }
+
     @TestConfiguration
     static class ListenerConfig {
 

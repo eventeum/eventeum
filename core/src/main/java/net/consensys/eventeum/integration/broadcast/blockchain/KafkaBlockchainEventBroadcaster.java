@@ -6,6 +6,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.BlockEvent;
 import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.message.TransactionEvent;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.utils.JSON;
@@ -63,7 +64,10 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     @Override
     public void broadcastTransaction(TransactionDetails transactionDetails) {
+        final EventeumMessage<TransactionDetails> message = createTransactionEventMessage(transactionDetails);
+        LOG.info("Sending transaction event message: " + JSON.stringify(message));
 
+        kafkaTemplate.send(kafkaSettings.getTransactionEventsTopic(), transactionDetails.getBlockHash(), message);
     }
 
     protected EventeumMessage<BlockDetails> createBlockEventMessage(BlockDetails blockDetails) {
@@ -72,6 +76,10 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     protected EventeumMessage<ContractEventDetails> createContractEventMessage(ContractEventDetails contractEventDetails) {
         return new ContractEvent(contractEventDetails);
+    }
+
+    protected EventeumMessage<TransactionDetails> createTransactionEventMessage(TransactionDetails transactionDetails) {
+        return new TransactionEvent(transactionDetails);
     }
 
     private String getContractEventCorrelationId(EventeumMessage<ContractEventDetails> message) {

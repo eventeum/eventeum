@@ -9,6 +9,8 @@ import java.util.Optional;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import org.junit.Test;
@@ -91,6 +93,11 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+        doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
+    }
+
+    @Test
     public void testBroadcastEventAddedToEventStore() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
@@ -104,6 +111,8 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
 
         final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
 
+        Thread.sleep(1000);
+
         List<ContractEventDetails> savedEvents = eventStore.getContractEventsForSignature(
             eventDetails.getEventSpecificationSignature(), PageRequest.of(0, 100000)).getContent();
 
@@ -115,7 +124,7 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     public void testBroadcastBlockAddedToEventStore() throws Exception {
         doTestBroadcastBlock();
 
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         final Optional<LatestBlock> latestBlock = eventStore.getLatestBlockForNode("default");
 

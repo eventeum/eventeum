@@ -68,4 +68,9 @@ public class BroadcasterPubSubIT extends MainBroadcasterTests {
     public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
     }
+
+    @Test
+    public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+        doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
+    }
 }

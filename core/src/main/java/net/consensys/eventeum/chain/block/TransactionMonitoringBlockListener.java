@@ -6,6 +6,7 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 
 import java.util.Optional;
@@ -43,7 +44,7 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
 
     private void onTransactionMined(Transaction tx, Block minedBlock) {
         broadcaster.broadcastTransaction(transactionDetailsFactory.createTransactionDetails(
-                tx, transactionIdentifier.getNodeName()));
+                tx, TransactionStatus.UNCONFIRMED, transactionIdentifier.getNodeName()));
 
         unregister();
     }

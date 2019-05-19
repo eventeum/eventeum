@@ -5,6 +5,8 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.utils.JSON;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -38,14 +40,17 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
-    @Value("#{eventeumKafkaSettings.contractEventsTopic}")
-    private String contractEventsTopic;
+//    @Value("#{eventeumKafkaSettings.contractEventsTopic}")
+//    private String contractEventsTopic;
+//
+//    @Value("#{eventeumKafkaSettings.blockEventsTopic}")
+//    private String blockEventsTopic;
+//
+//    @Value("#{eventeumKafkaSettings.filterEventsTopic}")
+//    private String filterEventsTopic;
 
-    @Value("#{eventeumKafkaSettings.blockEventsTopic}")
-    private String blockEventsTopic;
-
-    @Value("#{eventeumKafkaSettings.filterEventsTopic}")
-    private String filterEventsTopic;
+    @Autowired
+    private KafkaSettings kafkaSettings;
 
     @ClassRule
     public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 3);
@@ -65,8 +70,8 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                 new DefaultKafkaConsumerFactory<>(consumerProperties, new StringDeserializer(), new StringDeserializer());
 
         // set the topic that needs to be consumed
-        ContainerProperties containerProperties = new ContainerProperties(
-                contractEventsTopic, filterEventsTopic, blockEventsTopic);
+        ContainerProperties containerProperties = new ContainerProperties(kafkaSettings.getContractEventsTopic(),
+                kafkaSettings.getFilterEventsTopic(), kafkaSettings.getBlockEventsTopic(), kafkaSettings.getTransactionEventsTopic());
 
         // create a Kafka MessageListenerContainer
         testContainer = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
@@ -77,25 +82,32 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
             public void onMessage(ConsumerRecord<String, String> record) {
                 System.out.println("Received message: " + JSON.stringify(record.value()));
                 try {
-                    if (record.topic().equals(contractEventsTopic)) {
+                    if (record.topic().equals(kafkaSettings.getContractEventsTopic())) {
                         final EventeumMessage<ContractEventDetails> message =
                                 objectMapper.readValue(record.value(), EventeumMessage.class);
 
                         getBroadcastContractEvents().add(message.getDetails());
                     }
 
-                    if (record.topic().equals(filterEventsTopic)) {
+                    if (record.topic().equals(kafkaSettings.getFilterEventsTopic())) {
                         final EventeumMessage<ContractEventFilter> message =
                                 objectMapper.readValue(record.value(), EventeumMessage.class);
 
                         getBroadcastFilterEventMessages().add(message);
                     }
 
-                    if (record.topic().equals(blockEventsTopic)) {
+                    if (record.topic().equals(kafkaSettings.getBlockEventsTopic())) {
                         final EventeumMessage<BlockDetails> message =
                                 objectMapper.readValue(record.value(), EventeumMessage.class);
 
                         getBroadcastBlockMessages().add(message.getDetails());
+                    }
+
+                    if (record.topic().equals(kafkaSettings.getTransactionEventsTopic())) {
+                        final EventeumMessage<TransactionDetails> message =
+                                objectMapper.readValue(record.value(), EventeumMessage.class);
+
+                        getBroadcastTransactionMessages().add(message.getDetails());
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);

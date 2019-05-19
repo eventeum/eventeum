@@ -48,6 +48,9 @@ public class KafkaSettings {
     @Value("${kafka.topic.filterEvents}")
     private String filterEventsTopic;
 
+    @Value("${kafka.topic.transactionEvents}")
+    private String transactionEventsTopic;
+
     @Value("${kafka.sasl.username:}")
     private String username;
 

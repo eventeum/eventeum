@@ -3,6 +3,7 @@ package net.consensys.eventeumserver.integrationtest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.PulsarSettings;
 import net.consensys.eventeumserver.integrationtest.container.PulsarContainer;
 import org.apache.pulsar.client.api.*;
@@ -35,6 +36,8 @@ public class PulsarBroadcasterIT extends BroadcasterSmokeTest {
 
     private BackgroundPulsarConsumer<ContractEventDetails> eventBackgroundConsumer;
 
+    private BackgroundPulsarConsumer<TransactionDetails> transactionBackgroundConsumer;
+
     @BeforeClass
     public static void setup() {
         pulsarContainer = new PulsarContainer();
@@ -63,6 +66,10 @@ public class PulsarBroadcasterIT extends BroadcasterSmokeTest {
         eventBackgroundConsumer = new BackgroundPulsarConsumer<>(
                 createConsumer(settings.getTopic().getContractEvents()), ContractEventDetails.class);
         eventBackgroundConsumer.start(event -> onContractEventMessageReceived(event));
+
+        transactionBackgroundConsumer = new BackgroundPulsarConsumer<>(
+                createConsumer(settings.getTopic().getTransactionEvents()), TransactionDetails.class);
+        transactionBackgroundConsumer.start(event -> onTransactionMessageReceived(event));
     }
 
     @After

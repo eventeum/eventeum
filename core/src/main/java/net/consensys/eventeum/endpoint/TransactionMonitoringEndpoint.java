@@ -28,8 +28,8 @@ public class TransactionMonitoringEndpoint {
      * @param nodeName the name of the node that should be monitored for the transaction
      * @param response the http response
      */
-    @RequestMapping(method = RequestMethod.POST)
-    public void monitorTransaction(@RequestParam String hash,
+    @RequestMapping(value="/{hash}", method = RequestMethod.POST)
+    public void monitorTransaction(@PathVariable String hash,
                                    @RequestParam(required = false) String nodeName,
                                    HttpServletResponse response) {
 

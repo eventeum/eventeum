@@ -3,6 +3,7 @@ package net.consensys.eventeumserver.integrationtest;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -35,9 +36,10 @@ public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
     public void onEvent(EventeumMessage message) {
         if(message.getDetails() instanceof ContractEventDetails){
             onContractEventMessageReceived((ContractEventDetails) message.getDetails());
-        }
-        else if(message.getDetails() instanceof BlockDetails){
+        } else if(message.getDetails() instanceof BlockDetails){
             onBlockMessageReceived((BlockDetails) message.getDetails());
+        } else if(message.getDetails() instanceof TransactionDetails){
+            onTransactionMessageReceived((TransactionDetails) message.getDetails());
         }
 
     }

@@ -111,6 +111,11 @@ public class KafkaConfiguration {
         return new NewTopic(kafkaSettings.getFilterEventsTopic(), 3, Short.parseShort("1"));
     }
 
+    @Bean
+    public NewTopic transactionEventsTopic(KafkaSettings kafkaSettings) {
+        return new NewTopic(kafkaSettings.getTransactionEventsTopic(), 3, Short.parseShort("1"));
+    }
+
     private void configurePlaintextSecurityProtocol(Map<String, Object> configProps) {
         configProps.put("ssl.endpoint.identification.algorithm", settings.getEndpointIdentificationAlgorithm());
         configProps.put("sasl.mechanism", settings.getSaslMechanism());

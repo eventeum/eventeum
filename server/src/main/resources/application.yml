@@ -63,6 +63,7 @@ kafka:
     contractEvents: contract-events
     blockEvents: block-events
     filterEvents: filter-events
+    transactionEvents: transaction-events
 
 spring:
   rabbitmq:

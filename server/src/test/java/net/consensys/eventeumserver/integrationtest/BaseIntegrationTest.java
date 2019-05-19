@@ -14,6 +14,8 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.utils.JSON;
@@ -35,6 +37,7 @@ import org.web3j.protocol.admin.methods.response.PersonalUnlockAccount;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
 import scala.math.BigInt;
 
@@ -66,6 +69,8 @@ public class BaseIntegrationTest {
     private List<ContractEventDetails> broadcastContractEvents = new ArrayList<>();
 
     private List<BlockDetails> broadcastBlockMessages = new ArrayList<>();
+
+    private List<TransactionDetails> broadcastTransactionMessages = new ArrayList<>();
 
     @LocalServerPort
     private int port = 12345;
@@ -157,6 +162,10 @@ public class BaseIntegrationTest {
         return broadcastBlockMessages;
     }
 
+    protected List<TransactionDetails> getBroadcastTransactionMessages() {
+        return broadcastTransactionMessages;
+    }
+
     protected ContractEventFilterRepository getFilterRepo() {
         return filterRepo;
     }
@@ -177,6 +186,10 @@ public class BaseIntegrationTest {
 
         registeredFilters.put(filter.getId(), filter);
         return filter;
+    }
+
+    protected void monitorTransaction(String txHash) {
+        restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction/" + txHash, "", Void.class);
     }
 
     protected void unregisterDummyEventFilter() {
@@ -206,14 +219,21 @@ public class BaseIntegrationTest {
         }
 
         for (int i = 0; i < numberOfBlocks; i++) {
-            EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
-                    CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
-            BigInteger nonce = ethGetTransactionCount.getTransactionCount();
-
-            final Transaction tx = Transaction.createEtherTransaction(CREDS.getAddress(),
-                    nonce, GAS_PRICE, GAS_LIMIT, "0x0000000000000000000000000000000000000000", BigInteger.ONE);
-            web3j.ethSendTransaction(tx).send();
+            sendTransaction();
         }
+    }
+
+    protected String sendTransaction() throws ExecutionException, InterruptedException, IOException {
+        EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
+                CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        final Transaction tx = Transaction.createEtherTransaction(CREDS.getAddress(),
+                nonce, GAS_PRICE, GAS_LIMIT, "0x0000000000000000000000000000000000000000", BigInteger.ONE);
+
+        EthSendTransaction response = web3j.ethSendTransaction(tx).send();
+
+        return response.getTransactionHash();
     }
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
@@ -259,44 +279,22 @@ public class BaseIntegrationTest {
     protected void clearMessages() {
         getBroadcastContractEvents().clear();
         getBroadcastBlockMessages().clear();
+        getBroadcastTransactionMessages().clear();
     }
 
     protected void waitForContractEventMessages(int expectedContractEventMessages) {
-        //Wait for an initial 2 seconds (this is usually enough time and is needed
-        //in order to catch failures when no messages are expected on error topic but one arrives)
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        //Wait for another 20 seconds maximum if messages have not yet arrived
-        final long startTime = System.currentTimeMillis();
-        while(true) {
-            if (getBroadcastContractEvents().size() == expectedContractEventMessages) {
-                break;
-            }
-
-            if (System.currentTimeMillis() > startTime + 20000) {
-                final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
-                builder.append("\n");
-                builder.append("Expected contract event messages: " + expectedContractEventMessages);
-                builder.append(", received: " + getBroadcastContractEvents().size());
-                builder.append("\n");
-                builder.append(JSON.stringify(getBroadcastContractEvents()));
-
-                TestCase.fail(builder.toString());
-            }
-
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        waitForMessages(expectedContractEventMessages, getBroadcastContractEvents());
     }
 
     protected void waitForBlockMessages(int expectedBlockMessages) {
+        waitForMessages(expectedBlockMessages, getBroadcastBlockMessages());
+    }
+
+    protected void waitForTransactionMessages(int expectedTransactionMessages) {
+        waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages());
+    }
+
+    private <T> void waitForMessages(int expectedMessageCount, List<T> messages) {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -305,15 +303,15 @@ public class BaseIntegrationTest {
 
         final long startTime = System.currentTimeMillis();
         while(true) {
-            if (getBroadcastBlockMessages().size() >= expectedBlockMessages) {
+            if (messages.size() >= expectedMessageCount) {
                 break;
             }
 
             if (System.currentTimeMillis() > startTime + 20000) {
                 final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
                 builder.append("\n");
-                builder.append("Expected block messages: " + expectedBlockMessages);
-                builder.append(", received: " + broadcastBlockMessages.size());
+                builder.append("Expected message count: " + expectedMessageCount);
+                builder.append(", received: " + messages.size());
 
                 TestCase.fail(builder.toString());
             }

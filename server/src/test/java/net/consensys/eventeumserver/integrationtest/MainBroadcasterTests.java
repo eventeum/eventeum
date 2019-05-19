@@ -7,6 +7,8 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.utils.JSON;
 import org.junit.Assert;
 import org.junit.Test;
@@ -162,6 +164,20 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
         assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
         assertNotNull(blockDetails.getHash());
+    }
+
+    public void doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+
+        final String txHash = sendTransaction();
+        monitorTransaction(txHash);
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
     }
 
     private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {

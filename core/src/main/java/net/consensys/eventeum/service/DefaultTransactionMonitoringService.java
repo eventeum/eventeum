@@ -9,9 +9,11 @@ import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.service.exception.NotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,7 +26,16 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
 
     private TransactionDetailsFactory transactionDetailsFactory;
 
-    private Map<String, Set<BlockListener>> monitoredTransactions;
+    private Map<String, Set<BlockListener>> monitoredTransactions = new HashMap<>();
+
+    @Autowired
+    public DefaultTransactionMonitoringService(ChainServicesContainer chainServices,
+                                               BlockchainEventBroadcaster broadcaster,
+                                               TransactionDetailsFactory transactionDetailsFactory) {
+        this.chainServices = chainServices;
+        this.broadcaster = broadcaster;
+        this.transactionDetailsFactory = transactionDetailsFactory;
+    }
 
     @Override
     public void registerTransactionToMonitor(TransactionIdentifier identifier) {
