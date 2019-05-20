@@ -75,4 +75,9 @@ public class BroadcasterRESTEventStoreIT extends MainBroadcasterTests {
     public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
         doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
     }
+
+    @Test
+    public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+        doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
+    }
 }

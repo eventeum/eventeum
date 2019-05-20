@@ -166,7 +166,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         assertNotNull(blockDetails.getHash());
     }
 
-    public void doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+    public String doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
 
         final String txHash = sendTransaction();
         monitorTransaction(txHash);
@@ -178,6 +178,21 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
+
+        return txHash;
+    }
+
+    public void doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+
+        final String txHash = doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
+
+        triggerBlocks(12);
+        waitForTransactionMessages(2);
+
+        assertEquals(2, getBroadcastTransactionMessages().size());
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(1);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
     }
 
     private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {

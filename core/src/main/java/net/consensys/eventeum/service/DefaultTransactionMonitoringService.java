@@ -1,13 +1,15 @@
 package net.consensys.eventeum.service;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
 import net.consensys.eventeum.chain.block.TransactionMonitoringBlockListener;
+import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
-import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,44 +28,69 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
 
     private TransactionDetailsFactory transactionDetailsFactory;
 
-    private Map<String, Set<BlockListener>> monitoredTransactions = new HashMap<>();
+    private EventConfirmationConfig confirmationConfig;
+
+    private AsyncTaskService asyncService;
+
+    private Map<String, MonitoredTransaction> monitoredTransactions = new HashMap<>();
 
     @Autowired
     public DefaultTransactionMonitoringService(ChainServicesContainer chainServices,
                                                BlockchainEventBroadcaster broadcaster,
-                                               TransactionDetailsFactory transactionDetailsFactory) {
+                                               TransactionDetailsFactory transactionDetailsFactory,
+                                               EventConfirmationConfig confirmationConfig,
+                                               AsyncTaskService asyncService) {
         this.chainServices = chainServices;
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
+        this.confirmationConfig = confirmationConfig;
+        this.asyncService = asyncService;
     }
 
     @Override
-    public void registerTransactionToMonitor(TransactionIdentifier identifier) {
+    public void registerTransactionsToMonitor(TransactionMonitoringSpec spec) {
         final BlockchainService blockchainService = chainServices.getNodeServices(
-                identifier.getNodeName()).getBlockchainService();
+                spec.getNodeName()).getBlockchainService();
 
         final TransactionMonitoringBlockListener monitoringBlockListener =
-                new TransactionMonitoringBlockListener(
-                        identifier, blockchainService, broadcaster, transactionDetailsFactory);
+                new TransactionMonitoringBlockListener(spec,
+                        blockchainService, broadcaster, transactionDetailsFactory, confirmationConfig, asyncService);
 
         blockchainService.addBlockListener(monitoringBlockListener);
 
-        monitoredTransactions.put(identifier.toString(), Collections.singleton(monitoringBlockListener));
+        monitoredTransactions.put(spec.getId(),
+                new MonitoredTransaction(spec, Collections.singleton(monitoringBlockListener)));
     }
 
     @Override
-    public void stopMonitoringTransaction(TransactionIdentifier identifier) throws NotFoundException {
-        if (!monitoredTransactions.containsKey(identifier.toString())) {
-            throw new NotFoundException("No monitored transaction with id: " + identifier.toString());
+    public void stopMonitoringTransactions(String specId) throws NotFoundException {
+        if (!monitoredTransactions.containsKey(specId)) {
+            throw new NotFoundException("No monitored transaction with id: " + specId);
         }
 
+        final MonitoredTransaction monitoredTransaction = monitoredTransactions.get(specId);
+
         final BlockchainService blockchainService = chainServices.getNodeServices(
-                identifier.getNodeName()).getBlockchainService();
+                monitoredTransaction.getSpec().getNodeName()).getBlockchainService();
 
         monitoredTransactions
-                .get(identifier.toString())
+                .get(specId)
+                .getBlockListeners()
                 .forEach(listener -> blockchainService.removeBlockListener(listener));
 
-        monitoredTransactions.remove(identifier.toString());
+        monitoredTransactions.remove(specId);
+    }
+
+    @Data
+    private class MonitoredTransaction {
+        TransactionMonitoringSpec spec;
+
+        Set<BlockListener> blockListeners;
+
+        public MonitoredTransaction(TransactionMonitoringSpec spec, Set<BlockListener> blockListeners) {
+            this.spec = spec;
+            this.blockListeners = blockListeners;
+        }
+
     }
 }

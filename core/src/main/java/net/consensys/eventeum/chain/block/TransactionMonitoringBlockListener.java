@@ -1,19 +1,23 @@
 package net.consensys.eventeum.chain.block;
 
+import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
+import net.consensys.eventeum.service.AsyncTaskService;
 
 import java.util.Optional;
 
 public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockListener {
 
-    private TransactionIdentifier transactionIdentifier;
+    private TransactionMonitoringSpec spec;
 
     private BlockchainService blockchainService;
 
@@ -21,16 +25,24 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
 
     private TransactionDetailsFactory transactionDetailsFactory;
 
-    public TransactionMonitoringBlockListener(TransactionIdentifier transactionIdentifier,
+    private EventConfirmationConfig confirmationConfig;
+
+    private AsyncTaskService asyncService;
+
+    public TransactionMonitoringBlockListener(TransactionMonitoringSpec spec,
                                               BlockchainService blockchainService,
                                               BlockchainEventBroadcaster broadcaster,
-                                              TransactionDetailsFactory transactionDetailsFactory) {
+                                              TransactionDetailsFactory transactionDetailsFactory,
+                                              EventConfirmationConfig confirmationConfig,
+                                              AsyncTaskService asyncService) {
         super(blockchainService);
 
-        this.transactionIdentifier = transactionIdentifier;
+        this.spec = spec;
         this.blockchainService = blockchainService;
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
+        this.confirmationConfig = confirmationConfig;
+        this.asyncService = asyncService;
     }
 
     @Override
@@ -43,8 +55,14 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
     }
 
     private void onTransactionMined(Transaction tx, Block minedBlock) {
-        broadcaster.broadcastTransaction(transactionDetailsFactory.createTransactionDetails(
-                tx, TransactionStatus.UNCONFIRMED, transactionIdentifier.getNodeName()));
+
+        final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
+                tx, TransactionStatus.UNCONFIRMED, spec.getNodeName());
+
+        broadcaster.broadcastTransaction(txDetails);
+
+        blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
+                blockchainService, broadcaster, confirmationConfig, asyncService));
 
         unregister();
     }
@@ -54,7 +72,7 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
         return block
                 .getTransactions()
                 .stream()
-                .filter(tx -> tx.getHash().equals(transactionIdentifier.getHash()))
+                .filter(tx -> tx.getHash().equals(spec.getTransactionIdentifier()))
                 .findFirst();
     }
 }

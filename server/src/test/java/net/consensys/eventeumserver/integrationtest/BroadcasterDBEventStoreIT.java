@@ -98,6 +98,11 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+        doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
+    }
+
+    @Test
     public void testBroadcastEventAddedToEventStore() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();

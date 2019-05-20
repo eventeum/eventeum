@@ -3,6 +3,8 @@ package net.consensys.eventeum.endpoint;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
+import net.consensys.eventeum.model.TransactionIdentifierType;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.TransactionMonitoringService;
 import org.springframework.web.bind.annotation.*;
@@ -37,29 +39,26 @@ public class TransactionMonitoringEndpoint {
             nodeName = Constants.DEFAULT_NODE_NAME;
         }
 
-        final TransactionIdentifier txId = new TransactionIdentifier(hash, nodeName);
-        monitoringService.registerTransactionToMonitor(txId);
+        final TransactionMonitoringSpec spec =
+                new TransactionMonitoringSpec(TransactionIdentifierType.HASH, hash, nodeName);
+        monitoringService.registerTransactionsToMonitor(spec);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
     }
 
     /**
      * Stops monitoring a transaction with the specfied hash
      *
-     * @param @param hash the transaction hash
+     * @param @param specId the id of the transaction monitor to remove
      * @param nodeName the name of the node where the transaction is being monitored
      * @param response the http response
      */
-    @RequestMapping(value="/{hash}", method = RequestMethod.DELETE)
-    public void stopMonitoringTransaction(@PathVariable String hash,
+    @RequestMapping(value="/{id}", method = RequestMethod.DELETE)
+    public void stopMonitoringTransaction(@PathVariable String id,
                                           @RequestParam(required = false) String nodeName,
                                           HttpServletResponse response) {
 
-        if (nodeName == null) {
-            nodeName = Constants.DEFAULT_NODE_NAME;
-        }
-
         try {
-            monitoringService.stopMonitoringTransaction(new TransactionIdentifier(hash, nodeName));
+            monitoringService.stopMonitoringTransactions(id);
             response.setStatus(HttpServletResponse.SC_OK);
         } catch(NotFoundException e) {
             //Rethrow endpoint exception with response information
