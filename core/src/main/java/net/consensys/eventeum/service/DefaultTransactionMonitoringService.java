@@ -7,6 +7,7 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.TransactionMonitoringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
+import net.consensys.eventeum.chain.service.BlockCache;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
@@ -37,6 +38,8 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
 
     private TransactionMonitoringSpecRepository transactionMonitoringRepo;
 
+    private BlockCache blockCache;
+
     private Map<String, MonitoredTransaction> monitoredTransactions = new HashMap<>();
 
     @Autowired
@@ -45,13 +48,15 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
                                                TransactionDetailsFactory transactionDetailsFactory,
                                                EventConfirmationConfig confirmationConfig,
                                                AsyncTaskService asyncService,
-                                               TransactionMonitoringSpecRepository transactionMonitoringRepo) {
+                                               TransactionMonitoringSpecRepository transactionMonitoringRepo,
+                                               BlockCache blockCache) {
         this.chainServices = chainServices;
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
         this.confirmationConfig = confirmationConfig;
         this.asyncService = asyncService;
         this.transactionMonitoringRepo = transactionMonitoringRepo;
+        this.blockCache = blockCache;
     }
 
     @Override
@@ -94,8 +99,8 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
                 spec.getNodeName()).getBlockchainService();
 
         final TransactionMonitoringBlockListener monitoringBlockListener =
-                new TransactionMonitoringBlockListener(spec,
-                        blockchainService, broadcaster, transactionDetailsFactory, confirmationConfig, asyncService);
+                new TransactionMonitoringBlockListener(spec, blockchainService,
+                        broadcaster, transactionDetailsFactory, confirmationConfig, asyncService, blockCache);
 
         blockchainService.addBlockListener(monitoringBlockListener);
 
