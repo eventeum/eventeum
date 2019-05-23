@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.service.strategy;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.Web3jService;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,11 +39,14 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private BlockListener mockBlockListener;
 
+    private EventStoreService mockEventStoreService;
+
     @Before
     public void init() {
         this.mockWeb3j = mock(Web3j.class);
 
         mockEthBlock = mock(EthBlock.class);
+        mockEventStoreService = mock(EventStoreService.class);
         final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
 
         when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
@@ -53,7 +57,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
         blockSubject = PublishSubject.create();
         when(mockWeb3j.blockObservable(false)).thenReturn(blockSubject);
 
-        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, NODE_NAME);
+        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
     }
 
     @Test

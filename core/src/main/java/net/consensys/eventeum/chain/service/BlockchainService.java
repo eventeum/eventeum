@@ -76,6 +76,11 @@ public interface BlockchainService {
     TransactionReceipt getTransactionReceipt(String txId);
 
     /**
+     * Connects to the Ethereum node and starts listening for new blocks
+     */
+    void connect();
+
+    /**
      * Reconnects to the Ethereum node (useful after node failure)
      */
     void reconnect();

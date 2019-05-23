@@ -60,8 +60,6 @@ public class Web3jService implements BlockchainService {
         this.eventDetailsFactory = eventDetailsFactory;
         this.blockManagement = blockManagement;
         this.blockSubscriptionStrategy = blockSubscriptionStrategy;
-
-        connect();
     }
 
     /**
@@ -112,6 +110,15 @@ public class Web3jService implements BlockchainService {
         });
 
         return sub;
+    }
+
+    /**
+     * {inheritDoc}
+     */
+    @Override
+    public void connect() {
+        log.info("Subscribing to block events");
+        blockSubscriptionStrategy.subscribe();
     }
 
     /**
@@ -196,11 +203,6 @@ public class Web3jService implements BlockchainService {
     @PreDestroy
     private void unregisterBlockSubscription() {
         blockSubscriptionStrategy.unsubscribe();
-    }
-
-    private void connect() {
-        log.info("Subscribing to block events");
-        blockSubscriptionStrategy.subscribe();
     }
 
     private BigInteger getStartBlockForEventFilter(ContractEventFilter filter) {

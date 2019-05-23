@@ -30,7 +30,7 @@ public class TransactionMonitoringSpec {
             return id;
         }
 
-        return transactionIdentifier + "-" + type;
+        return transactionIdentifier + "-" + type + "-" + nodeName;
     }
 
     public void setId(String id) {

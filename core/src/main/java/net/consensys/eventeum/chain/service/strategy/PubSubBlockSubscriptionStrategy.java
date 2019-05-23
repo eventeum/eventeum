@@ -1,12 +1,21 @@
 package net.consensys.eventeum.chain.service.strategy;
 
+import lombok.Data;
+import lombok.Setter;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.integration.eventstore.EventStore;
+import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.service.EventStoreService;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 import org.web3j.utils.Numeric;
+import rx.Observable;
 import rx.Subscription;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -14,17 +23,45 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
 
     private Lock lock = new ReentrantLock();
 
-    public PubSubBlockSubscriptionStrategy(Web3j web3j, String nodeName) {
-        super(web3j, nodeName);
+    public PubSubBlockSubscriptionStrategy(Web3j web3j, String nodeName, EventStoreService eventStoreService) {
+        super(web3j, nodeName, eventStoreService);
     }
 
     @Override
     public Subscription subscribe() {
-        blockSubscription = web3j.newHeadsNotifications().subscribe(newHead -> {
-            triggerListeners(newHead.getParams().getResult());
-        });
+        final Optional<LatestBlock> latestBlock = getLatestBlock();
+
+        if (latestBlock.isPresent()) {
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(
+                    latestBlock.get().getNumber().add(BigInteger.ONE));
+
+            //New heads can only start from latest block so we need to obtain missing blocks first
+            web3j.catchUpToLatestBlockObservable(blockParam, false,
+                    Observable.fromCallable(() -> {
+                        blockSubscription = subscribeToNewHeads();
+                        return null;
+                    })
+            ).subscribe(ethBlock -> {triggerListeners(convertToNewHead(ethBlock));});
+        } else {
+            blockSubscription = subscribeToNewHeads();
+        }
 
         return blockSubscription;
+    }
+
+    private Subscription subscribeToNewHeads() {
+        return web3j.newHeadsNotifications().subscribe(newHead -> {
+            triggerListeners(newHead.getParams().getResult());
+        });
+    }
+
+    NewHead convertToNewHead(EthBlock ethBlock) {
+        final BasicNewHead newHead = new BasicNewHead();
+        newHead.setHash(ethBlock.getBlock().getHash());
+        newHead.setNumber(ethBlock.getBlock().getNumberRaw());
+        newHead.setTimestamp(ethBlock.getBlock().getTimestampRaw());
+
+        return newHead;
     }
 
     @Override
@@ -36,5 +73,29 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         blockDetails.setNodeName(nodeName);
 
         return blockDetails;
+    }
+
+    @Setter
+    private class BasicNewHead extends NewHead {
+        private String hash;
+
+        private String number;
+
+        private String timestamp;
+
+        @Override
+        public String getHash() {
+            return hash;
+        }
+
+        @Override
+        public String getNumber() {
+            return number;
+        }
+
+        @Override
+        public String getTimestamp() {
+            return timestamp;
+        }
     }
 }

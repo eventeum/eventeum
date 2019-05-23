@@ -48,6 +48,9 @@ public class NodeBeanRegistrationStrategy {
     private static final String NODE_FAILURE_LISTENER_BEAN_NAME =
             "%sNodeFailureListener";
 
+    private static final String NODE_BLOCK_SUB_STRATEGY_BEAN_NAME =
+            "%sBlockSubscriptionStategy";
+
     private static final String WEB_SOCKET_CLIENT_BEAN_NAME = "%sWebSocketClient";
 
     private NodeSettings nodeSettings;
@@ -98,7 +101,7 @@ public class NodeBeanRegistrationStrategy {
     }
 
     private String registerBlockchainServiceBean(Node node, Web3j web3j, BeanDefinitionRegistry registry) {
-        final BlockSubscriptionStrategy blockSubscriptionStrategy = buildBlockSubscriptionStrategy(node, web3j);
+        final String blockSubStrategyBeanName = registerBlockSubscriptionStrategyBean(node, web3j, registry);
 
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 net.consensys.eventeum.chain.service.Web3jService.class);
@@ -107,7 +110,7 @@ public class NodeBeanRegistrationStrategy {
                 .addConstructorArgValue(web3j)
                 .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()))
                 .addConstructorArgReference("defaultEventBlockManagementService")
-                .addConstructorArgValue(blockSubscriptionStrategy);
+                .addConstructorArgReference(blockSubStrategyBeanName);
 
         final String beanName = String.format(WEB3J_SERVICE_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
@@ -211,14 +214,25 @@ public class NodeBeanRegistrationStrategy {
         return Web3j.build(web3jService);
     }
 
-    private BlockSubscriptionStrategy buildBlockSubscriptionStrategy(Node node, Web3j web3j) {
+    private String registerBlockSubscriptionStrategyBean(Node node,
+                                                                            Web3j web3j,
+                                                                            BeanDefinitionRegistry registry) {
+        BeanDefinitionBuilder builder = null;
+
         if (nodeSettings.getBlockStrategy().equals("POLL")) {
-            return new PollingBlockSubscriptionStrategy(web3j, node.getName());
+            builder = BeanDefinitionBuilder.genericBeanDefinition(PollingBlockSubscriptionStrategy.class);
         } else if (nodeSettings.getBlockStrategy().equals("PUBSUB")) {
-            return new PubSubBlockSubscriptionStrategy(web3j, node.getName());
+            builder = BeanDefinitionBuilder.genericBeanDefinition(PubSubBlockSubscriptionStrategy.class);
         }
 
-        throw new BlockchainException("Invalid blockstrategy configured");
+        builder.addConstructorArgValue(web3j)
+                .addConstructorArgValue(node.getName())
+                .addConstructorArgReference("defaultEventStoreService");
+
+        final String beanName = String.format(NODE_BLOCK_SUB_STRATEGY_BEAN_NAME, node.getName());
+        registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
+
+        return beanName;
     }
 
     private boolean isWebSocketUrl(String nodeUrl) {

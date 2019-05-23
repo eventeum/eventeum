@@ -2,6 +2,7 @@ package net.consensys.eventeum.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.TransactionMonitoringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
@@ -10,6 +11,7 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
+import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class DefaultTransactionMonitoringService implements TransactionMonitoringService {
 
@@ -32,6 +35,8 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
 
     private AsyncTaskService asyncService;
 
+    private TransactionMonitoringSpecRepository transactionMonitoringRepo;
+
     private Map<String, MonitoredTransaction> monitoredTransactions = new HashMap<>();
 
     @Autowired
@@ -39,27 +44,30 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
                                                BlockchainEventBroadcaster broadcaster,
                                                TransactionDetailsFactory transactionDetailsFactory,
                                                EventConfirmationConfig confirmationConfig,
-                                               AsyncTaskService asyncService) {
+                                               AsyncTaskService asyncService,
+                                               TransactionMonitoringSpecRepository transactionMonitoringRepo) {
         this.chainServices = chainServices;
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
         this.confirmationConfig = confirmationConfig;
         this.asyncService = asyncService;
+        this.transactionMonitoringRepo = transactionMonitoringRepo;
     }
 
     @Override
     public void registerTransactionsToMonitor(TransactionMonitoringSpec spec) {
-        final BlockchainService blockchainService = chainServices.getNodeServices(
-                spec.getNodeName()).getBlockchainService();
+        registerTransactionsToMonitor(spec, true);
+    }
 
-        final TransactionMonitoringBlockListener monitoringBlockListener =
-                new TransactionMonitoringBlockListener(spec,
-                        blockchainService, broadcaster, transactionDetailsFactory, confirmationConfig, asyncService);
+    @Override
+    public void registerTransactionsToMonitor(TransactionMonitoringSpec spec, boolean broadcast) {
+        if (isTransactionSpecRegistered(spec)) {
+            log.info("Already registered transaction monitoring spec with id: " + spec.getId());
+            return;
+        }
 
-        blockchainService.addBlockListener(monitoringBlockListener);
-
-        monitoredTransactions.put(spec.getId(),
-                new MonitoredTransaction(spec, Collections.singleton(monitoringBlockListener)));
+        registerTransactionMonitoring(spec);
+        saveTransactionMonitoringSpec(spec);
     }
 
     @Override
@@ -79,6 +87,28 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
                 .forEach(listener -> blockchainService.removeBlockListener(listener));
 
         monitoredTransactions.remove(specId);
+    }
+
+    private void registerTransactionMonitoring(TransactionMonitoringSpec spec) {
+        final BlockchainService blockchainService = chainServices.getNodeServices(
+                spec.getNodeName()).getBlockchainService();
+
+        final TransactionMonitoringBlockListener monitoringBlockListener =
+                new TransactionMonitoringBlockListener(spec,
+                        blockchainService, broadcaster, transactionDetailsFactory, confirmationConfig, asyncService);
+
+        blockchainService.addBlockListener(monitoringBlockListener);
+
+        monitoredTransactions.put(spec.getId(),
+                new MonitoredTransaction(spec, Collections.singleton(monitoringBlockListener)));
+    }
+
+    private TransactionMonitoringSpec saveTransactionMonitoringSpec(TransactionMonitoringSpec spec) {
+        return transactionMonitoringRepo.save(spec);
+    }
+
+    private boolean isTransactionSpecRegistered(TransactionMonitoringSpec spec) {
+        return monitoredTransactions.containsKey(spec.getId());
     }
 
     @Data

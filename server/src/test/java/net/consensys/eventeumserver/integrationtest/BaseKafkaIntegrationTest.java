@@ -38,18 +38,6 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     private List<EventeumMessage<ContractEventFilter>> broadcastFiltersEventMessages = new ArrayList<>();
 
     @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
-//    @Value("#{eventeumKafkaSettings.contractEventsTopic}")
-//    private String contractEventsTopic;
-//
-//    @Value("#{eventeumKafkaSettings.blockEventsTopic}")
-//    private String blockEventsTopic;
-//
-//    @Value("#{eventeumKafkaSettings.filterEventsTopic}")
-//    private String filterEventsTopic;
-
-    @Autowired
     private KafkaSettings kafkaSettings;
 
     @ClassRule

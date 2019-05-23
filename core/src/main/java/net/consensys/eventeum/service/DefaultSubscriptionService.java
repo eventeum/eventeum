@@ -163,6 +163,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
     private void subscribeToNewBlockEvents(
             BlockchainService blockchainService, List<BlockListener> blockListeners) {
         blockListeners.forEach(listener -> blockchainService.addBlockListener(listener));
+
+        blockchainService.connect();
     }
 
     private void registerContractEventFilter(ContractEventFilter filter, Map<String, FilterSubscription> allFilterSubscriptions) {

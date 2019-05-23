@@ -8,5 +8,7 @@ public interface TransactionMonitoringService {
 
     void registerTransactionsToMonitor(TransactionMonitoringSpec spec);
 
+    void registerTransactionsToMonitor(TransactionMonitoringSpec spec, boolean broadcast);
+
     void stopMonitoringTransactions(String id) throws NotFoundException;
 }

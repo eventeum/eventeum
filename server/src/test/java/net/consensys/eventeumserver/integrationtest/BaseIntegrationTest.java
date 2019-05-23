@@ -75,7 +75,7 @@ public class BaseIntegrationTest {
     @LocalServerPort
     private int port = 12345;
 
-    @Autowired
+    @Autowired(required = false)
     private ContractEventFilterRepository filterRepo;
 
     private RestTemplate restTemplate;

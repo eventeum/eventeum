@@ -66,6 +66,8 @@ public class DBEventStore implements SaveableEventStore {
 
     @Override
     public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
+        final List<LatestBlock> blocks = latestBlockRepository.findAll();
+
         return latestBlockRepository.findById(nodeName);
     }
 
