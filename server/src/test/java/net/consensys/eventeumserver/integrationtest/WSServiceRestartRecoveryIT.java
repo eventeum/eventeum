@@ -10,4 +10,9 @@ public class WSServiceRestartRecoveryIT extends ServiceRestartRecoveryTests {
     public void broadcastMissedBlocksOnStartupAfterFailureTest() throws Exception {
         doBroadcastMissedBlocksOnStartupAfterFailureTest();
     }
+
+    @Test
+    public void broadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
+        doBroadcastTransactionUnconfirmedAfterFailureTest();
+    }
 }

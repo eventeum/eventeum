@@ -27,8 +27,7 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
         final Optional<LatestBlock> latestBlock = getLatestBlock();
 
         if (latestBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(
-                    latestBlock.get().getNumber().add(BigInteger.ONE));
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
             blockSubscription = web3j.catchUpToLatestAndSubscribeToNewBlocksObservable(blockParam, false)
                     .subscribe(block -> { triggerListeners(block); });

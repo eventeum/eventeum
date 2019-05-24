@@ -32,8 +32,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         final Optional<LatestBlock> latestBlock = getLatestBlock();
 
         if (latestBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(
-                    latestBlock.get().getNumber().add(BigInteger.ONE));
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
             //New heads can only start from latest block so we need to obtain missing blocks first
             web3j.catchUpToLatestBlockObservable(blockParam, false,

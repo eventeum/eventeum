@@ -14,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+import org.web3j.crypto.Hash;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -168,8 +169,12 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
     public String doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
 
-        final String txHash = sendTransaction();
+        final String signedTxHex = createRawSignedTransactionHex();
+        final String txHash = Hash.sha3(signedTxHex);
+
         monitorTransaction(txHash);
+
+        assertEquals(txHash, sendRawTransaction(signedTxHex));
 
         waitForTransactionMessages(1);
 

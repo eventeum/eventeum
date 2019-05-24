@@ -2,6 +2,8 @@ package net.consensys.eventeumserver.integrationtest;
 
 import net.consensys.eventeum.annotation.EnableEventeum;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeumserver.Application;
@@ -29,6 +31,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.web3j.crypto.Hash;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
 
@@ -88,13 +91,46 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         waitForBlockMessages(6);
 
-        assertEquals(lastBlockNumber.add(BigInteger.ONE), getBroadcastBlockMessages().get(0).getNumber());
+        //Eventeum will rebroadcast the last seen block after restart in case block
+        //wasn't fully processed
+        assertEquals(lastBlockNumber, getBroadcastBlockMessages().get(0).getNumber());
 
         //Assert incremental blocks
         for(int i = 0; i < getBroadcastBlockMessages().size(); i++) {
-            final BigInteger expectedNumber = BigInteger.valueOf(i + lastBlockNumber.intValue() + 1);
+            final BigInteger expectedNumber = BigInteger.valueOf(i + lastBlockNumber.intValue());
 
             assertEquals(expectedNumber, getBroadcastBlockMessages().get(i).getNumber());
         }
+    }
+
+    protected void doBroadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
+
+        triggerBlocks(1);
+
+        waitForBlockMessages(1);
+
+        final String signedHex = createRawSignedTransactionHex();
+
+        final String txHash = Hash.sha3(signedHex);
+
+        monitorTransaction(txHash);
+
+        SpringRestarter.getInstance().restart(() -> {
+            try {
+                final String actualTxHash = sendRawTransaction(signedHex);
+                assertEquals(txHash, actualTxHash);
+                waitForBroadcast();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
     }
 }

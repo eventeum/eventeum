@@ -31,6 +31,8 @@ import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Keys;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.crypto.TransactionEncoder;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.admin.Admin;
 import org.web3j.protocol.admin.methods.response.PersonalUnlockAccount;
@@ -39,6 +41,7 @@ import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.utils.Numeric;
 import scala.math.BigInt;
 
 import java.io.IOException;
@@ -63,6 +66,8 @@ public class BaseIntegrationTest {
     protected static final String FAKE_CONTRACT_ADDRESS = "0xb4f391500fc66e6a1ac5d345f58bdcbea66c1a6f";
 
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
+
+    protected static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
     private static FixedHostPortGenericContainer parityContainer;
 
@@ -229,11 +234,32 @@ public class BaseIntegrationTest {
         BigInteger nonce = ethGetTransactionCount.getTransactionCount();
 
         final Transaction tx = Transaction.createEtherTransaction(CREDS.getAddress(),
-                nonce, GAS_PRICE, GAS_LIMIT, "0x0000000000000000000000000000000000000000", BigInteger.ONE);
+                nonce, GAS_PRICE, GAS_LIMIT, ZERO_ADDRESS, BigInteger.ONE);
 
         EthSendTransaction response = web3j.ethSendTransaction(tx).send();
 
         return response.getTransactionHash();
+    }
+
+    protected String createRawSignedTransactionHex() throws ExecutionException, InterruptedException {
+
+        final EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
+                CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
+
+        final BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        final RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, ZERO_ADDRESS, BigInteger.ONE);
+
+        final byte[] signedTx = TransactionEncoder.signMessage(rawTransaction, CREDS);
+
+        return Numeric.toHexString(signedTx);
+    }
+
+    protected String sendRawTransaction(String signedTxHex) throws ExecutionException, InterruptedException {
+
+        final EthSendTransaction ethSendTransaction = web3j.ethSendRawTransaction(signedTxHex).sendAsync().get();
+        return ethSendTransaction.getTransactionHash();
     }
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,

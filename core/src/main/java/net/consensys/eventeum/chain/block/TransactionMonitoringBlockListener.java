@@ -58,13 +58,15 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
 
     @Override
     public void onBlock(BlockDetails blockDetails) {
-        lock.lock();
+        asyncService.execute(() -> {
+            lock.lock();
 
-        try {
-            processBlock(blockDetails);
-        } finally {
-            lock.unlock();
-        }
+            try {
+                processBlock(blockDetails);
+            } finally {
+                lock.unlock();
+            }
+        });
     }
 
     private void init() {
