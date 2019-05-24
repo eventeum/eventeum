@@ -108,6 +108,7 @@ public class DefaultEventBlockManagementServiceTest {
     public void testGetNoLocalMatchAndNoHitInEventStore() {
         when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH)).thenReturn(null);
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(BigInteger.valueOf(20));
+        when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH)).thenReturn(Optional.empty());
 
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
