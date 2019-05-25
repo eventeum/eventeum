@@ -18,6 +18,7 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
+import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.utils.JSON;
 import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
@@ -84,6 +85,9 @@ public class BaseIntegrationTest {
 
     @Autowired(required = false)
     private ContractEventFilterRepository filterRepo;
+
+    @Autowired(required = false)
+    private ContractEventDetailsRepository eventDetailsRepository;
 
     private RestTemplate restTemplate;
 
@@ -165,6 +169,10 @@ public class BaseIntegrationTest {
         }
 
         filterRepo.deleteAll();
+
+        if (eventDetailsRepository != null) {
+            eventDetailsRepository.deleteAll();
+        }
 
         //Get around concurrent modification exception
         new ArrayList<>(registeredTransactionMonitorIds).forEach(this::unregisterTransactionMonitor);

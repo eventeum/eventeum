@@ -70,10 +70,14 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         triggerBlocks(5);
 
-        //5 + genesis
-        waitForBlockMessages(6);
+        waitForBlockMessages(5);
+
+        //Depending on timing, the genesis block is sometimes broadcast,
+        //So wait another few seconds for the last block if this is the case
+        waitForBroadcast();
 
         List<BlockDetails> broadcastBlocks = getBroadcastBlockMessages();
+
         final BigInteger lastBlockNumber = broadcastBlocks.get(broadcastBlocks.size() - 1).getNumber();
 
         getBroadcastBlockMessages().clear();
