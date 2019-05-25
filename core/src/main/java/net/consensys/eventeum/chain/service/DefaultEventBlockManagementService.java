@@ -70,6 +70,10 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
             return contractEvent.get().getBlockNumber();
         }
 
+        if (eventFilter.getStartBlock() != null) {
+            return eventFilter.getStartBlock();
+        }
+
         final BlockchainService blockchainService =
                 chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
 

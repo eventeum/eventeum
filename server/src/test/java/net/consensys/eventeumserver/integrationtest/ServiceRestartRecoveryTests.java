@@ -1,11 +1,16 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import junit.framework.TestCase;
 import net.consensys.eventeum.annotation.EnableEventeum;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventStatus;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
 import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import net.consensys.eventeumserver.Application;
 import net.consensys.eventeumserver.integrationtest.utils.ExcludeEmbeddedMongoApplication;
 import net.consensys.eventeumserver.integrationtest.utils.RestartingSpringRunner;
@@ -50,6 +55,9 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
     private static final int MONGO_PORT = 27017;
 
     private static FixedHostPortGenericContainer mongoContainer;
+
+    @Autowired
+    private TransactionMonitoringSpecRepository txRepo;
 
     @BeforeClass
     public static void startMongo() {
@@ -106,6 +114,30 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         }
     }
 
+    public void doBroadcastUnconfirmedEventAfterFailureTest() throws Exception {
+
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
+
+        restartEventeum(() -> {
+            try {
+                emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+                waitForBroadcast();
+            } catch (Exception e) {
+                e.printStackTrace();
+                TestCase.fail("Unable to emit event");
+            }
+        });
+
+        waitForContractEventMessages(1);
+
+        assertEquals(1, getBroadcastContractEvents().size());
+
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
+    }
+
     protected void doBroadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
 
         triggerBlocks(1);
@@ -118,6 +150,8 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         monitorTransaction(txHash);
 
+        txRepo.findAll();
+
         restartEventeum(() -> {
             try {
                 final String actualTxHash = sendRawTransaction(signedHex);
@@ -127,6 +161,8 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
                 e.printStackTrace();
             }
         });
+
+        txRepo.findAll();
 
         waitForTransactionMessages(1);
 

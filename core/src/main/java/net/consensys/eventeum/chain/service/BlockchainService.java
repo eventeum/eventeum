@@ -5,6 +5,7 @@ import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.model.FilterSubscription;
 import rx.Subscription;
 
 import java.math.BigInteger;
@@ -43,9 +44,9 @@ public interface BlockchainService {
      *
      * @param filter The contract event filter that should be matched.
      * @param eventListener The listener to be triggered when a matching event is emitted
-     * @return The registered subscriptopn
+     * @return The registered subscription
      */
-    Subscription registerEventListener(ContractEventFilter filter, ContractEventListener eventListener);
+    FilterSubscription registerEventListener(ContractEventFilter filter, ContractEventListener eventListener);
 
     /**
      *

@@ -14,6 +14,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.model.FilterSubscription;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
@@ -82,13 +83,15 @@ public class Web3jService implements BlockchainService {
      * {inheritDoc}
      */
     @Override
-    public Subscription registerEventListener(
+    public FilterSubscription registerEventListener(
             ContractEventFilter eventFilter, ContractEventListener eventListener) {
         log.debug("Registering event filter for event: {}", eventFilter.getId());
         final ContractEventSpecification eventSpec = eventFilter.getEventSpecification();
 
+        final BigInteger startBlock = getStartBlockForEventFilter(eventFilter);
+
         EthFilter ethFilter = new EthFilter(
-                new DefaultBlockParameterNumber(getStartBlockForEventFilter(eventFilter)),
+                new DefaultBlockParameterNumber(startBlock),
                 DefaultBlockParameterName.LATEST, eventFilter.getContractAddress());
 
         if (eventFilter.getEventSpecification() != null) {
@@ -109,7 +112,7 @@ public class Web3jService implements BlockchainService {
             }
         });
 
-        return sub;
+        return new FilterSubscription(eventFilter, sub, startBlock);
     }
 
     /**

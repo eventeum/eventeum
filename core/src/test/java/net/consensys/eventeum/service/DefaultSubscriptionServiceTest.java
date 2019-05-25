@@ -10,6 +10,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
+import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
@@ -131,9 +132,9 @@ public class DefaultSubscriptionServiceTest {
         final Subscription sub2 = mock(Subscription.class);
 
         when(mockBlockchainService.registerEventListener(
-                eq(filter1), any(ContractEventListener.class))).thenReturn(sub1);
+                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
         when(mockBlockchainService.registerEventListener(
-                eq(filter2), any(ContractEventListener.class))).thenReturn(sub2);
+                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
 
         //Add 2 filters
         underTest.registerContractEventFilter(filter1, true);
@@ -156,7 +157,7 @@ public class DefaultSubscriptionServiceTest {
         final Subscription sub1 = mock(Subscription.class);
 
         when(mockBlockchainService.registerEventListener(
-                eq(filter), any(ContractEventListener.class))).thenReturn(sub1);
+                eq(filter), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter, sub1));
 
         underTest.registerContractEventFilter(filter, false);
 

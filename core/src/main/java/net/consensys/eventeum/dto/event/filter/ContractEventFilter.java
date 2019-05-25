@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdStrategy;
 
+import java.math.BigInteger;
+
 /**
  * Represents the details of a contract event filter.
  *
@@ -25,4 +27,6 @@ public class ContractEventFilter {
     private ContractEventSpecification eventSpecification;
 
     private CorrelationIdStrategy correlationIdStrategy;
+
+    private BigInteger startBlock;
 }

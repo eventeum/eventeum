@@ -11,6 +11,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
         populateIdIfMissing(filter);
 
         if (!isFilterRegistered(filter)) {
-            registerContractEventFilter(filter, filterSubscriptions);
+            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
+
+            if (filter.getStartBlock() == null && sub != null) {
+                filter.setStartBlock(sub.getStartBlock());
+            }
+
             saveContractEventFilter(filter);
 
             if (broadcast) {
@@ -110,12 +116,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
             throw new NotFoundException(String.format("Filter with id %s, doesn't exist", filterId));
         }
 
-        try {
-            filterSubscription.getSubscription().unsubscribe();
-        } catch (Throwable t) {
-            log.info("Unable to unregister filter...this is probably because the " +
-                    "node has restarted or we're in websocket mode");
-        }
+        unsubscribeFilterSubscription(filterSubscription);
 
         deleteContractEventFilter(filterSubscription.getFilter());
         removeFilterSubscription(filterId);
@@ -152,12 +153,18 @@ public class DefaultSubscriptionService implements SubscriptionService {
     @PreDestroy
     private void unregisterAllContractEventFilters() {
         filterSubscriptions.values().forEach(filterSub -> {
-            try {
-                unregisterContractEventFilter(filterSub.getFilter().getId(), false);
-            } catch (NotFoundException e) {
-                log.error("Error in unregisterAllContractEventFilters", e);
-            }
+            unsubscribeFilterSubscription(filterSub);
         });
+    }
+
+    public void unsubscribeFilterSubscription(FilterSubscription filterSubscription) {
+
+        try {
+            filterSubscription.getSubscription().unsubscribe();
+        } catch (Throwable t) {
+            log.info("Unable to unregister filter...this is probably because the " +
+                    "node has restarted or we're in websocket mode");
+        }
     }
 
     private void subscribeToNewBlockEvents(
@@ -167,26 +174,28 @@ public class DefaultSubscriptionService implements SubscriptionService {
         blockchainService.connect();
     }
 
-    private void registerContractEventFilter(ContractEventFilter filter, Map<String, FilterSubscription> allFilterSubscriptions) {
+    private FilterSubscription registerContractEventFilter(ContractEventFilter filter, Map<String, FilterSubscription> allFilterSubscriptions) {
         log.info("Registering filter: " + JSON.stringify(filter));
 
         final NodeServices nodeServices = chainServices.getNodeServices(filter.getNode());
 
         if (nodeServices == null) {
             log.warn("No node configured with name {}, not registering filter", filter.getNode());
-            return;
+            return null;
         }
 
         final BlockchainService blockchainService = nodeServices.getBlockchainService();
 
-        final Subscription sub = blockchainService.registerEventListener(filter, contractEvent -> {
+        final FilterSubscription sub = blockchainService.registerEventListener(filter, contractEvent -> {
             contractEventListeners.forEach(
                     listener -> triggerListener(listener, contractEvent));
         });
 
-        allFilterSubscriptions.put(filter.getId(), new FilterSubscription(filter, sub));
+        allFilterSubscriptions.put(filter.getId(), sub);
 
         log.debug("Registered filters: {}", JSON.stringify(allFilterSubscriptions));
+
+        return sub;
     }
 
     private void triggerListener(ContractEventListener listener, ContractEventDetails contractEventDetails) {
@@ -230,14 +239,5 @@ public class DefaultSubscriptionService implements SubscriptionService {
         if (filter.getId() == null) {
             filter.setId(UUID.randomUUID().toString());
         }
-    }
-
-    @Data
-    @AllArgsConstructor
-    private class FilterSubscription {
-
-        private ContractEventFilter filter;
-
-        private Subscription subscription;
     }
 }
