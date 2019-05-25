@@ -98,22 +98,26 @@ public class KafkaConfiguration {
 
     @Bean
     public NewTopic blockEventsTopic(KafkaSettings kafkaSettings) {
-        return new NewTopic(kafkaSettings.getBlockEventsTopic(), 3, Short.parseShort("1"));
+        return new NewTopic(kafkaSettings.getBlockEventsTopic(),
+                kafkaSettings.getPartitions(), kafkaSettings.getReplicationSets().shortValue());
     }
 
     @Bean
     public NewTopic contractEventsTopic(KafkaSettings kafkaSettings) {
-        return new NewTopic(kafkaSettings.getContractEventsTopic(), 3, Short.parseShort("1"));
+        return new NewTopic(kafkaSettings.getContractEventsTopic(),
+                kafkaSettings.getPartitions(), kafkaSettings.getReplicationSets().shortValue());
     }
 
     @Bean
     public NewTopic filterEventsTopic(KafkaSettings kafkaSettings) {
-        return new NewTopic(kafkaSettings.getFilterEventsTopic(), 3, Short.parseShort("1"));
+        return new NewTopic(kafkaSettings.getFilterEventsTopic(),
+                kafkaSettings.getPartitions(), kafkaSettings.getReplicationSets().shortValue());
     }
 
     @Bean
     public NewTopic transactionEventsTopic(KafkaSettings kafkaSettings) {
-        return new NewTopic(kafkaSettings.getTransactionEventsTopic(), 3, Short.parseShort("1"));
+        return new NewTopic(kafkaSettings.getTransactionEventsTopic(),
+                kafkaSettings.getPartitions(), kafkaSettings.getReplicationSets().shortValue());
     }
 
     private void configurePlaintextSecurityProtocol(Map<String, Object> configProps) {

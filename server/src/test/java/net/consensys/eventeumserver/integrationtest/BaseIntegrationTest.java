@@ -154,7 +154,12 @@ public class BaseIntegrationTest {
     @After
     public void cleanup() {
         final ArrayList<String> filterIds = new ArrayList<>(registeredFilters.keySet());
-        filterIds.forEach(filterId -> unregisterEventFilter(filterId));
+
+        try {
+            filterIds.forEach(filterId -> unregisterEventFilter(filterId));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         filterRepo.deleteAll();
     }

@@ -41,7 +41,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     private KafkaSettings kafkaSettings;
 
     @ClassRule
-    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 3);
+    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 1);
 
     private KafkaMessageListenerContainer<String, String> testContainer;
 

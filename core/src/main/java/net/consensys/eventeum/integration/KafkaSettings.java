@@ -51,6 +51,12 @@ public class KafkaSettings {
     @Value("${kafka.topic.transactionEvents}")
     private String transactionEventsTopic;
 
+    @Value("${kafka.topic.partitions:3}")
+    private Integer partitions;
+
+    @Value("${kafka.topic.replicationSets:1}")
+    private Integer replicationSets;
+
     @Value("${kafka.sasl.username:}")
     private String username;
 

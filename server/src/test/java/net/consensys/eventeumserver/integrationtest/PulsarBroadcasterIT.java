@@ -43,6 +43,12 @@ public class PulsarBroadcasterIT extends BroadcasterSmokeTest {
         pulsarContainer = new PulsarContainer();
         pulsarContainer.start();
 
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         System.setProperty("PULSAR_URL", pulsarContainer.getPlainTextServiceUrl());
     }
 

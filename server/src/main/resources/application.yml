@@ -66,6 +66,9 @@ kafka:
     filterEvents: filter-events
     transactionEvents: transaction-events
 
+    partitions: 1
+    replicationSets: 1
+
 spring:
   rabbitmq:
     host: ${RABBIT_ADDRESS:localhost}
