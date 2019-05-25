@@ -456,6 +456,7 @@ public class BaseIntegrationTest {
         contractEventFilter.setId(id);
         contractEventFilter.setContractAddress(contractAddress);
         contractEventFilter.setEventSpecification(eventSpec);
+        contractEventFilter.setStartBlock(BigInteger.ONE);
 
         return contractEventFilter;
     }
