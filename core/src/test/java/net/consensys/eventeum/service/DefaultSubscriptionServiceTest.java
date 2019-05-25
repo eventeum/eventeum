@@ -102,6 +102,7 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testRegisterNewContractEventFilterBroadcastFalse() {
         final ContractEventFilter filter = createEventFilter();
+
         underTest.registerContractEventFilter(filter, false);
 
         verifyContractEventFilterRegistration(filter,true, false);
@@ -119,6 +120,10 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testRegisterNewContractEventFilterAutoGenerateId() {
         final ContractEventFilter filter = createEventFilter(null);
+
+        when(mockBlockchainService.registerEventListener(any(ContractEventFilter.class), any(ContractEventListener.class)))
+                .thenReturn(new FilterSubscription(filter, mock(Subscription.class)));
+
         underTest.registerContractEventFilter(filter, true);
 
         assertTrue(!filter.getId().isEmpty());
@@ -141,6 +146,11 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter2, true);
 
         reset(mockBlockchainService, mockRepo, mockFilterBroadcaster);
+
+        when(mockBlockchainService.registerEventListener(
+                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
+        when(mockBlockchainService.registerEventListener(
+                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
 
         underTest.resubscribeToAllSubscriptions(true);
 
@@ -200,7 +210,12 @@ public class DefaultSubscriptionServiceTest {
     }
 
     private ContractEventFilter createEventFilter() {
-        return createEventFilter(FILTER_ID);
+        final ContractEventFilter filter =  createEventFilter(FILTER_ID);
+
+        when(mockBlockchainService.registerEventListener(eq(filter), any(ContractEventListener.class)))
+                .thenReturn(new FilterSubscription(filter, mock(Subscription.class)));
+
+        return filter;
     }
 
 }
