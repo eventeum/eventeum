@@ -17,8 +17,10 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
+import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.utils.JSON;
+import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +80,7 @@ public class BaseIntegrationTest {
     private List<TransactionDetails> broadcastTransactionMessages = new ArrayList<>();
 
     @LocalServerPort
-    private int port = 12345;
+    private int port;
 
     @Autowired(required = false)
     private ContractEventFilterRepository filterRepo;
@@ -97,6 +99,8 @@ public class BaseIntegrationTest {
 
     private Map<String, ContractEventFilter> registeredFilters = new HashMap<>();
 
+    private List<String> registeredTransactionMonitorIds = new ArrayList<>();
+
     @BeforeClass
     public static void setupEnvironment() throws IOException {
         StubEventStoreService.start();
@@ -110,8 +114,7 @@ public class BaseIntegrationTest {
     @Before
     public void setUp() throws Exception {
 
-        restUrl = "http://localhost:" + port;
-        restTemplate = new RestTemplate();
+        initRestTemplate();
         this.web3j = Web3j.build(new HttpService("http://localhost:8545"));
         this.admin = Admin.build(new HttpService("http://localhost:8545"));
 
@@ -162,6 +165,9 @@ public class BaseIntegrationTest {
         }
 
         filterRepo.deleteAll();
+
+        //Get around concurrent modification exception
+        new ArrayList<>(registeredTransactionMonitorIds).forEach(this::unregisterTransactionMonitor);
     }
 
     protected List<ContractEventDetails> getBroadcastContractEvents() {
@@ -198,8 +204,18 @@ public class BaseIntegrationTest {
         return filter;
     }
 
-    protected void monitorTransaction(String txHash) {
-        restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction/" + txHash, "", Void.class);
+    protected String monitorTransaction(String txHash) {
+        final ResponseEntity<MonitorTransactionsResponse> response =
+                restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction?identifier=" + txHash, "", MonitorTransactionsResponse.class);
+
+        registeredTransactionMonitorIds.add(response.getBody().getId());
+        return response.getBody().getId();
+    }
+
+    protected void unregisterTransactionMonitor(String monitorId) {
+        restTemplate.delete(restUrl + "/api/rest/v1/transaction/" + monitorId);
+
+        registeredTransactionMonitorIds.remove(monitorId);
     }
 
     protected void unregisterDummyEventFilter() {
@@ -397,6 +413,14 @@ public class BaseIntegrationTest {
         return createFilter(getDummyEventNotOrderedFilterId(), contractAddress, eventSpec);
     }
 
+    protected void restartEventeum(Runnable stoppedLogic) {
+
+        SpringRestarter.getInstance().restart(stoppedLogic);
+
+        restUrl = "http://localhost:" + port;
+        restTemplate = new RestTemplate();
+    }
+
     protected static void startParity() {
         parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
         parityContainer.waitingFor(Wait.forListeningPort());
@@ -412,6 +436,11 @@ public class BaseIntegrationTest {
 
     protected static void stopParity() {
         parityContainer.stop();
+    }
+
+    private void initRestTemplate() {
+        restUrl = "http://localhost:" + port;
+        restTemplate = new RestTemplate();
     }
 
     private ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {

@@ -3,6 +3,7 @@ package net.consensys.eventeum.endpoint;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
+import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
 import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.exception.NotFoundException;
@@ -26,23 +27,25 @@ public class TransactionMonitoringEndpoint {
     /**
      * Monitors a transaction with the specified hash, on a specific node
      *
-     * @param hash the transaction hash
+     * @param identifier the transaction identifier (hash for now)
      * @param nodeName the name of the node that should be monitored for the transaction
      * @param response the http response
      */
-    @RequestMapping(value="/{hash}", method = RequestMethod.POST)
-    public void monitorTransaction(@PathVariable String hash,
-                                   @RequestParam(required = false) String nodeName,
-                                   HttpServletResponse response) {
+    @RequestMapping(method = RequestMethod.POST)
+    public MonitorTransactionsResponse monitorTransactions(@RequestParam(required = false) String identifier,
+                                                           @RequestParam(required = false) String nodeName,
+                                                           HttpServletResponse response) {
 
         if (nodeName == null) {
             nodeName = Constants.DEFAULT_NODE_NAME;
         }
 
         final TransactionMonitoringSpec spec =
-                new TransactionMonitoringSpec(TransactionIdentifierType.HASH, hash, nodeName);
+                new TransactionMonitoringSpec(TransactionIdentifierType.HASH, identifier, nodeName);
         monitoringService.registerTransactionsToMonitor(spec);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
+
+        return new MonitorTransactionsResponse(spec.getId());
     }
 
     /**

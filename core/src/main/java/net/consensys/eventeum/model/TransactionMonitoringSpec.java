@@ -3,6 +3,7 @@ package net.consensys.eventeum.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.web3j.crypto.Hash;
 
 @Data
 @NoArgsConstructor
@@ -22,19 +23,8 @@ public class TransactionMonitoringSpec {
         this.type = type;
         this.transactionIdentifier = transactionIdentifier;
         this.nodeName = nodeName;
-    }
 
-    public String getId() {
-
-        if (id != null) {
-            return id;
-        }
-
-        return transactionIdentifier + "-" + type + "-" + nodeName;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+        this.id = Hash.sha3String(transactionIdentifier + "-" + type + "-" + nodeName).substring(2);
     }
 
 }

@@ -10,10 +10,7 @@ import net.consensys.eventeumserver.Application;
 import net.consensys.eventeumserver.integrationtest.utils.ExcludeEmbeddedMongoApplication;
 import net.consensys.eventeumserver.integrationtest.utils.RestartingSpringRunner;
 import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +43,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(RestartingSpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @TestPropertySource(properties=
         {"spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"})
 public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTest {
@@ -80,7 +78,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         getBroadcastBlockMessages().clear();
 
-        SpringRestarter.getInstance().restart(() -> {
+        restartEventeum(() -> {
             try {
                 triggerBlocks(4);
             } catch (Exception e) {
@@ -116,7 +114,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         monitorTransaction(txHash);
 
-        SpringRestarter.getInstance().restart(() -> {
+        restartEventeum(() -> {
             try {
                 final String actualTxHash = sendRawTransaction(signedHex);
                 assertEquals(txHash, actualTxHash);
