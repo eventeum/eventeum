@@ -63,7 +63,7 @@ kafka:
   topic:
     contractEvents: contract-events
     blockEvents: block-events
-    filterEvents: filter-events
+    eventeumEvents: eventeum-events
     transactionEvents: transaction-events
 
     partitions: 1

@@ -109,8 +109,8 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public NewTopic filterEventsTopic(KafkaSettings kafkaSettings) {
-        return new NewTopic(kafkaSettings.getFilterEventsTopic(),
+    public NewTopic eventeumEventsTopic(KafkaSettings kafkaSettings) {
+        return new NewTopic(kafkaSettings.getEventeumEventsTopic(),
                 kafkaSettings.getPartitions(), kafkaSettings.getReplicationSets().shortValue());
     }
 

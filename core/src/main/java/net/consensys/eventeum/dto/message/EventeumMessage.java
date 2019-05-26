@@ -22,7 +22,9 @@ import net.consensys.kafkadl.message.RetryableMessage;
         @JsonSubTypes.Type(value = ContractEvent.class, name = ContractEvent.TYPE),
         @JsonSubTypes.Type(value = TransactionEvent.class, name = TransactionEvent.TYPE),
         @JsonSubTypes.Type(value = ContractEventFilterAdded.class, name = ContractEventFilterAdded.TYPE),
-        @JsonSubTypes.Type(value = ContractEventFilterRemoved.class, name = ContractEventFilterRemoved.TYPE)
+        @JsonSubTypes.Type(value = ContractEventFilterRemoved.class, name = ContractEventFilterRemoved.TYPE),
+        @JsonSubTypes.Type(value = TransactionMonitorAdded.class, name = TransactionMonitorAdded.TYPE),
+        @JsonSubTypes.Type(value = TransactionMonitorRemoved.class, name = TransactionMonitorRemoved.TYPE)
 })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface EventeumMessage<T> extends RetryableMessage {

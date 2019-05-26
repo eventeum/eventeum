@@ -1,10 +1,10 @@
 package net.consensys.eventeum.integration.consumer;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
-import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
-import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.message.*;
 import net.consensys.eventeum.integration.KafkaSettings;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
+import net.consensys.eventeum.service.TransactionMonitoringService;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.SubscriptionService;
 import org.slf4j.Logger;
@@ -23,41 +23,52 @@ import java.util.function.Consumer;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-public class KafkaFilterEventConsumer implements FilterEventConsumer {
+public class KafkaFilterEventConsumer implements EventeumInternalEventConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaFilterEventConsumer.class);
 
-    private SubscriptionService subscriptionService;
-
-    private KafkaSettings kafkaSettings;
-
-    private Map<String, Consumer<EventeumMessage<ContractEventFilter>>> messageConsumers;
+    private final Map<String, Consumer<EventeumMessage>> messageConsumers;
 
     @Autowired
     public KafkaFilterEventConsumer(SubscriptionService subscriptionService,
+                                    TransactionMonitoringService transactionMonitoringService,
                                     KafkaSettings kafkaSettings) {
-        this.subscriptionService = subscriptionService;
-        this.kafkaSettings = kafkaSettings;
 
         messageConsumers = new HashMap<>();
         messageConsumers.put(ContractEventFilterAdded.TYPE, (message) -> {
-            subscriptionService.registerContractEventFilter(message.getDetails(), false);
+            subscriptionService.registerContractEventFilter(
+                    (ContractEventFilter) message.getDetails(), false);
         });
 
         messageConsumers.put(ContractEventFilterRemoved.TYPE, (message) -> {
             try {
-                subscriptionService.unregisterContractEventFilter(message.getDetails().getId(), false);
+                subscriptionService.unregisterContractEventFilter(
+                        ((ContractEventFilter) message.getDetails()).getId(), false);
             } catch (NotFoundException e) {
                 logger.debug("Received filter removed message but filter doesn't exist. (We probably sent message)");
+            }
+        });
+
+        messageConsumers.put(TransactionMonitorAdded.TYPE, (message) -> {
+            transactionMonitoringService.registerTransactionsToMonitor(
+                    (TransactionMonitoringSpec) message.getDetails(), false);
+        });
+
+        messageConsumers.put(TransactionMonitorRemoved.TYPE, (message) -> {
+            try {
+                transactionMonitoringService.stopMonitoringTransactions(
+                        ((TransactionMonitoringSpec) message.getDetails()).getId(), false);
+            } catch (NotFoundException e) {
+                logger.debug("Received transaction monitor removed message but monitor doesn't exist. (We probably sent message)");
             }
         });
     }
 
     @Override
-    @KafkaListener(topics = "#{eventeumKafkaSettings.filterEventsTopic}", groupId = "#{eventeumKafkaSettings.groupId}",
+    @KafkaListener(topics = "#{eventeumKafkaSettings.eventeumEventsTopic}", groupId = "#{eventeumKafkaSettings.groupId}",
             containerFactory = "eventeumKafkaListenerContainerFactory")
-    public void onMessage(EventeumMessage<ContractEventFilter> message) {
-        final Consumer<EventeumMessage<ContractEventFilter>> consumer = messageConsumers.get(message.getType());
+    public void onMessage(EventeumMessage message) {
+        final Consumer<EventeumMessage> consumer = messageConsumers.get(message.getType());
 
         if (consumer == null) {
             logger.error(String.format("No consumer for message type %s!", message.getType()));

@@ -24,7 +24,7 @@ public class TransactionMonitoringSpec {
         this.transactionIdentifier = transactionIdentifier;
         this.nodeName = nodeName;
 
-        this.id = Hash.sha3String(transactionIdentifier + "-" + type + "-" + nodeName).substring(2);
+        this.id = Hash.sha3String(transactionIdentifier + type + nodeName).substring(2);
     }
 
 }

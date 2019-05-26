@@ -1,7 +1,5 @@
 package net.consensys.eventeum.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
@@ -9,7 +7,7 @@ import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.exception.NotFoundException;
@@ -17,7 +15,6 @@ import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import rx.Subscription;
 
 import javax.annotation.PreDestroy;
 import java.util.*;
@@ -37,7 +34,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private CrudRepository<ContractEventFilter, String> eventFilterRepository;
 
-    private FilterEventBroadcaster filterEventBroadcaster;
+    private EventeumEventBroadcaster eventeumEventBroadcaster;
 
     private AsyncTaskService asyncTaskService;
 
@@ -48,7 +45,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
                                       CrudRepository<ContractEventFilter, String> eventFilterRepository,
-                                      FilterEventBroadcaster filterEventBroadcaster,
+                                      EventeumEventBroadcaster eventeumEventBroadcaster,
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
                                       List<ContractEventListener> contractEventListeners) {
@@ -56,7 +53,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
         this.chainServices = chainServices;
         this.asyncTaskService = asyncTaskService;
         this.eventFilterRepository = eventFilterRepository;
-        this.filterEventBroadcaster = filterEventBroadcaster;
+        this.eventeumEventBroadcaster = eventeumEventBroadcaster;
 
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
@@ -216,11 +213,11 @@ public class DefaultSubscriptionService implements SubscriptionService {
     }
 
     private void broadcastContractEventFilterAdded(ContractEventFilter filter) {
-        filterEventBroadcaster.broadcastEventFilterAdded(filter);
+        eventeumEventBroadcaster.broadcastEventFilterAdded(filter);
     }
 
     private void broadcastContractEventFilterRemoved(ContractEventFilter filter) {
-        filterEventBroadcaster.broadcastEventFilterRemoved(filter);
+        eventeumEventBroadcaster.broadcastEventFilterRemoved(filter);
     }
 
     private boolean isFilterRegistered(ContractEventFilter contractEventFilter) {

@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
+import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.KafkaSettings;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.utils.JSON;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -37,6 +40,8 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
     private List<EventeumMessage<ContractEventFilter>> broadcastFiltersEventMessages = new ArrayList<>();
 
+    private List<EventeumMessage<TransactionMonitoringSpec>> broadcastTransactionMonitorMessages = new ArrayList<>();
+
     @Autowired
     private KafkaSettings kafkaSettings;
 
@@ -59,7 +64,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
         // set the topic that needs to be consumed
         ContainerProperties containerProperties = new ContainerProperties(kafkaSettings.getContractEventsTopic(),
-                kafkaSettings.getFilterEventsTopic(), kafkaSettings.getBlockEventsTopic(), kafkaSettings.getTransactionEventsTopic());
+                kafkaSettings.getEventeumEventsTopic(), kafkaSettings.getBlockEventsTopic(), kafkaSettings.getTransactionEventsTopic());
 
         // create a Kafka MessageListenerContainer
         testContainer = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
@@ -77,11 +82,19 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                         getBroadcastContractEvents().add(message.getDetails());
                     }
 
-                    if (record.topic().equals(kafkaSettings.getFilterEventsTopic())) {
-                        final EventeumMessage<ContractEventFilter> message =
+                    if (record.topic().equals(kafkaSettings.getEventeumEventsTopic())) {
+                        final EventeumMessage message =
                                 objectMapper.readValue(record.value(), EventeumMessage.class);
 
-                        getBroadcastFilterEventMessages().add(message);
+                        if (message.getType().equals(ContractEventFilterAdded.TYPE)
+                            || message.getType().equals(ContractEventFilterRemoved.TYPE)) {
+                            final EventeumMessage<ContractEventFilter> filterMessge = message;
+                            getBroadcastFilterEventMessages().add(filterMessge);
+                        } else {
+                            final EventeumMessage<TransactionMonitoringSpec> txMessge = message;
+                            getBroadcastTransactionMonitorMessages().add(txMessge);
+                        }
+
                     }
 
                     if (record.topic().equals(kafkaSettings.getBlockEventsTopic())) {
@@ -120,6 +133,10 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
     public List<EventeumMessage<ContractEventFilter>> getBroadcastFilterEventMessages() {
         return broadcastFiltersEventMessages;
+    }
+
+    public List<EventeumMessage<TransactionMonitoringSpec>> getBroadcastTransactionMonitorMessages() {
+        return broadcastTransactionMonitorMessages;
     }
 
     protected void clearMessages() {

@@ -45,8 +45,8 @@ public class KafkaSettings {
     @Value("${kafka.topic.blockEvents}")
     private String blockEventsTopic;
 
-    @Value("${kafka.topic.filterEvents}")
-    private String filterEventsTopic;
+    @Value("${kafka.topic.eventeumEvents}")
+    private String eventeumEventsTopic;
 
     @Value("${kafka.topic.transactionEvents}")
     private String transactionEventsTopic;

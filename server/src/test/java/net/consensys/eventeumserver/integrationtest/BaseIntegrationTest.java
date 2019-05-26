@@ -1,9 +1,8 @@
 package net.consensys.eventeumserver.integrationtest;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import junit.framework.TestCase;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
@@ -49,13 +48,10 @@ import scala.math.BigInt;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class BaseIntegrationTest {
 
@@ -349,7 +345,7 @@ public class BaseIntegrationTest {
         waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages());
     }
 
-    private <T> void waitForMessages(int expectedMessageCount, List<T> messages) {
+    protected <T> void waitForMessages(int expectedMessageCount, List<T> messages) {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -427,6 +423,21 @@ public class BaseIntegrationTest {
 
         restUrl = "http://localhost:" + port;
         restTemplate = new RestTemplate();
+    }
+
+    protected ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(contractAddress);
+        Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertEquals(registeredFilter, saved.get());
+
+        unregisterDummyEventFilter();
+
+        saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertFalse(saved.isPresent());
+
+        Thread.sleep(2000);
+
+        return registeredFilter;
     }
 
     protected static void startParity() {

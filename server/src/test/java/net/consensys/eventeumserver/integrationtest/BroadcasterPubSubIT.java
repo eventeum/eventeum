@@ -13,27 +13,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @TestPropertySource(locations="classpath:application-test-ws-pubsub.properties")
 public class BroadcasterPubSubIT extends MainBroadcasterTests {
 
-
-    @Test
-    public void testRegisterEventFilterSavesFilterInDb() {
-        doTestRegisterEventFilterSavesFilterInDb();
-    }
-
-    @Test
-    public void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
-        doTestRegisterEventFilterBroadcastsAddedMessage();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCorrectId() {
-        doTestRegisterEventFilterReturnsCorrectId();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
-        doTestRegisterEventFilterReturnsCreatedIdWhenNotSet();
-    }
-
     @Test
     public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
         doTestBroadcastsUnconfirmedEventAfterInitialEmit();
@@ -47,21 +26,6 @@ public class BroadcasterPubSubIT extends MainBroadcasterTests {
     @Test
     public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedEventAfterBlockThresholdReached();
-    }
-
-    @Test
-    public void testUnregisterNonExistentFilter() {
-        doTestUnregisterNonExistentFilter();
-    }
-
-    @Test
-    public void testUnregisterEventFilterDeletesFilterInDb() {
-        doTestUnregisterEventFilterDeletesFilterInDb();
-    }
-
-    @Test
-    public void testUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
-        doTestUnregisterEventFilterBroadcastsRemovedMessage();
     }
 
     @Test

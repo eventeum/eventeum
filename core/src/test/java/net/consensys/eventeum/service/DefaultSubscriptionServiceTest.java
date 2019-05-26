@@ -9,7 +9,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
-import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
@@ -50,7 +50,7 @@ public class DefaultSubscriptionServiceTest {
     @Mock
     private ContractEventFilterRepository mockRepo;
     @Mock
-    private FilterEventBroadcaster mockFilterBroadcaster;
+    private EventeumEventBroadcaster mockFilterBroadcaster;
     @Mock
     private BlockListener mockBlockListener1;
     @Mock

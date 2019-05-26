@@ -16,26 +16,6 @@ public class BroadcasterMultiNodeIT extends MainBroadcasterTests {
     //TODO need to add tests that properly run a 2nd node and test events from both nodes
 
     @Test
-    public void testRegisterEventFilterSavesFilterInDb() {
-        doTestRegisterEventFilterSavesFilterInDb();
-    }
-
-    @Test
-    public void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
-        doTestRegisterEventFilterBroadcastsAddedMessage();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCorrectId() {
-        doTestRegisterEventFilterReturnsCorrectId();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
-        doTestRegisterEventFilterReturnsCreatedIdWhenNotSet();
-    }
-
-    @Test
     public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
         doTestBroadcastsUnconfirmedEventAfterInitialEmit();
     }
@@ -48,21 +28,6 @@ public class BroadcasterMultiNodeIT extends MainBroadcasterTests {
     @Test
     public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedEventAfterBlockThresholdReached();
-    }
-
-    @Test
-    public void testUnregisterNonExistentFilter() {
-        doTestUnregisterNonExistentFilter();
-    }
-
-    @Test
-    public void testUnregisterEventFilterDeletesFilterInDb() {
-        doTestUnregisterEventFilterDeletesFilterInDb();
-    }
-
-    @Test
-    public void testUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
-        doTestUnregisterEventFilterBroadcastsRemovedMessage();
     }
 
     @Test
