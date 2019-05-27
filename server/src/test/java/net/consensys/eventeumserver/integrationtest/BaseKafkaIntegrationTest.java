@@ -17,9 +17,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
@@ -40,7 +37,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
     private List<EventeumMessage<ContractEventFilter>> broadcastFiltersEventMessages = new ArrayList<>();
 
-    private List<EventeumMessage<TransactionMonitoringSpec>> broadcastTransactionMonitorMessages = new ArrayList<>();
+    private List<EventeumMessage<TransactionMonitoringSpec>> broadcastTransactionEventMessages = new ArrayList<>();
 
     @Autowired
     private KafkaSettings kafkaSettings;
@@ -92,7 +89,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                             getBroadcastFilterEventMessages().add(filterMessge);
                         } else {
                             final EventeumMessage<TransactionMonitoringSpec> txMessge = message;
-                            getBroadcastTransactionMonitorMessages().add(txMessge);
+                            getBroadcastTransactionEventMessages().add(txMessge);
                         }
 
                     }
@@ -135,8 +132,8 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
         return broadcastFiltersEventMessages;
     }
 
-    public List<EventeumMessage<TransactionMonitoringSpec>> getBroadcastTransactionMonitorMessages() {
-        return broadcastTransactionMonitorMessages;
+    public List<EventeumMessage<TransactionMonitoringSpec>> getBroadcastTransactionEventMessages() {
+        return broadcastTransactionEventMessages;
     }
 
     protected void clearMessages() {

@@ -129,10 +129,10 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     public void testRegisterTransactionMonitorBroadcastsAddedMessage() throws InterruptedException {
         monitorTransaction(TX_HASH);
         waitForBroadcast();
-        assertEquals(1, getBroadcastTransactionMonitorMessages().size());
+        assertEquals(1, getBroadcastTransactionEventMessages().size());
 
         final EventeumMessage<TransactionMonitoringSpec> broadcastMessage =
-                getBroadcastTransactionMonitorMessages().get(0);
+                getBroadcastTransactionEventMessages().get(0);
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorAdded);
         assertEquals(TX_HASH, broadcastMessage.getDetails().getTransactionIdentifier());
@@ -162,13 +162,13 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
         unregisterTransactionMonitor(monitorId);
 
-        waitForMessages(2, getBroadcastTransactionMonitorMessages());
+        waitForMessages(2, getBroadcastTransactionEventMessages());
 
         waitForBroadcast();
-        assertEquals(2, getBroadcastTransactionMonitorMessages().size());
+        assertEquals(2, getBroadcastTransactionEventMessages().size());
 
         final EventeumMessage<TransactionMonitoringSpec> broadcastMessage =
-                getBroadcastTransactionMonitorMessages().get(1);
+                getBroadcastTransactionEventMessages().get(1);
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorRemoved);
         assertEquals(monitorId, broadcastMessage.getDetails().getId());
