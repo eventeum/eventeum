@@ -8,6 +8,8 @@ import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.internal.KafkaEventeumEventBroadcaster;
 import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
+import net.consensys.eventeum.repository.ContractEventFilterRepository;
+import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,12 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
     @Autowired
     private KafkaEventeumEventBroadcaster broadcaster;
 
+    @Autowired
+    private ContractEventFilterRepository filterRepo;
+
+    @Autowired
+    private TransactionMonitoringSpecRepository txMonitorRepo;
+
     @Test
     public void testFilterAddedEventRegistersFilter() throws Exception {
 
@@ -45,7 +53,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         broadcaster.broadcastEventFilterRemoved(filter);
 
-        waitForMessages(2, getBroadcastFilterEventMessages());
+        waitForFilterEventMessages(2);
 
         clearMessages();
 
@@ -69,7 +77,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         broadcaster.broadcastTransactionMonitorAdded(spec);
 
-        waitForMessages(1, getBroadcastTransactionEventMessages());
+        waitForTransactionMonitorEventMessages(1);
 
         assertEquals(txHash, sendRawTransaction(signedTxHex));
 
@@ -95,11 +103,11 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         broadcaster.broadcastTransactionMonitorAdded(spec);
 
-        waitForMessages(1, getBroadcastTransactionEventMessages());
+        waitForTransactionMonitorEventMessages(1);
 
         broadcaster.broadcastTransactionMonitorRemoved(spec);
 
-        waitForMessages(2, getBroadcastTransactionEventMessages());
+        waitForTransactionMonitorEventMessages(1);
 
         assertEquals(txHash, sendRawTransaction(signedTxHex));
 
@@ -115,7 +123,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         broadcaster.broadcastEventFilterAdded(filter);
 
-        waitForMessages(1, getBroadcastFilterEventMessages());
+        waitForFilterEventMessages(1);
 
         emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
@@ -127,5 +135,19 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
         verifyDummyEventDetails(filter, eventDetails, ContractEventStatus.UNCONFIRMED);
 
         return filter;
+    }
+
+    private void waitForFilterEventMessages(int expectedMessageCounnt) throws InterruptedException {
+        waitForMessages(expectedMessageCounnt, getBroadcastFilterEventMessages());
+
+        //Wait an extra 2 seconds because there may be a race condition
+        Thread.sleep(2000);
+    }
+
+    private void waitForTransactionMonitorEventMessages(int expectedMessageCounnt) throws InterruptedException {
+        waitForMessages(expectedMessageCounnt, getBroadcastTransactionEventMessages());
+
+        //Wait an extra 2 seconds because there may be a race condition
+        Thread.sleep(2000);
     }
 }
