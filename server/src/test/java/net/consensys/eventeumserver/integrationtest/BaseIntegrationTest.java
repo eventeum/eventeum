@@ -102,7 +102,7 @@ public class BaseIntegrationTest {
     private List<String> registeredTransactionMonitorIds = new ArrayList<>();
 
     @BeforeClass
-    public static void setupEnvironment() throws IOException {
+    public static void setupEnvironment() throws Exception {
         StubEventStoreService.start();
 
         final File file = new File(PARITY_VOLUME_PATH);
@@ -160,8 +160,8 @@ public class BaseIntegrationTest {
 
         try {
             filterIds.forEach(filterId -> unregisterEventFilter(filterId));
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
 
         filterRepo.deleteAll();
@@ -171,7 +171,11 @@ public class BaseIntegrationTest {
         }
 
         //Get around concurrent modification exception
-        new ArrayList<>(registeredTransactionMonitorIds).forEach(this::unregisterTransactionMonitor);
+        try {
+            new ArrayList<>(registeredTransactionMonitorIds).forEach(this::unregisterTransactionMonitor);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     protected List<ContractEventDetails> getBroadcastContractEvents() {

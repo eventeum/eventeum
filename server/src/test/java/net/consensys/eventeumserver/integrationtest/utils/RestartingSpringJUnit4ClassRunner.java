@@ -11,11 +11,11 @@ public class RestartingSpringJUnit4ClassRunner extends SpringJUnit4ClassRunner {
     }
 
     @Override
-    protected TestContextManager createTestContextManager(Class<?> clazz) {
+    protected Object createTest() throws Exception {
+        final Object testInstance = super.createTest();
 
-        final TestContextManager testContextManager = super.createTestContextManager(clazz);
+        SpringRestarter.getInstance().init(getTestContextManager());
 
-        SpringRestarter.getInstance().init(testContextManager);
-        return testContextManager;
+        return testInstance;
     }
 }

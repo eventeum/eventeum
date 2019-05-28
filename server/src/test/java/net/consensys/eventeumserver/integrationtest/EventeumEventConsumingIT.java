@@ -10,8 +10,11 @@ import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
+import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -22,12 +25,12 @@ import org.web3j.crypto.Hash;
 import java.math.BigInteger;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(locations="classpath:application-test-db.properties")
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
     @Autowired

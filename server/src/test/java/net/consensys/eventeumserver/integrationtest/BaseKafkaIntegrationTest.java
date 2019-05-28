@@ -17,10 +17,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -33,6 +35,8 @@ import java.util.UUID;
 
 public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
+    private static final String KAFKA_LISTENER_CONTAINER_ID = "org.springframework.kafka.KafkaListenerEndpointContainer#0";
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private List<EventeumMessage<ContractEventFilter>> broadcastFiltersEventMessages = new ArrayList<>();
@@ -42,10 +46,15 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private KafkaSettings kafkaSettings;
 
+    private KafkaMessageListenerContainer springMessageListener;
+
     @ClassRule
     public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 1);
 
     private KafkaMessageListenerContainer<String, String> testContainer;
+
+    @Autowired
+    public KafkaListenerEndpointRegistry registry;
 
     @Before
     public void setUp() throws Exception {
@@ -118,6 +127,21 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
         ContainerTestUtils.waitForAssignment(testContainer,
                 embeddedKafka.getPartitionsPerTopic() * testContainer.getContainerProperties().getTopics().length);
+
+        final MessageListenerContainer defaultContainer = registry.getListenerContainer(KAFKA_LISTENER_CONTAINER_ID);
+        ContainerTestUtils.waitForAssignment(defaultContainer, embeddedKafka.getPartitionsPerTopic());
+
+        registry
+                .getListenerContainers()
+                .forEach(container -> {
+                    try {
+                        if (container != defaultContainer) {
+                            ContainerTestUtils.waitForAssignment(container, 3);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
 
         clearMessages();
     }

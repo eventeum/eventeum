@@ -13,6 +13,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
+import org.web3j.crypto.Hash;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,9 +25,6 @@ import static org.junit.Assert.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(locations="classpath:application-test-db.properties")
 public class RegistrationIT extends BaseKafkaIntegrationTest {
-
-    private static final String TX_HASH =
-            "0xaa2703c3ae5d0024b2c3ab77e5200bb2a8eb39a140fad01e89a495d73760297c";
 
     @Autowired
     private TransactionMonitoringSpecRepository transactionMonitoringSpecRepository;
@@ -111,23 +109,26 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
     @Test
     public void testRegisterTransactionMonitorSavesInDb() {
-        doTestRegisterTransactionMonitorSavesInDb();
+        doTestRegisterTransactionMonitorSavesInDb(generateTxHash());
     }
 
-    private String doTestRegisterTransactionMonitorSavesInDb() {
-        final String monitorId = monitorTransaction(TX_HASH);
+    private String doTestRegisterTransactionMonitorSavesInDb(String txHash) {
+        final String monitorId = monitorTransaction(txHash);
 
+        transactionMonitoringSpecRepository.findAll();
         final Optional<TransactionMonitoringSpec> saved =
                 transactionMonitoringSpecRepository.findById(monitorId);
         assertEquals(monitorId, saved.get().getId());
-        assertEquals(TX_HASH, saved.get().getTransactionIdentifier());
+        assertEquals(txHash, saved.get().getTransactionIdentifier());
 
         return monitorId;
     }
 
     @Test
     public void testRegisterTransactionMonitorBroadcastsAddedMessage() throws InterruptedException {
-        monitorTransaction(TX_HASH);
+        final String txHash = generateTxHash();
+
+        monitorTransaction(txHash);
         waitForBroadcast();
         assertEquals(1, getBroadcastTransactionEventMessages().size());
 
@@ -135,7 +136,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
                 getBroadcastTransactionEventMessages().get(0);
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorAdded);
-        assertEquals(TX_HASH, broadcastMessage.getDetails().getTransactionIdentifier());
+        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifier());
     }
 
     @Test
@@ -149,7 +150,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
     @Test
     public void testUnregisterTransactionMonitorDeletesInDb() {
-        final String monitorId = doTestRegisterTransactionMonitorSavesInDb();
+        final String monitorId = doTestRegisterTransactionMonitorSavesInDb(generateTxHash());
 
         unregisterTransactionMonitor(monitorId);
 
@@ -158,7 +159,8 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
     @Test
     public void testUnregisterTransactionMonitorBroadcastsRemovedMessage() throws InterruptedException {
-        String monitorId = doTestRegisterTransactionMonitorSavesInDb();
+        final String txHash = generateTxHash();
+        String monitorId = doTestRegisterTransactionMonitorSavesInDb(txHash);
 
         unregisterTransactionMonitor(monitorId);
 
@@ -172,6 +174,10 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorRemoved);
         assertEquals(monitorId, broadcastMessage.getDetails().getId());
-        assertEquals(TX_HASH, broadcastMessage.getDetails().getTransactionIdentifier());
+        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifier());
+    }
+
+    private String generateTxHash() {
+        return Hash.sha3String(UUID.randomUUID().toString());
     }
 }
