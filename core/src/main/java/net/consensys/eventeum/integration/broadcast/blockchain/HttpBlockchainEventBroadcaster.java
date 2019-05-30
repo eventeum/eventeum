@@ -55,7 +55,8 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
 
     private void checkForSuccessResponse(ResponseEntity<Void> response) {
         if (response.getStatusCode() != HttpStatus.OK) {
-            throw new BroadcastException("Received a %s response when broadcasting via http");
+            throw new BroadcastException(
+                    String.format("Received a %s response when broadcasting via http", response.getStatusCode()));
         }
     }
 }
