@@ -8,12 +8,12 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.AsyncTaskService;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -94,8 +94,11 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
 
     private void onTransactionMined(Transaction tx, Block minedBlock) {
 
+        final TransactionStatus status = confirmationConfig.getBlocksToWaitForConfirmation().equals(
+                BigInteger.ZERO) ? TransactionStatus.CONFIRMED : TransactionStatus.UNCONFIRMED;
+
         final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
-                tx, TransactionStatus.UNCONFIRMED, spec.getNodeName());
+                tx, status, spec.getNodeName());
 
         broadcaster.broadcastTransaction(txDetails);
 
