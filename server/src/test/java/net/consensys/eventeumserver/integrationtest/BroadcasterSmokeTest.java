@@ -56,7 +56,7 @@ public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
 
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
         assertEquals(txHash, txDetails.getHash());
-        assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
+        assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
     }
 
     protected void onBlockMessageReceived(BlockDetails block) {
