@@ -94,20 +94,30 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
 
     private void onTransactionMined(Transaction tx, Block minedBlock) {
 
-        final TransactionStatus status = confirmationConfig.getBlocksToWaitForConfirmation().equals(
-                BigInteger.ZERO) ? TransactionStatus.CONFIRMED : TransactionStatus.UNCONFIRMED;
-
         final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
-                tx, status, spec.getNodeName());
+                tx, TransactionStatus.CONFIRMED, spec.getNodeName());
 
-        broadcaster.broadcastTransaction(txDetails);
+        if (shouldWaitBeforeConfirmation()) {
+            txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
-        blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                blockchainService, broadcaster, confirmationConfig, asyncService));
+            blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
+                    blockchainService, broadcaster, confirmationConfig, asyncService, this));
 
-        unregister();
+            broadcaster.broadcastTransaction(txDetails);
+
+            //Don't unregister if we're waiting for x blocks, as if there is a fork
+            //we need to rebroadcast the unconfirmed tx in new block
+            //The confirmation block listener will unregister this listened after confirmation
+        } else {
+            broadcaster.broadcastTransaction(txDetails);
+            unregister();
+        }
     }
 
+
+    private boolean shouldWaitBeforeConfirmation() {
+        return !confirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
+    }
     private Optional<Transaction> getTransaction(Block block) {
 
         return block

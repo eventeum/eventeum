@@ -29,6 +29,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private BigInteger blocksToWaitForMissingTx;
     private EventConfirmationConfig eventConfirmationConfig;
     private AsyncTaskService asyncTaskService;
+    private BlockListener parentBlockListener;
 
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
@@ -37,12 +38,14 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
                                                 BlockchainService blockchainService,
                                                 BlockchainEventBroadcaster eventBroadcaster,
                                                 EventConfirmationConfig eventConfirmationConfig,
-                                                AsyncTaskService asyncTaskService) {
+                                                AsyncTaskService asyncTaskService,
+                                                BlockListener parentBlockListener) {
         super(blockchainService);
         this.transactionDetails = transactionDetails;
         this.blockchainService = blockchainService;
         this.eventBroadcaster = eventBroadcaster;
         this.asyncTaskService = asyncTaskService;
+        this.parentBlockListener = parentBlockListener;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
@@ -108,6 +111,9 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private void broadcastTransactionConfirmed() {
         transactionDetails.setStatus(TransactionStatus.CONFIRMED);
         broadcastEvent(transactionDetails);
+
+        //Unregister parent monitoring listener as we haven't forked so its no longer needed
+        blockchainService.removeBlockListener(parentBlockListener);
     }
 
     private void broadcastEvent(TransactionDetails transactionDetails) {
