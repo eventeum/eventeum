@@ -2,6 +2,7 @@ package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import javax.annotation.PreDestroy;
 
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import org.apache.pulsar.client.api.ClientBuilder;
 import org.apache.pulsar.client.api.CompressionType;
 import org.apache.pulsar.client.api.Producer;
@@ -19,11 +20,12 @@ import net.consensys.eventeum.integration.PulsarSettings.Authentication;
 import net.consensys.eventeum.integration.broadcast.BroadcastException;
 
 @Slf4j
-public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcaster {
+        public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcaster {
 	private final ObjectMapper mapper;
 	private PulsarClient client;
 	private Producer<byte[]> blockEventProducer;
 	private Producer<byte[]> contractEventProducer;
+    private Producer<byte[]> transactionEventProducer;
 
 	public PulsarBlockChainEventBroadcaster(PulsarSettings settings, ObjectMapper mapper) throws PulsarClientException {
 		this.mapper = mapper;
@@ -45,6 +47,7 @@ public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcas
 
 		blockEventProducer = createProducer(settings.getTopic().getBlockEvents());
 		contractEventProducer = createProducer(settings.getTopic().getContractEvents());
+        transactionEventProducer = createProducer(settings.getTopic().getTransactionEvents());
 	}
 
 	@PreDestroy
@@ -72,7 +75,12 @@ public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcas
 		send(eventDetails, contractEventProducer);
 	}
 
-	protected Producer<byte[]> createProducer(String topic) throws PulsarClientException {
+    @Override
+    public void broadcastTransaction(TransactionDetails transactionDetails) {
+        send(transactionDetails, transactionEventProducer);
+    }
+
+    protected Producer<byte[]> createProducer(String topic) throws PulsarClientException {
 		return client.newProducer()
 				.topic(topic)
 				.compressionType(CompressionType.LZ4)

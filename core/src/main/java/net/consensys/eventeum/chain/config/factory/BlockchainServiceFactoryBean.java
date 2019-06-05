@@ -4,7 +4,7 @@ import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.EventBlockManagementService;
 import net.consensys.eventeum.chain.service.Web3jService;
-import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
+import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import org.springframework.beans.factory.FactoryBean;

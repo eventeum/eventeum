@@ -1,14 +1,22 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
 import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.message.TransactionMonitorAdded;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.utils.JSON;
+import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+import org.web3j.crypto.Hash;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -18,42 +26,6 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 
 public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
-
-    public void doTestRegisterEventFilterSavesFilterInDb() {
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
-
-        final Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved.get());
-    }
-
-    public void doTestRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
-
-        waitForBroadcast();
-        assertEquals(1, getBroadcastFilterEventMessages().size());
-
-        final EventeumMessage<ContractEventFilter> broadcastMessage = getBroadcastFilterEventMessages().get(0);
-
-        assertEquals(true, broadcastMessage instanceof ContractEventFilterAdded);
-        assertEquals(registeredFilter, broadcastMessage.getDetails());
-    }
-
-    public void doTestRegisterEventFilterReturnsCreatedIdWhenNotSet() {
-        final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
-        filter.setId(null);
-
-        final ContractEventFilter registeredFilter = registerEventFilter(filter);
-        assertNotNull(registeredFilter.getId());
-
-        //This errors if id is not a valid UUID
-        UUID.fromString(registeredFilter.getId());
-    }
-
-    public void doTestRegisterEventFilterReturnsCorrectId() {
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
-
-        assertEquals(getDummyEventFilterId(), registeredFilter.getId());
-    }
 
     public void doTestBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
 
@@ -102,38 +74,6 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }
 
-    public void doTestUnregisterNonExistentFilter() {
-        try {
-            unregisterEventFilter("NonExistent");
-        } catch (HttpClientErrorException e) {
-            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
-        }
-    }
-
-    public void doTestUnregisterEventFilterDeletesFilterInDb() {
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
-
-        Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved.get());
-
-        unregisterDummyEventFilter();
-
-        saved = getFilterRepo().findById(getDummyEventFilterId());
-        assertFalse(saved.isPresent());
-    }
-
-    public void doTestUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
-        final ContractEventFilter registeredFilter = doRegisterAndUnregister(FAKE_CONTRACT_ADDRESS);
-
-        waitForBroadcast();
-        assertEquals(2, getBroadcastFilterEventMessages().size());
-
-        final EventeumMessage<ContractEventFilter> broadcastMessage = getBroadcastFilterEventMessages().get(1);
-
-        assertEquals(true, broadcastMessage instanceof ContractEventFilterRemoved);
-        assertEquals(registeredFilter, broadcastMessage.getDetails());
-    }
-
     public void doTestContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
         final ContractEventFilter filter = doRegisterAndUnregister(emitter.getContractAddress());
@@ -149,18 +89,48 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         }
     }
 
-    private ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(contractAddress);
-        Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
-        assertEquals(registeredFilter, saved.get());
+    public void doTestBroadcastBlock() throws Exception {
+        triggerBlocks(1);
 
-        unregisterDummyEventFilter();
+        waitForBlockMessages(1);
 
-        saved = getFilterRepo().findById(getDummyEventFilterId());
-        assertFalse(saved.isPresent());
+        Assert.assertTrue("No blocks received", getBroadcastBlockMessages().size() >= 1);
 
-        Thread.sleep(2000);
+        BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
+        assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
+        assertNotNull(blockDetails.getHash());
+    }
 
-        return registeredFilter;
+    public String doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+
+        final String signedTxHex = createRawSignedTransactionHex();
+        final String txHash = Hash.sha3(signedTxHex);
+
+        monitorTransaction(txHash);
+
+        assertEquals(txHash, sendRawTransaction(signedTxHex));
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
+
+        return txHash;
+    }
+
+    public void doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+
+        final String txHash = doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
+
+        triggerBlocks(12);
+        waitForTransactionMessages(2);
+
+        assertEquals(2, getBroadcastTransactionMessages().size());
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(1);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
     }
 }

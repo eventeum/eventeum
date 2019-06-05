@@ -3,6 +3,8 @@ package net.consensys.eventeum.chain.service.health;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
@@ -23,6 +25,8 @@ public class NodeHealthCheckService {
 
     private ReconnectionStrategy reconnectionStrategy;
 
+    private boolean initiallySubscribed = false;
+
     public NodeHealthCheckService(BlockchainService blockchainService,
                                   ReconnectionStrategy reconnectionStrategy) {
         this.blockchainService = blockchainService;
@@ -32,6 +36,13 @@ public class NodeHealthCheckService {
 
     @Scheduled(fixedDelayString = "${ethereum.healthcheck.pollInterval}")
     public void checkHealth() {
+
+        //Can take a few seconds to subscribe initially so if wait until after
+        //first subscription to check health
+        if (!isSubscribed() && !initiallySubscribed) {
+            return;
+        }
+
         final NodeStatus statusAtStart = nodeStatus;
 
         if (isNodeConnected()) {
@@ -44,6 +55,8 @@ public class NodeHealthCheckService {
                 if (statusAtStart != NodeStatus.SUBSCRIBED || !isSubscribed()) {
                     log.info("Node {} not subscribed", blockchainService.getNodeName());
                     doResubscribe();
+                } else {
+                    initiallySubscribed = true;
                 }
             }
 

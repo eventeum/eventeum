@@ -1,4 +1,4 @@
-package net.consensys.eventeum.chain.service.factory;
+package net.consensys.eventeum.chain.factory;
 
 import java.util.Collections;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;

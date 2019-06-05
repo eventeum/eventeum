@@ -4,6 +4,8 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -42,11 +44,30 @@ public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }
 
+    @Test
+    public void testBroadcastTransactionEvent() throws Exception {
+
+        final String txHash = sendTransaction();
+        monitorTransaction(txHash);
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
+    }
+
     protected void onBlockMessageReceived(BlockDetails block) {
         getBroadcastBlockMessages().add(block);
     }
 
     protected void onContractEventMessageReceived(ContractEventDetails event) {
         getBroadcastContractEvents().add(event);
+    }
+
+    protected void onTransactionMessageReceived(TransactionDetails tx) {
+        getBroadcastTransactionMessages().add(tx);
     }
 }

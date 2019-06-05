@@ -25,3 +25,4 @@ pulsar:
   topic:
     blockEvents: persistent://public/default/block-events
     contractEvents: persistent://public/default/contract-events
+    transactionEvents: persistent://public/default/transaction-events

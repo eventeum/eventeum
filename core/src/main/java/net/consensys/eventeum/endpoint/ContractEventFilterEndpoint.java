@@ -1,10 +1,10 @@
 package net.consensys.eventeum.endpoint;
 
+import lombok.AllArgsConstructor;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
-import net.consensys.eventeum.service.FilterNotFoundException;
+import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -16,14 +16,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 @RequestMapping(value = "/api/rest/v1/event-filter")
+@AllArgsConstructor
 public class ContractEventFilterEndpoint {
 
     private SubscriptionService filterService;
-
-    @Autowired
-    public ContractEventFilterEndpoint(SubscriptionService filterService) {
-        this.filterService = filterService;
-    }
 
     /**
      * Adds an event filter with the specification described in the ContractEventFilter.
@@ -54,7 +50,7 @@ public class ContractEventFilterEndpoint {
         try {
             filterService.unregisterContractEventFilter(filterId, true);
             response.setStatus(HttpServletResponse.SC_OK);
-        } catch(FilterNotFoundException e) {
+        } catch(NotFoundException e) {
             //Rethrow endpoint exception with response information
             throw new FilterNotFoundEndpointException();
         }

@@ -1,16 +1,12 @@
 package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
-import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
+import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
-import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +16,6 @@ import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.*;
 import rx.Observable;
-import rx.subjects.PublishSubject;
 
 import java.io.IOException;
 import java.math.BigInteger;

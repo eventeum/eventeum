@@ -62,7 +62,7 @@ kafka:
   topic:
     contractEvents: contract-events
     blockEvents: block-events
-    filterEvents: filter-events
+    eventeumEvents: eventeum-events
   request:
     timeout:
       msConfig: ${KAFKA_REQUEST_TIMEOUT_MS:20000}
