@@ -32,7 +32,7 @@ public class TransactionMonitoringEndpoint {
      * @param response the http response
      */
     @RequestMapping(method = RequestMethod.POST)
-    public MonitorTransactionsResponse monitorTransactions(@RequestParam(required = false) String identifier,
+    public MonitorTransactionsResponse monitorTransactions(@RequestParam String identifier,
                                                            @RequestParam(required = false) String nodeName,
                                                            HttpServletResponse response) {
 
