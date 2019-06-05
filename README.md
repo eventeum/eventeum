@@ -206,6 +206,46 @@ eventFilters:
 -   **Success Response:**
     -   **Code:** 200  
         **Content:** `N/A`
+	
+## Registering a Transaction Monitor
+
+From version 0.5.3, eventeum supports monitoring and broadcasting transactions.  Currently the only matching criteria is by transaction hash, but more will be added in the near future.
+
+### REST
+
+To register a transaction monitor, use the below REST endpoint:
+
+-   **URL:** `/api/rest/v1/transaction?identifier=<txHash>&nodeName=<nodeName>`    
+-   **Method:** `POST`
+-   **Headers:**  `N/A`
+-   **URL Params:** `N/A`
+    - identifier - The transaction hash to monitor
+    - nodeName - The node name that should be monitored
+-   **Body:** `N/A`
+
+-   **Success Response:**
+    -   **Code:** 200  
+        **Content:**
+
+```json
+{
+    "id": "transaction-monitor-identifier"
+}
+```
+
+## Un-Registering a Transaction Monitor
+
+### REST
+
+-   **URL:** `/api/rest/v1/transaction/{monitor-id}`    
+-   **Method:** `DELETE`
+-   **Headers:**  `N/A`
+-   **URL Params:** `N/A`
+-   **Body:** `N/A`
+
+-   **Success Response:**
+    -   **Code:** 200  
+        **Content:** `N/A`
 
 ## Broadcast Messages Format
 
@@ -251,6 +291,29 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 }
 ```
 
+
+### Transaction Events
+When a new transaction that matches a transaction monitor is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (transaction-events by default), with the following format:
+
+```json
+ {
+ 	"id":"0x1c0482642861779703a34f4539b3ba18a0fddfb16558f3be7157fdafcaf2c030",
+	"type":"TRANSACTION",
+	"details":{
+		"hash":"0x1c0482642861779703a34f4539b3ba18a0fddfb16558f3be7157fdafcaf2c030",
+		"nonce":"0xf",
+		"blockHash":"0x6a68edf369ba4ddf93aa31cf5871ad51b5f7988a69f1ddf9ed09ead8b626db48",
+		"blockNumber":"0x1e1",
+		"transactionIndex":"0x0",
+		"from":"0xf17f52151ebef6c7334fad080c5704d77216b732",
+		"to":"0xc5fdf4076b8f3a5357c5e395ab970b5b54098fef",
+		"value":"0x16345785d8a0000",
+		"nodeName":"default",
+		"status":"CONFIRMED"},
+	"retries":0
+}
+```
+
 ## Configuration
 Eventeum can either be configured by:
 
@@ -275,6 +338,7 @@ Eventeum can either be configured by:
 | KAFKA_ADDRESSES | localhost:9092 | Comma seperated list of kafka addresses |
 | KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages |
 | KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
+| KAFKA_TOPIC_TRANSACTION_EVENTS | transaction-events | The topic name for broadcast trasaction messages |
 | KAFKA_REQUEST_TIMEOUT_MS | 20000 | The duration after which a request timeouts |
 | KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM | null | The endpoint identification algorithm to validate server hostname using server certificate |
 | KAFKA_SASL_MECHANISM | PLAIN | The mechanism used for SASL authentication |
