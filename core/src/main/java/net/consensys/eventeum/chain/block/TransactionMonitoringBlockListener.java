@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.block;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
+import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
@@ -12,6 +13,9 @@ import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.AsyncTaskService;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -33,6 +37,8 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
     private AsyncTaskService asyncService;
 
     private BlockCache blockCache;
+
+    private RetryTemplate retryTemplate;
 
     private Lock lock = new ReentrantLock();
 
@@ -69,6 +75,22 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
         });
     }
 
+    protected RetryTemplate getRetryTemplate() {
+        if (retryTemplate == null) {
+            retryTemplate = new RetryTemplate();
+
+            final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+            fixedBackOffPolicy.setBackOffPeriod(500);
+            retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+            retryPolicy.setMaxAttempts(3);
+            retryTemplate.setRetryPolicy(retryPolicy);
+        }
+
+        return retryTemplate;
+    }
+
     private void init() {
         asyncService.execute(() -> {
             lock.lock();
@@ -85,11 +107,22 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
     }
 
     private void processBlock(BlockDetails blockDetails) {
-        blockchainService
-                .getBlock(blockDetails.getHash(), true)
+        getBlock(blockDetails.getHash())
                 .ifPresent(block -> {
                     getTransaction(block).ifPresent(tx -> onTransactionMined(tx, block));
                 });
+    }
+
+    private Optional<Block> getBlock(String blockHash) {
+        return getRetryTemplate().execute((context) -> {
+            final Optional<Block> block =  blockchainService.getBlock(blockHash, true);
+
+            if (!block.isPresent()) {
+                throw new BlockchainException("Block not found");
+            }
+
+            return block;
+        });
     }
 
     private void onTransactionMined(Transaction tx, Block minedBlock) {
