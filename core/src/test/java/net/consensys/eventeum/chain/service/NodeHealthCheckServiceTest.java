@@ -1,12 +1,12 @@
 package net.consensys.eventeum.chain.service;
 
-import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
+import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.mockito.Mockito.*;
 
@@ -18,18 +18,14 @@ public class NodeHealthCheckServiceTest {
 
     private BlockchainService mockBlockchainService;
 
-    private NodeFailureListener mockFailureListener1;
-
-    private NodeFailureListener mockFailureListener2;
+    private ReconnectionStrategy mockReconnectionStrategy;
 
     @Before
     public void init() {
         mockBlockchainService = mock(BlockchainService.class);
-        mockFailureListener1 = mock(NodeFailureListener.class);
-        mockFailureListener2 = mock(NodeFailureListener.class);
+        mockReconnectionStrategy = mock(ReconnectionStrategy.class);
 
-        underTest = new NodeHealthCheckService(mockBlockchainService,
-                Arrays.asList(mockFailureListener1, mockFailureListener2));
+        underTest = new NodeHealthCheckService(mockBlockchainService, mockReconnectionStrategy);
     }
 
     @Test
@@ -37,21 +33,28 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockReconnectionStrategy, never()).reconnect();
+        verify(mockReconnectionStrategy, never()).resubscribe();
     }
 
     @Test
-    public void testNodeDisconnected() {
+    public void testNodeDisconnectedReconnectSuccess() {
         wireBlockchainServiceDown(false, false);
+        wireReconnectResult(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
+    }
+
+    @Test
+    public void testNodeDisconnectedReconnectFailure() {
+        wireBlockchainServiceDown(false, false);
+        wireReconnectResult(false);
+        underTest.checkHealth();
+
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, never()).resubscribe();
     }
 
     @Test
@@ -59,15 +62,12 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
+        verify(mockReconnectionStrategy, times(1)).reconnect();
 
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
+        verify(mockReconnectionStrategy, times(2)).reconnect();
+        verify(mockReconnectionStrategy, never()).resubscribe();
     }
 
 
@@ -76,46 +76,15 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, never()).resubscribe();
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
-    }
-
-    @Test
-    public void testNodeComesBackUpSubscribed() {
-        wireBlockchainServiceDown(false, false);
-        underTest.checkHealth();
-
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
-
-        reset(mockBlockchainService);
-        wireBlockchainServiceUp(true);
-        underTest.checkHealth();
-
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
     }
 
     @Test
@@ -123,23 +92,15 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockReconnectionStrategy, never()).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
 
-        reset(mockBlockchainService);
+        reset(mockBlockchainService, mockReconnectionStrategy);
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockReconnectionStrategy, never()).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
     }
 
     @Test
@@ -147,23 +108,15 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockReconnectionStrategy, never()).reconnect();
+        verify(mockReconnectionStrategy, never()).resubscribe();
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, never()).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, never()).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockReconnectionStrategy, never()).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
     }
 
     @Test
@@ -171,32 +124,20 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, never()).onNodeRecovery();
-        verify(mockFailureListener1, never()).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, never()).onNodeRecovery();
-        verify(mockFailureListener2, never()).onNodeSubscribed();
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, never()).resubscribe();
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
 
         underTest.checkHealth();
 
-        verify(mockFailureListener1, times(1)).onNodeFailure();
-        verify(mockFailureListener1, times(1)).onNodeRecovery();
-        verify(mockFailureListener1, times(1)).onNodeSubscribed();
-        verify(mockFailureListener2, times(1)).onNodeFailure();
-        verify(mockFailureListener2, times(1)).onNodeRecovery();
-        verify(mockFailureListener2, times(1)).onNodeSubscribed();
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
     }
 
     private void wireBlockchainServiceUp(boolean isSubscribed) {
@@ -213,5 +154,28 @@ public class NodeHealthCheckServiceTest {
             when(mockBlockchainService.getClientVersion()).thenThrow(
                     new BlockchainException("Error!", new IOException("")));
         }
+    }
+
+    private AtomicBoolean isConnected = new AtomicBoolean(false);
+
+    private void wireReconnectResult(boolean reconnectSuccess) {
+        isConnected.set(false);
+
+        doAnswer((invocation) -> {
+            if (reconnectSuccess) {
+                isConnected.set(true);
+            } else {
+                isConnected.set(false);
+            }
+            return null;
+        }).when(mockReconnectionStrategy).reconnect();
+
+        doAnswer((invocation) -> {
+            if (isConnected.get()) {
+                return VERSION;
+            } else {
+                throw new BlockchainException("Error!", new IOException(""));
+            }
+        }).when(mockBlockchainService).getClientVersion();
     }
 }

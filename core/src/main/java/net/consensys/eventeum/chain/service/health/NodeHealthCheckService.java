@@ -1,15 +1,9 @@
 package net.consensys.eventeum.chain.service.health;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.health.listener.NodeFailureListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import javax.xml.soap.Node;
-import java.util.List;
 
 /**
  * A service that constantly polls an ethereum node (getClientVersion) in order to ensure that the node
@@ -20,59 +14,43 @@ import java.util.List;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Service
+@Slf4j
 public class NodeHealthCheckService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NodeHealthCheckService.class);
 
     private BlockchainService blockchainService;
 
     private NodeStatus nodeStatus;
 
-    private List<NodeFailureListener> failureListeners;
+    private ReconnectionStrategy reconnectionStrategy;
 
-    @Autowired
     public NodeHealthCheckService(BlockchainService blockchainService,
-                                  List<NodeFailureListener> failureListeners) {
+                                  ReconnectionStrategy reconnectionStrategy) {
         this.blockchainService = blockchainService;
-        this.failureListeners = failureListeners;
+        this.reconnectionStrategy = reconnectionStrategy;
         nodeStatus = NodeStatus.SUBSCRIBED;
     }
 
-    @Scheduled(fixedDelayString = "${ethereum.node.healthcheck.pollInterval}")
+    @Scheduled(fixedDelayString = "${ethereum.healthcheck.pollInterval}")
     public void checkHealth() {
         final NodeStatus statusAtStart = nodeStatus;
 
         if (isNodeConnected()) {
             if (nodeStatus == NodeStatus.DOWN) {
-                LOGGER.info("Node has come back up.");
+                log.info("Node {} has come back up.", blockchainService.getNodeName());
 
                 //We've come back up
-                failureListeners.forEach((listener) -> listener.onNodeRecovery());
-                nodeStatus = NodeStatus.CONNECTED;
-            }
-
-            if (isSubscribed()) {
-                //We weren't previously subscribed, but we are now!
-                if (statusAtStart != NodeStatus.SUBSCRIBED) {
-                    failureListeners.forEach((listener) -> listener.onNodeSubscribed());
+                doResubscribe();
+            } else {
+                if (statusAtStart != NodeStatus.SUBSCRIBED || !isSubscribed()) {
+                    log.info("Node {} not subscribed", blockchainService.getNodeName());
+                    doResubscribe();
                 }
-
-                nodeStatus = NodeStatus.SUBSCRIBED;
-            } else if (statusAtStart == NodeStatus.SUBSCRIBED) {
-                //We were previously subscribed, but not any longer
-                LOGGER.info("Node subscriptions have been lost, attempting to resubscribe");
-                failureListeners.forEach((listener) -> listener.onNodeRecovery());
-                nodeStatus = NodeStatus.CONNECTED;
             }
+
         } else {
-            LOGGER.error("Node is down!!");
-
-            if (nodeStatus != NodeStatus.DOWN) {
-                //First sign of failure
-                failureListeners.forEach((listener) -> listener.onNodeFailure());
-            }
+            log.error("Node {} is down!!", blockchainService.getNodeName());
             nodeStatus = NodeStatus.DOWN;
+            doReconnect();
         }
     }
 
@@ -80,7 +58,7 @@ public class NodeHealthCheckService {
         try {
             blockchainService.getClientVersion();
         } catch(Throwable t) {
-            LOGGER.error("Get client version failed with exception", t);
+            log.error("Get client version failed with exception on node " + blockchainService.getNodeName(), t);
 
             return false;
         }
@@ -90,6 +68,21 @@ public class NodeHealthCheckService {
 
     protected boolean isSubscribed() {
         return blockchainService.isConnected();
+    }
+
+    private void doReconnect() {
+        reconnectionStrategy.reconnect();
+
+        if (isNodeConnected()) {
+            nodeStatus = NodeStatus.CONNECTED;
+            doResubscribe();
+        }
+    }
+
+    private void doResubscribe() {
+        reconnectionStrategy.resubscribe();
+
+        nodeStatus = isSubscribed() ? NodeStatus.SUBSCRIBED : NodeStatus.CONNECTED;
     }
 
     private enum NodeStatus {

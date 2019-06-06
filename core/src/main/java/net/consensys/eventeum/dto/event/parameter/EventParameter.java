@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = StringParameter.class, name = "bytes32"),
         @JsonSubTypes.Type(value = StringParameter.class, name = "bytes32Hex"),
         @JsonSubTypes.Type(value = StringParameter.class, name = "string"),
+        @JsonSubTypes.Type(value = NumberParameter.class, name = "int256"),
         @JsonSubTypes.Type(value = NumberParameter.class, name = "uint8"),
         @JsonSubTypes.Type(value = NumberParameter.class, name = "uint256")
 })

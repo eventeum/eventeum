@@ -11,8 +11,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
-    public PollingBlockSubscriptionStrategy(Web3j web3j) {
-        super(web3j);
+    public PollingBlockSubscriptionStrategy(Web3j web3j, String nodeName) {
+        super(web3j, nodeName);
     }
 
     @Override
@@ -32,6 +32,7 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
         blockDetails.setNumber(block.getNumber());
         blockDetails.setHash(block.getHash());
         blockDetails.setTimestamp(block.getTimestamp());
+        blockDetails.setNodeName(nodeName);
 
         return blockDetails;
     }

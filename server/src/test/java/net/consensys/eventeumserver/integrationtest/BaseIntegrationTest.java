@@ -1,7 +1,13 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import junit.framework.TestCase;
+import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -10,14 +16,19 @@ import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
+import net.consensys.eventeum.utils.JSON;
+import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.admin.Admin;
 import org.web3j.protocol.admin.methods.response.PersonalUnlockAccount;
@@ -25,6 +36,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.http.HttpService;
+import scala.math.BigInt;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -38,6 +50,8 @@ import static org.junit.Assert.assertEquals;
 
 public class BaseIntegrationTest {
 
+    private static final String PARITY_VOLUME_PATH = "target/parity";
+
     protected static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     protected static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000);
 
@@ -46,11 +60,12 @@ public class BaseIntegrationTest {
     protected static final String FAKE_CONTRACT_ADDRESS = "0xb4f391500fc66e6a1ac5d345f58bdcbea66c1a6f";
 
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
-    //protected static final Credentials CREDS = Credentials.create("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d");
 
     private static FixedHostPortGenericContainer parityContainer;
 
     private List<ContractEventDetails> broadcastContractEvents = new ArrayList<>();
+
+    private List<BlockDetails> broadcastBlockMessages = new ArrayList<>();
 
     @LocalServerPort
     private int port = 12345;
@@ -70,20 +85,17 @@ public class BaseIntegrationTest {
 
     private String dummyEventNotOrderedFilterId;
 
+    private Map<String, ContractEventFilter> registeredFilters = new HashMap<>();
+
     @BeforeClass
     public static void setupEnvironment() throws IOException {
         StubEventStoreService.start();
 
-        parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
-        parityContainer.waitingFor(Wait.forListeningPort());
-        parityContainer.withFixedExposedPort(8545, 8545);
-        parityContainer.withFixedExposedPort(8546, 8546);
-        parityContainer.start();
+        final File file = new File(PARITY_VOLUME_PATH);
+        file.mkdirs();
 
-        waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
+        startParity();
     }
-
-
 
     @Before
     public void setUp() throws Exception {
@@ -115,19 +127,34 @@ public class BaseIntegrationTest {
     }
 
     @AfterClass
-    public static void teardownEnvironment() {
+    public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
 
-        parityContainer.stop();
+        stopParity();
+
+        try {
+            //Clear parity data
+            final File file = new File(PARITY_VOLUME_PATH);
+            FileUtils.deleteDirectory(file);
+        } catch (Throwable t) {
+            //When running on circleci the parity dir cannot be deleted but this does no affect tests
+        }
     }
 
     @After
     public void cleanup() {
+        final ArrayList<String> filterIds = new ArrayList<>(registeredFilters.keySet());
+        filterIds.forEach(filterId -> unregisterEventFilter(filterId));
+
         filterRepo.deleteAll();
     }
 
     protected List<ContractEventDetails> getBroadcastContractEvents() {
         return broadcastContractEvents;
+    }
+
+    protected List<BlockDetails> getBroadcastBlockMessages() {
+        return broadcastBlockMessages;
     }
 
     protected ContractEventFilterRepository getFilterRepo() {
@@ -147,6 +174,8 @@ public class BaseIntegrationTest {
                 restTemplate.postForEntity(restUrl + "/api/rest/v1/event-filter", filter, AddEventFilterResponse.class);
 
         filter.setId(response.getBody().getId());
+
+        registeredFilters.put(filter.getId(), filter);
         return filter;
     }
 
@@ -156,6 +185,8 @@ public class BaseIntegrationTest {
 
     protected void unregisterEventFilter(String filterId) {
         restTemplate.delete(restUrl + "/api/rest/v1/event-filter/" + filterId);
+
+        registeredFilters.remove(filterId);
     }
 
     protected boolean unlockAccount() throws IOException {
@@ -187,12 +218,24 @@ public class BaseIntegrationTest {
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
                                          ContractEventDetails eventDetails, ContractEventStatus status) {
+        verifyDummyEventDetails(registeredFilter, eventDetails, status,
+                "BytesValue", Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.TEN, "StringValue");
+    }
+
+    protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
+                                           ContractEventDetails eventDetails,
+                                           ContractEventStatus status,
+                                           String valueOne,
+                                           String valueTwo,
+                                           BigInteger valueThree,
+                                           String valueFour) {
         assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(status, eventDetails.getStatus());
-        assertEquals("BytesValue", eventDetails.getIndexedParameters().get(0).getValue());
-        assertEquals(CREDS.getAddress(), eventDetails.getIndexedParameters().get(1).getValue());
-        assertEquals(BigInteger.TEN, eventDetails.getNonIndexedParameters().get(0).getValue());
-        assertEquals("StringValue", eventDetails.getNonIndexedParameters().get(1).getValue());
+        assertEquals(valueOne, eventDetails.getIndexedParameters().get(0).getValue());
+        assertEquals(valueTwo,
+                eventDetails.getIndexedParameters().get(1).getValue());
+        assertEquals(valueThree, eventDetails.getNonIndexedParameters().get(0).getValue());
+        assertEquals(valueFour, eventDetails.getNonIndexedParameters().get(1).getValue());
         assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
@@ -206,7 +249,7 @@ public class BaseIntegrationTest {
     }
 
     protected void waitForBroadcast() throws InterruptedException {
-        Thread.sleep(2000);
+        Thread.sleep(3000);
     }
 
     protected void waitForFilterPoll() throws InterruptedException {
@@ -214,7 +257,8 @@ public class BaseIntegrationTest {
     }
 
     protected void clearMessages() {
-        broadcastContractEvents.clear();
+        getBroadcastContractEvents().clear();
+        getBroadcastBlockMessages().clear();
     }
 
     protected void waitForContractEventMessages(int expectedContractEventMessages) {
@@ -229,7 +273,7 @@ public class BaseIntegrationTest {
         //Wait for another 20 seconds maximum if messages have not yet arrived
         final long startTime = System.currentTimeMillis();
         while(true) {
-            if (broadcastContractEvents.size() == expectedContractEventMessages) {
+            if (getBroadcastContractEvents().size() == expectedContractEventMessages) {
                 break;
             }
 
@@ -237,7 +281,39 @@ public class BaseIntegrationTest {
                 final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
                 builder.append("\n");
                 builder.append("Expected contract event messages: " + expectedContractEventMessages);
-                builder.append(", received: " + broadcastContractEvents.size());
+                builder.append(", received: " + getBroadcastContractEvents().size());
+                builder.append("\n");
+                builder.append(JSON.stringify(getBroadcastContractEvents()));
+
+                TestCase.fail(builder.toString());
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    protected void waitForBlockMessages(int expectedBlockMessages) {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        final long startTime = System.currentTimeMillis();
+        while(true) {
+            if (getBroadcastBlockMessages().size() >= expectedBlockMessages) {
+                break;
+            }
+
+            if (System.currentTimeMillis() > startTime + 20000) {
+                final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
+                builder.append("\n");
+                builder.append("Expected block messages: " + expectedBlockMessages);
+                builder.append(", received: " + broadcastBlockMessages.size());
 
                 TestCase.fail(builder.toString());
             }
@@ -290,6 +366,23 @@ public class BaseIntegrationTest {
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
         return createFilter(getDummyEventNotOrderedFilterId(), contractAddress, eventSpec);
+    }
+
+    protected static void startParity() {
+        parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
+        parityContainer.waitingFor(Wait.forListeningPort());
+        parityContainer.withFixedExposedPort(8545, 8545);
+        parityContainer.withFixedExposedPort(8546, 8546);
+        parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
+                "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        parityContainer.addEnv("NO_BLOCKS", "true");
+        parityContainer.start();
+
+        waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
+    }
+
+    protected static void stopParity() {
+        parityContainer.stop();
     }
 
     private ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {

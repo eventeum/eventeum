@@ -1,11 +1,8 @@
 package net.consensys.eventeum.integration;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import net.consensys.eventeum.annotation.ConditionalOnKafkaRequired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
@@ -17,11 +14,30 @@ import java.net.UnknownHostException;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Component("eventeumKafkaSettings")
+@ConditionalOnKafkaRequired
 @Data
 public class KafkaSettings {
 
     @Value("${kafka.bootstrap.addresses}")
     private String bootstrapAddresses;
+
+    @Value("${kafka.endpoint.identification.algorithm:}")
+    private String endpointIdentificationAlgorithm;
+
+    @Value("${kafka.request.timeout.msConfig:20000}")
+    private Integer requestTimeoutMsConfig;
+
+    @Value("${kafka.retries:10}")
+    private Integer retries;
+
+    @Value("${kafka.retry.backoff.msConfig:500}")
+    private Integer retryBackoffMsConfig;
+
+    @Value("${kafka.sasl.mechanism:}")
+    private String saslMechanism;
+
+    @Value("${kafka.security.protocol:}")
+    private String securityProtocol;
 
     @Value("${kafka.topic.contractEvents}")
     private String contractEventsTopic;
@@ -31,6 +47,12 @@ public class KafkaSettings {
 
     @Value("${kafka.topic.filterEvents}")
     private String filterEventsTopic;
+
+    @Value("${kafka.sasl.username:}")
+    private String username;
+
+    @Value("${kafka.sasl.password:}")
+    private String password;
 
     private String groupId;
 

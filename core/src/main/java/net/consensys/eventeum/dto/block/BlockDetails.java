@@ -16,4 +16,6 @@ public class BlockDetails {
     private String hash;
 
     private BigInteger timestamp;
+
+    private String nodeName;
 }

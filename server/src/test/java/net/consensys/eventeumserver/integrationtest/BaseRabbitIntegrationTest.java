@@ -19,14 +19,8 @@ public class BaseRabbitIntegrationTest extends BaseIntegrationTest {
 
     private List<EventeumMessage<ContractEventFilter>> broadcastFiltersEventMessages = new ArrayList<>();
 
-    private List<BlockDetails> broadcastBlockMessages = new ArrayList<>();
-
     public List<EventeumMessage<ContractEventFilter>> getBroadcastFilterEventMessages() {
         return broadcastFiltersEventMessages;
-    }
-
-    public List<BlockDetails> getBroadcastBlockMessages() {
-        return broadcastBlockMessages;
     }
 
     protected void clearMessages() {
@@ -44,38 +38,8 @@ public class BaseRabbitIntegrationTest extends BaseIntegrationTest {
             getBroadcastContractEvents().add((ContractEventDetails) message.getDetails());
         }
         else if(message.getDetails() instanceof BlockDetails){
-            broadcastBlockMessages.add((BlockDetails) message.getDetails());
+            getBroadcastBlockMessages().add((BlockDetails) message.getDetails());
         }
 
-    }
-
-    protected void waitForBlockMessages(int expectedBlockMessages) {
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        final long startTime = System.currentTimeMillis();
-        while(true) {
-            if (broadcastBlockMessages.size() >= expectedBlockMessages) {
-                break;
-            }
-
-            if (System.currentTimeMillis() > startTime + 20000) {
-                final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
-                builder.append("\n");
-                builder.append("Expected block messages: " + expectedBlockMessages);
-                builder.append(", received: " + broadcastBlockMessages.size());
-
-                TestCase.fail(builder.toString());
-            }
-
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

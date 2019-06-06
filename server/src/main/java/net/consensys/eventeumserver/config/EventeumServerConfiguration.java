@@ -1,7 +1,7 @@
 package net.consensys.eventeumserver.config;
 
 import net.consensys.eventeum.annotation.ConditionalOnKafkaRequired;
-import net.consensys.kafkadl.EnableKafkaDeadLetter;
+import net.consensys.kafkadl.annotation.EnableKafkaDeadLetter;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration

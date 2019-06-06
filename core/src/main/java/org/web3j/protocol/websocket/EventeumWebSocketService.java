@@ -1,5 +1,6 @@
 package org.web3j.protocol.websocket;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -10,12 +11,16 @@ import lombok.extern.slf4j.Slf4j;
  * This is workaround until web3j 4 which should hopefully have built in reconnections.
  */
 @Slf4j
+@Data
 public class EventeumWebSocketService extends WebSocketService {
 
+    private WebSocketClient webSocketClient;
 
     public EventeumWebSocketService(WebSocketClient webSocketClient,
                             boolean includeRawResponses) {
         super(webSocketClient, includeRawResponses);
+
+        this.webSocketClient = webSocketClient;
     }
 
     @Override

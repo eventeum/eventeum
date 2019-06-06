@@ -14,11 +14,12 @@ logging:
   file: /logs/application.log
 
 ethereum:
-  node:
-    url: http://localhost:8545
+  nodes:
+    - name: default
+      url: http://localhost:8545
 
-    healthcheck:
-      pollInterval: 2000
+  healthcheck:
+    pollInterval: 2000
 
 #eventFilters:
 #  - id: RequestCreated
@@ -62,3 +63,19 @@ kafka:
     contractEvents: contract-events
     blockEvents: block-events
     filterEvents: filter-events
+  request:
+    timeout:
+      msConfig: ${KAFKA_REQUEST_TIMEOUT_MS:20000}
+  retry:
+    backoff:
+      msConfig: ${KAFKA_RETRY_BACKOFF_MS:500}
+  endpoint:
+    identification:
+      algorithm: ${KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM:null}
+  sasl:
+    mechanism: ${KAFKA_SASL_MECHANISM:PLAIN}
+    username: ${KAFKA_USERNAME:""}
+    password: ${KAFKA_PASSWORD:""}
+  security:
+    protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+  retries: ${KAFKA_RETRIES:10}
