@@ -52,6 +52,7 @@ broadcaster:
       numBlocksToWait: 12
       numBlocksToWaitForMissingTx: 100
   multiInstance: false
+  bytesToAscii: false
 
 # For Kafka
 zookeeper:

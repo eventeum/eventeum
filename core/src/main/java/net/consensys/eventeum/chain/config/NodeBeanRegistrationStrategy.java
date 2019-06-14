@@ -89,7 +89,7 @@ public class NodeBeanRegistrationStrategy {
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 ContractEventDetailsFactoryFactoryBean.class);
 
-        builder.addPropertyValue("parameterConverter", new Web3jEventParameterConverter())
+        builder.addPropertyReference("parameterConverter", "web3jEventParameterConverter")
                 .addPropertyReference("eventConfirmationConfig", "eventConfirmationConfig")
                 .addPropertyValue("nodeName", node.getName());
 
