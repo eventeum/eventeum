@@ -57,6 +57,9 @@ public class BaseIntegrationTest {
 
     private static final String PARITY_VOLUME_PATH = "target/parity";
 
+    //"BytesValue" in hex
+    private static final String BYTES_VALUE_HEX = "0x427974657356616c756500000000000000000000000000000000000000000000";
+
     protected static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     protected static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000);
 
@@ -293,8 +296,9 @@ public class BaseIntegrationTest {
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
                                          ContractEventDetails eventDetails, ContractEventStatus status) {
+
         verifyDummyEventDetails(registeredFilter, eventDetails, status,
-                "BytesValue", Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.TEN, "StringValue");
+                BYTES_VALUE_HEX, Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.TEN, "StringValue");
     }
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
