@@ -17,6 +17,7 @@ ethereum:
   nodes:
     - name: default
       url: http://localhost:8545
+      pollingInterval: ${POLLING_INTERVAL:10000}
 
   healthcheck:
     pollInterval: 2000

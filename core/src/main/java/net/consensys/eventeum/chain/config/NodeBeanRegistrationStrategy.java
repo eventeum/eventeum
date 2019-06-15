@@ -30,6 +30,7 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.protocol.websocket.EventeumWebSocketService;
 import org.web3j.protocol.websocket.WebSocketClient;
 import org.web3j.protocol.websocket.WebSocketService;
+import org.web3j.utils.Async;
 
 @AllArgsConstructor
 public class NodeBeanRegistrationStrategy {
@@ -211,12 +212,12 @@ public class NodeBeanRegistrationStrategy {
 
     private Web3j buildWeb3j(Node node, Web3jService web3jService) {
 
-        return Web3j.build(web3jService);
+        return Web3j.build(web3jService, node.getPollingInterval(), Async.defaultExecutorService());
     }
 
     private String registerBlockSubscriptionStrategyBean(Node node,
-                                                                            Web3j web3j,
-                                                                            BeanDefinitionRegistry registry) {
+                                                         Web3j web3j,
+                                                         BeanDefinitionRegistry registry) {
         BeanDefinitionBuilder builder = null;
 
         if (nodeSettings.getBlockStrategy().equals("POLL")) {

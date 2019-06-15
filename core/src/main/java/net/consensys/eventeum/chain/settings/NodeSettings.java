@@ -5,9 +5,12 @@ import java.util.List;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import org.springframework.core.env.Environment;
+import org.web3j.abi.datatypes.Int;
 
 @Data
 public class NodeSettings {
+
+    private static final Long DEFAULT_POLLING_INTERVAL = 10000l;
 
     private static final String ATTRIBUTE_PREFIX = "ethereum";
 
@@ -20,6 +23,8 @@ public class NodeSettings {
     private static final String NODE_USERNAME_ATTRIBUTE = "username";
 
     private static final String NODE_PASSWORD_ATTRIBUTE = "password";
+
+    private static final String NODE_POLLING_INTERVAL_ATTRIBUTE = "pollingInterval";
 
     private static final String BLOCK_STRATEGY_ATTRIBUTE = "blockStrategy";
 
@@ -42,6 +47,7 @@ public class NodeSettings {
             nodes.add(new Node(
                     getNodeNameProperty(environment, index),
                     getNodeUrlProperty(environment, index),
+                    getNodePollingIntervalProperty(environment, index),
                     getNodeUsernameProperty(environment, index),
                     getNodePasswordProperty(environment, index)));
 
@@ -63,6 +69,17 @@ public class NodeSettings {
 
     private String getNodeUrlProperty(Environment environment, int index) {
         return getProperty(environment, buildNodeAttribute(NODE_URL_ATTRIBUTE, index));
+    }
+
+    private Long getNodePollingIntervalProperty(Environment environment, int index) {
+        final String pollingInterval =
+                getProperty(environment, buildNodeAttribute(NODE_POLLING_INTERVAL_ATTRIBUTE, index));
+
+        if (pollingInterval == null) {
+            return DEFAULT_POLLING_INTERVAL;
+        }
+
+        return Long.valueOf(pollingInterval);
     }
 
     private String getNodeUsernameProperty(Environment environment, int index) {
