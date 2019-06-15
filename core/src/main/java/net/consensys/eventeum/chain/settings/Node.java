@@ -10,6 +10,7 @@ public class Node {
     private String name;
 
     private String url;
+    private Long pollingInterval;
     private String username;
     private String password;
 }
