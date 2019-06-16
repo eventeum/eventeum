@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@TestPropertySource(locations="classpath:application-test-db.properties")
+@TestPropertySource(locations="classpath:application-test-multiinstance.properties")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
