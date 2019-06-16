@@ -4,6 +4,8 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -27,6 +29,17 @@ import javax.annotation.PostConstruct;
 public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
 
     public static FixedHostPortGenericContainer rabbitContainer;
+
+    private boolean isFirstTest = true;
+
+    @Before
+    public void waitForRabbitInit() throws InterruptedException {
+        if (isFirstTest) {
+            Thread.sleep(5000);
+        }
+
+        isFirstTest = false;
+    }
 
     @RabbitListener(bindings = @QueueBinding(
             key = "thisIsRoutingKey.*",

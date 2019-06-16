@@ -332,7 +332,7 @@ public class BaseIntegrationTest {
     }
 
     protected void waitForFilterPoll() throws InterruptedException {
-        Thread.sleep(15000);
+        Thread.sleep(1000);
     }
 
     protected void clearMessages() {

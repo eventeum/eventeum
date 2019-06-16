@@ -129,7 +129,11 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                 embeddedKafka.getPartitionsPerTopic() * testContainer.getContainerProperties().getTopics().length);
 
         final MessageListenerContainer defaultContainer = registry.getListenerContainer(KAFKA_LISTENER_CONTAINER_ID);
-        ContainerTestUtils.waitForAssignment(defaultContainer, embeddedKafka.getPartitionsPerTopic());
+
+        //Container won't exist in non multi-instance mode
+        if (defaultContainer != null) {
+            ContainerTestUtils.waitForAssignment(defaultContainer, embeddedKafka.getPartitionsPerTopic());
+        }
 
         registry
                 .getListenerContainers()

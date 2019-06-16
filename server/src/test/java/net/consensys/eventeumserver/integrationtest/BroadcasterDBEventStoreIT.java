@@ -13,6 +13,7 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.utils.JSON;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,7 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
 
         waitForContractEventMessages(1);
 
-        assertEquals(1, getBroadcastContractEvents().size());
+        assertEquals("***** " + JSON.stringify(getBroadcastContractEvents()),1, getBroadcastContractEvents().size());
 
         final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
 
