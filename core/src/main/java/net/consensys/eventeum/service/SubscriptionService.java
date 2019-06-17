@@ -56,4 +56,9 @@ public interface SubscriptionService {
      * @param unsubscribeFirst Specifies if all active subscriptions should be unsubscribed first, before resubscribing.
      */
     void resubscribeToAllSubscriptions(boolean unsubscribeFirst);
+
+    /**
+     * Unsubscribe all active listeners
+     */
+    void unsubscribeToAllSubscriptions();
 }

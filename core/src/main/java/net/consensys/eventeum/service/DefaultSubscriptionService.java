@@ -159,6 +159,14 @@ public class DefaultSubscriptionService implements SubscriptionService {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unsubscribeToAllSubscriptions() {
+        filterSubscriptions.values().forEach(filterSub -> filterSub.getSubscription().unsubscribe());
+    }
+
     private void subscribeToNewBlockEvents(
             BlockchainService blockchainService, List<BlockListener> blockListeners) {
         blockListeners.forEach(listener -> blockchainService.addBlockListener(listener));
