@@ -17,7 +17,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import rx.Subscription;
 
-import javax.annotation.PreDestroy;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -128,16 +127,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void resubscribeToAllSubscriptions(boolean unsubscribeFirst) {
+    public void resubscribeToAllSubscriptions() {
         final List<ContractEventFilter> currentFilters = filterSubscriptions
                 .values()
                 .stream()
                 .map(filterSubscription -> filterSubscription.getFilter())
                 .collect(Collectors.toList());
-
-        if (unsubscribeFirst) {
-            unregisterAllContractEventFilters();
-        }
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();
 
@@ -146,17 +141,6 @@ public class DefaultSubscriptionService implements SubscriptionService {
         filterSubscriptions = newFilterSubscriptions;
 
         log.info("Resubscribed to event filters: {}", JSON.stringify(filterSubscriptions));
-    }
-
-    @PreDestroy
-    private void unregisterAllContractEventFilters() {
-        filterSubscriptions.values().forEach(filterSub -> {
-            try {
-                unregisterContractEventFilter(filterSub.getFilter().getId(), false);
-            } catch (FilterNotFoundException e) {
-                log.error("Error in unregisterAllContractEventFilters", e);
-            }
-        });
     }
 
     /**

@@ -52,10 +52,8 @@ public interface SubscriptionService {
 
     /**
      * Resubscribe to all currently active event filters.
-     *
-     * @param unsubscribeFirst Specifies if all active subscriptions should be unsubscribed first, before resubscribing.
      */
-    void resubscribeToAllSubscriptions(boolean unsubscribeFirst);
+    void resubscribeToAllSubscriptions();
 
     /**
      * Unsubscribe all active listeners
