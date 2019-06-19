@@ -4,6 +4,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.message.ContractEvent;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.TimeUnit;
@@ -22,6 +24,10 @@ public class OnlyOnceBlockchainEventBroadcasterWrapper implements BlockchainEven
 
     private Cache<Integer, ContractEventDetails> contractEventCache;
 
+    private Cache<Integer, TransactionDetails> transactionCache;
+
+    private Cache<Integer, TransactionDetails> transactionDetailsCache;
+
     private Long expirationTimeMillis;
 
     private BlockchainEventBroadcaster wrapped;
@@ -29,7 +35,8 @@ public class OnlyOnceBlockchainEventBroadcasterWrapper implements BlockchainEven
     public OnlyOnceBlockchainEventBroadcasterWrapper(Long expirationTimeMillis,
                                               BlockchainEventBroadcaster toWrap) {
         this.expirationTimeMillis = expirationTimeMillis;
-        this.contractEventCache = createContractEventCache();
+        this.contractEventCache = createCache(ContractEventDetails.class);
+        this.transactionCache = createCache(TransactionDetails.class);
         this.wrapped = toWrap;
     }
 
@@ -48,14 +55,25 @@ public class OnlyOnceBlockchainEventBroadcasterWrapper implements BlockchainEven
         }
     }
 
+    @Override
+    public void broadcastTransaction(TransactionDetails transactionDetails) {
+        synchronized(this) {
+            if (transactionCache.getIfPresent(Integer.valueOf(transactionDetails.hashCode())) == null) {
+                transactionCache.put(Integer.valueOf(transactionDetails.hashCode()), transactionDetails);
+                wrapped.broadcastTransaction(transactionDetails);
+            }
+        }
+    }
+
     @Scheduled(fixedRateString = "${broadcaster.cache.expirationMillis}")
     public void cleanUpCache() {
         contractEventCache.cleanUp();
+        transactionCache.cleanUp();
     }
 
-    protected Cache<Integer, ContractEventDetails> createContractEventCache() {
+    protected <T> Cache<Integer, T> createCache(Class<T> clazz) {
         return CacheBuilder.newBuilder()
-            .expireAfterWrite(expirationTimeMillis, TimeUnit.MILLISECONDS)
-            .build();
+                .expireAfterWrite(expirationTimeMillis, TimeUnit.MILLISECONDS)
+                .build();
     }
 }

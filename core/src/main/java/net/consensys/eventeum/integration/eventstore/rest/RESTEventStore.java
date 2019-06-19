@@ -4,6 +4,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.integration.eventstore.rest.client.EventStoreClient;
+import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Optional;
 
 /**
  * An event store implementation that integrates with an external REST api in order to obtain the event details.
@@ -39,6 +42,11 @@ public class RESTEventStore implements EventStore {
                                              firstOrder.getProperty(),
                                              firstOrder.getDirection(),
                                              eventSignature);
+    }
+
+    @Override
+    public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
+        return Optional.ofNullable(client.getLatestBlock(nodeName));
     }
 
     @Override

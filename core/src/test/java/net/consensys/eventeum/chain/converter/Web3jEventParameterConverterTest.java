@@ -1,6 +1,7 @@
 package net.consensys.eventeum.chain.converter;
 
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
+import net.consensys.eventeum.settings.EventeumSettings;
 import org.junit.Before;
 import org.junit.Test;
 import org.web3j.abi.datatypes.Address;
@@ -20,7 +21,7 @@ public class Web3jEventParameterConverterTest {
 
     @Before
     public void init() {
-        underTest = new Web3jEventParameterConverter();
+        underTest = new Web3jEventParameterConverter(new EventeumSettings(true));
     }
 
     @Test

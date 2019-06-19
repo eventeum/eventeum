@@ -1,6 +1,9 @@
 package net.consensys.eventeum.service;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.model.LatestBlock;
+
+import java.util.Optional;
 
 /**
  * A service that interacts with the event store in order to retrieve data required by Eventeum.
@@ -15,5 +18,13 @@ public interface EventStoreService {
      * @param eventSignature The event signature
      * @return The event details
      */
-    ContractEventDetails getLatestContractEvent(String eventSignature);
+    Optional<ContractEventDetails> getLatestContractEvent(String eventSignature);
+
+    /**
+     * Returns the latest block, for the specified node.
+     *
+     * @param nodeName The nodename
+     * @return The block details
+     */
+    Optional<LatestBlock> getLatestBlock(String nodeName);
 }

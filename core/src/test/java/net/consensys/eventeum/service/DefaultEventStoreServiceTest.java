@@ -48,7 +48,7 @@ public class DefaultEventStoreServiceTest {
         when(mockPage.getContent()).thenReturn(Arrays.asList(mockEventDetails1, mockEventDetails2));
         when(mockEventStore.getContractEventsForSignature(
                 eq(EVENT_SIGNATURE), any(PageRequest.class))).thenReturn(mockPage);
-        assertEquals(mockEventDetails1, underTest.getLatestContractEvent(EVENT_SIGNATURE));
+        assertEquals(mockEventDetails1, underTest.getLatestContractEvent(EVENT_SIGNATURE).get());
     }
 
     @Test
@@ -56,7 +56,7 @@ public class DefaultEventStoreServiceTest {
         when(mockPage.getContent()).thenReturn(null);
         when(mockEventStore.getContractEventsForSignature(
                 eq(EVENT_SIGNATURE), any(PageRequest.class))).thenReturn(mockPage);
-        assertNull(underTest.getLatestContractEvent(EVENT_SIGNATURE));
+        assertEquals(false, underTest.getLatestContractEvent(EVENT_SIGNATURE).isPresent());
     }
 
     @Test
@@ -64,6 +64,6 @@ public class DefaultEventStoreServiceTest {
         when(mockPage.getContent()).thenReturn(new ArrayList<>());
         when(mockEventStore.getContractEventsForSignature(
                 eq(EVENT_SIGNATURE), any(PageRequest.class))).thenReturn(mockPage);
-        assertNull(underTest.getLatestContractEvent(EVENT_SIGNATURE));
+        assertEquals(false, underTest.getLatestContractEvent(EVENT_SIGNATURE).isPresent());
     }
 }

@@ -3,10 +3,16 @@ package net.consensys.eventeum.chain.service.strategy;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.integration.eventstore.EventStore;
+import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.service.EventStoreService;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.EthBlock;
 import rx.Subscription;
 
+import java.math.BigInteger;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -19,17 +25,21 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
     protected Subscription blockSubscription;
     protected Web3j web3j;
+    protected EventStoreService eventStoreService;
     protected String nodeName;
 
-    public AbstractBlockSubscriptionStrategy(Web3j web3j, String nodeName) {
+    public AbstractBlockSubscriptionStrategy(Web3j web3j, String nodeName, EventStoreService eventStoreService) {
         this.web3j = web3j;
         this.nodeName = nodeName;
+        this.eventStoreService = eventStoreService;
     }
 
     @Override
     public void unsubscribe() {
         try {
-            blockSubscription.unsubscribe();
+            if (blockSubscription != null) {
+                blockSubscription.unsubscribe();
+            }
         } finally {
             blockSubscription = null;
         }
@@ -64,6 +74,10 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         } catch(Throwable t) {
             log.error(String.format("An error occured when processing block with hash %s", block.getHash()), t);
         }
+    }
+
+    protected Optional<LatestBlock> getLatestBlock() {
+        return eventStoreService.getLatestBlock(nodeName);
     }
 
     abstract BlockDetails convertToBlockDetails(T blockObject);

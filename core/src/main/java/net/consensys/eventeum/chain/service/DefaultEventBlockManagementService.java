@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 import java.util.AbstractMap;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -63,10 +64,14 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
             return latestBlockNumber;
         }
 
-        final ContractEventDetails contractEvent = eventStoreService.getLatestContractEvent(eventSignature);
+        final Optional<ContractEventDetails> contractEvent = eventStoreService.getLatestContractEvent(eventSignature);
 
-        if (contractEvent != null) {
-            return contractEvent.getBlockNumber();
+        if (contractEvent.isPresent()) {
+            return contractEvent.get().getBlockNumber();
+        }
+
+        if (eventFilter.getStartBlock() != null) {
+            return eventFilter.getStartBlock();
         }
 
         final BlockchainService blockchainService =

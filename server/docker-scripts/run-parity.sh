@@ -2,7 +2,7 @@ if [ ! -f ~/.local/share/io.parity.ethereum/password ]; then
   echo "First time running parity"
   #Parity doesnt seem to allow unlocking of accounts on first run!
   #Need to run then kill, then run again unlocked.
-  nohup /parity/parity --chain dev &
+  nohup parity --chain dev &
   export PID=$!
   sleep 5
   kill -9 $PID
@@ -10,7 +10,13 @@ if [ ! -f ~/.local/share/io.parity.ethereum/password ]; then
   echo "" > ~/.local/share/io.parity.ethereum/password
 fi
 
-nohup /parity/parity \
+# Create log file if it doesn't exist
+if [ ! -f /data/parity-logs/parity.log ]; then
+	mkdir -p /data/parity-logs
+	touch /data/parity-logs/parity.log
+fi
+
+nohup parity \
 	--chain dev \
 	--reseal-min-period 0 \
 	--jsonrpc-cors '*' \

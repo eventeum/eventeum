@@ -2,6 +2,7 @@ package net.consensys.eventeum.chain.service.strategy;
 
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.service.EventStoreService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -46,11 +47,14 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
     private BlockListener mockBlockListener;
 
+    private EventStoreService mockEventStoreService;
+
     @Before
     public void init() throws IOException {
         this.mockWeb3j = mock(Web3j.class);
 
         mockNewHeadsNotification = mock(NewHeadsNotification.class);
+        mockEventStoreService = mock(EventStoreService.class);
         when(mockNewHeadsNotification.getParams()).thenReturn(new NewHeadNotificationParameter());
 
         mockNewHead = mock(NewHead.class);
@@ -61,7 +65,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         blockSubject = PublishSubject.create();
         when(mockWeb3j.newHeadsNotifications()).thenReturn(blockSubject);
 
-        underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME);
+        underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
     }
 
     @Test

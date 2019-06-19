@@ -22,6 +22,7 @@ An Ethereum event listener that bridges your smart contract events and backend m
 * Kafka
 * HTTP Post
 * [RabbitMQ](https://www.rabbitmq.com/)
+* [Pulsar](https://pulsar.apache.org)
 
 ## Getting Started
 Follow the instructions below in order to run Eventeum on your local machine for development and testing purposes.
@@ -47,7 +48,8 @@ $ mvn clean package
 a. If you have a running instance of MongoDB, Kafka, Zookeeper and an Ethereum node:
 
 **Executable JAR:**
-```
+
+```sh
 $ cd server
 $ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
 $ export ETHEREUM_NODE_URL=http://<node-host:port>
@@ -60,7 +62,7 @@ $ java -jar target/eventeum-server.jar
 
 **Docker:**
 
-```
+```sh
 $ cd server
 $ docker build  . -t kauri/eventeum:latest
 
@@ -74,7 +76,8 @@ $ docker run -p 8060:8060 kauri/eventeum
 ```
 
 b. If you prefer build an all-in-one test environment with a parity dev node, use docker-compose:
-```
+
+```sh
 $ cd server
 $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
@@ -83,7 +86,7 @@ $ docker-compose -f docker-compose.yml up
 ## Configuring Nodes
 Listening for events from multiple different nodes is supported in Eventeum, and these nodes can be configured in the properties file.
 
-```
+```yaml
 ethereum:
   nodes:
     - name: default
@@ -109,7 +112,8 @@ Eventeum exposes a REST api that can be used to register events that should be s
 
 -   **URL Params:** `N/A`
 -   **Body:**
-```
+
+```json
 {
 	"id": "event-identifier",
 	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
@@ -160,7 +164,8 @@ Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
 -   **Success Response:**
     -   **Code:** 200  
         **Content:**
-```
+
+```json
 {
     "id": "event-identifier"
 }
@@ -169,7 +174,7 @@ Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
 ### Hard Coded Configuration
 Static events can be configured within the application.yml file of Eventeum.
 
-```
+```yaml
 eventFilters:
   - id: RequestCreated
     contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
@@ -199,6 +204,46 @@ eventFilters:
 -   **Body:** `N/A`
 
 -   **Success Response:**
+    -   **Code:** 200
+        **Content:** `N/A`
+
+## Registering a Transaction Monitor
+
+From version 0.5.3, eventeum supports monitoring and broadcasting transactions.  Currently the only matching criteria is by transaction hash, but more will be added in the near future.
+
+### REST
+
+To register a transaction monitor, use the below REST endpoint:
+
+-   **URL:** `/api/rest/v1/transaction?identifier=<txHash>&nodeName=<nodeName>`
+-   **Method:** `POST`
+-   **Headers:**  `N/A`
+-   **URL Params:** `N/A`
+    - identifier - The transaction hash to monitor
+    - nodeName - The node name that should be monitored
+-   **Body:** `N/A`
+
+-   **Success Response:**
+    -   **Code:** 200
+        **Content:**
+
+```json
+{
+    "id": "transaction-monitor-identifier"
+}
+```
+
+## Un-Registering a Transaction Monitor
+
+### REST
+
+-   **URL:** `/api/rest/v1/transaction/{monitor-id}`
+-   **Method:** `DELETE`
+-   **Headers:**  `N/A`
+-   **URL Params:** `N/A`
+-   **Body:** `N/A`
+
+-   **Success Response:**
     -   **Code:** 200  
         **Content:** `N/A`
 
@@ -207,7 +252,7 @@ eventFilters:
 ###  Contract Events
 When a subscribed event is emitted, a JSON message is broadcast to the configured kafka topic or rabbit exchange (contract-events by default), with the following format:
 
-```
+```json
 {
 	"id":"unique-event-id",
 	"type":"CONTRACT_EVENT",
@@ -234,7 +279,7 @@ When a subscribed event is emitted, a JSON message is broadcast to the configure
 ### Block Events
 When a new block is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (block-events by default), with the following format:
 
-```
+```json
  {
  	"id":"0x79799054d1782eb4f246b3055b967557148f38344fbd7020febf7b2d44faa4f8",
 	"type":"BLOCK",
@@ -246,8 +291,34 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 }
 ```
 
+
+### Transaction Events
+When a new transaction that matches a transaction monitor is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (transaction-events by default), with the following format:
+
+```json
+ {
+ 	"id":"0x1c0482642861779703a34f4539b3ba18a0fddfb16558f3be7157fdafcaf2c030",
+	"type":"TRANSACTION",
+	"details":{
+		"hash":"0x1c0482642861779703a34f4539b3ba18a0fddfb16558f3be7157fdafcaf2c030",
+		"nonce":"0xf",
+		"blockHash":"0x6a68edf369ba4ddf93aa31cf5871ad51b5f7988a69f1ddf9ed09ead8b626db48",
+		"blockNumber":"0x1e1",
+		"transactionIndex":"0x0",
+		"from":"0xf17f52151ebef6c7334fad080c5704d77216b732",
+		"to":"0xc5fdf4076b8f3a5357c5e395ab970b5b54098fef",
+		"value":"0x16345785d8a0000",
+		"nodeName":"default",
+		"status":"CONFIRMED"},
+	"retries":0
+}
+```
+
 ## Configuration
-Many values within Eventeum are configurable either by changing the values in the application.yml file or by setting the associated environment variable.
+Eventeum can either be configured by:
+
+1. storing an `application.yml` next to the built JAR (copy one from `config-examples`). This overlays the defaults from `server/src/main/resources/application.yml`.
+2. Setting the associated environment variables.
 
 | Env Variable | Default | Description |
 | -------- | -------- | -------- |
@@ -255,28 +326,31 @@ Many values within Eventeum are configurable either by changing the values in th
 | ETHEREUM_BLOCKSTRATEGY | POLL | The strategy for obtaining block events from an ethereum node. (POLL or PUBSUB) |
 | ETHEREUM_NODE_URL | http://localhost:8545 | The default ethereum node url. |
 | ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
+| POLLING_INTERVAL | 10000 | The polling interval used by Web3j to get events from the blockchain. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
 | BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use. (KAFKA or HTTP or RABBIT) |
 | BROADCASTER_CACHE _EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
 | BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event. |
 | BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED. |
 | BROADCASTER_MULTIINSTANCE | false | If multiple instances of eventeum are to be deployed in your system, this should be set to true so that the eventeum communicates added/removed filters to other instances, via kafka. |
-| BROADCASTER_HTTP CONTRACTEVENTSURL | | The http url for posting contract events (for HTTP broadcasting). |
-| BROADCASTER_HTTP BLOCKEVENTSURL | | The http url for posting block events (for HTTP broadcasting). |
-| ZOOKEEPER_ADDRESS | localhost:2181 | The zookeeper address. |
-| KAFKA_ADDRESSES | localhost:9092 | Comma separated list of kafka addresses. |
-| KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages. |
-| KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages. |
-| KAFKA_REQUEST_TIMEOUT_MS | 20000 | The duration after which a request timeouts. |
-| KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM | null | The endpoint identification algorithm to validate server hostname using server certificate. |
-| KAFKA_SASL_MECHANISM | PLAIN | The mechanism used for SASL authentication. |
-| KAFKA_USERNAME | "" | The username used to connect to a SASL secured Kafka cluster. |
-| KAFKA_PASSWORD | "" | The password used to connect to a SASL secured Kafka cluster. |
-| KAFKA_SECURITY_PROTOCOL | PLAINTEXT | Protocol used to communicate with Kafka brokers. |
-| KAFKA_RETRIES | 10 | The number of times a Kafka consumer will try to publish a message before throwing an error. |
-| KAFKA_RETRY_BACKOFF_MS | 500 | The duration between each retry. |
-| SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB). |
-| SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB). |
+| BROADCASTER_HTTP CONTRACTEVENTSURL | | The http url for posting contract events (for HTTP broadcasting) |
+| BROADCASTER_HTTP BLOCKEVENTSURL | | The http url for posting block events (for HTTP broadcasting) |
+| BROADCASTER_BYTESTOASCII | false | If any bytes values within events should be converted to ascii (default is hex) |
+| ZOOKEEPER_ADDRESS | localhost:2181 | The zookeeper address |
+| KAFKA_ADDRESSES | localhost:9092 | Comma seperated list of kafka addresses |
+| KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages |
+| KAFKA_TOPIC_BLOCK_EVENTS | block-events | The topic name for broadcast block event messages |
+| KAFKA_TOPIC_TRANSACTION_EVENTS | transaction-events | The topic name for broadcast trasaction messages |
+| KAFKA_REQUEST_TIMEOUT_MS | 20000 | The duration after which a request timeouts |
+| KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM | null | The endpoint identification algorithm to validate server hostname using server certificate |
+| KAFKA_SASL_MECHANISM | PLAIN | The mechanism used for SASL authentication |
+| KAFKA_USERNAME | "" | The username used to connect to a SASL secured Kafka cluster |
+| KAFKA_PASSWORD | "" | The password used to connect to a SASL secured Kafka cluster |
+| KAFKA_SECURITY_PROTOCOL | PLAINTEXT | Protocol used to communicate with Kafka brokers |
+| KAFKA_RETRIES | 10 | The number of times a Kafka consumer will try to publish a message before throwing an error |
+| KAFKA_RETRY_BACKOFF_MS | 500 | The duration between each retry |
+| SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
+| SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
 | RABBIT_ADDRESS | localhost:5672 | property spring.rabbitmq.host (The rabbitmq address) |
 | RABBIT_EXCHANGE | ThisIsAExchange | property rabbitmq.exchange |
 | RABBIT_ROUTING_KEY | thisIsRoutingKey | property rabbitmq.routingKeyPrefix |
@@ -341,7 +415,8 @@ The implemented REST service should have a pageable endpoint which accepts a req
 -   **Success Response:**
     -   **Code:** 200  
         **Content:**
-```
+
+```json
 {
 	"content":[
 		{"blockNumber":10,"id":<unique event id>}],
@@ -372,7 +447,7 @@ Eventeum can be embedded into an existing Spring Application via an annotation.
 
 1. Add the Consensys Kauri bintray repository into your `pom.xml` file:
 
-```
+```xml
 <repositories>
   <repository>
     <id>bintray-consensys-kauri</id>
@@ -383,7 +458,7 @@ Eventeum can be embedded into an existing Spring Application via an annotation.
 
 2. Add the eventeum-core dependency to your `pom.xml` file:
 
-```
+```xml
 <dependency>
   <groupId>net.consensys.eventeum</groupId>
   <artifactId>eventeum-core</artifactId>

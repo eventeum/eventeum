@@ -1,7 +1,7 @@
 package net.consensys.eventeum.service;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.ContractEvent;
+import net.consensys.eventeum.service.exception.NotFoundException;
 
 /**
  * A service for manageing contract event subscriptions within the Eventeum instance.
@@ -40,7 +40,7 @@ public interface SubscriptionService {
      *
      * @param filterId The filter id of the event to remove.
      */
-    void unregisterContractEventFilter(String filterId) throws FilterNotFoundException ;
+    void unregisterContractEventFilter(String filterId) throws NotFoundException;
 
     /**
      * Unregisters a previously added contract event filter.
@@ -48,7 +48,7 @@ public interface SubscriptionService {
      * @param filterId The filter id of the event to remove.
      * @param broadcast Specifies if the removed filter event should be broadcast to other Eventeum instances.
      */
-    void unregisterContractEventFilter(String filterId, boolean broadcast) throws FilterNotFoundException;
+    void unregisterContractEventFilter(String filterId, boolean broadcast) throws NotFoundException;
 
     /**
      * Resubscribe to all currently active event filters.
