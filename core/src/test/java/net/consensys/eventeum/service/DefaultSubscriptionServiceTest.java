@@ -147,15 +147,7 @@ public class DefaultSubscriptionServiceTest {
 
         reset(mockBlockchainService, mockRepo, mockFilterBroadcaster);
 
-        when(mockBlockchainService.registerEventListener(
-                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
-        when(mockBlockchainService.registerEventListener(
-                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
-
-        underTest.resubscribeToAllSubscriptions(true);
-
-        verify(sub1, times(1)).unsubscribe();
-        verify(sub2, times(1)).unsubscribe();
+        underTest.resubscribeToAllSubscriptions();
 
         verifyContractEventFilterRegistration(filter1, false, false);
         verifyContractEventFilterRegistration(filter2, false, false);
@@ -187,6 +179,27 @@ public class DefaultSubscriptionServiceTest {
         }
 
         assertEquals(true, exceptionThrown);
+    }
+
+    @Test
+    public void testUnsubscribeToAllSubscriptions() {
+        final ContractEventFilter filter1 = createEventFilter("filter1");
+        final Subscription sub1 = mock(Subscription.class);
+
+        final ContractEventFilter filter2 = createEventFilter();
+        final Subscription sub2 = mock(Subscription.class);
+
+        when(mockBlockchainService.registerEventListener(
+                eq(filter1), any(ContractEventListener.class))).thenReturn(sub1);
+        when(mockBlockchainService.registerEventListener(
+                eq(filter2), any(ContractEventListener.class))).thenReturn(sub2);
+
+        underTest.registerContractEventFilter(filter1, false);
+        underTest.registerContractEventFilter(filter2, false);
+        underTest.unsubscribeToAllSubscriptions();
+
+        verify(sub1, times(1)).unsubscribe();
+        verify(sub2, times(1)).unsubscribe();
     }
 
     private void verifyContractEventFilterRegistration(ContractEventFilter filter, boolean save, boolean broadcast) {

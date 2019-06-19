@@ -3,8 +3,7 @@ package net.consensys.eventeum.chain.service.health;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
+import net.consensys.eventeum.service.SubscriptionService;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
@@ -25,12 +24,16 @@ public class NodeHealthCheckService {
 
     private ReconnectionStrategy reconnectionStrategy;
 
+    private SubscriptionService subscriptionService;
+  
     private boolean initiallySubscribed = false;
 
     public NodeHealthCheckService(BlockchainService blockchainService,
-                                  ReconnectionStrategy reconnectionStrategy) {
+                                  ReconnectionStrategy reconnectionStrategy,
+                                  SubscriptionService subscriptionService) {
         this.blockchainService = blockchainService;
         this.reconnectionStrategy = reconnectionStrategy;
+        this.subscriptionService = subscriptionService;
         nodeStatus = NodeStatus.SUBSCRIBED;
     }
 
@@ -63,6 +66,11 @@ public class NodeHealthCheckService {
         } else {
             log.error("Node {} is down!!", blockchainService.getNodeName());
             nodeStatus = NodeStatus.DOWN;
+
+            if (statusAtStart != NodeStatus.DOWN) {
+                subscriptionService.unsubscribeToAllSubscriptions();
+            }
+
             doReconnect();
         }
     }
