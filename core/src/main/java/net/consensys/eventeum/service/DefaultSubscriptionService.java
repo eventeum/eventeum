@@ -127,16 +127,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void resubscribeToAllSubscriptions(boolean unsubscribeFirst) {
+    public void resubscribeToAllSubscriptions() {
         final List<ContractEventFilter> currentFilters = filterSubscriptions
                 .values()
                 .stream()
                 .map(filterSubscription -> filterSubscription.getFilter())
                 .collect(Collectors.toList());
-
-        if (unsubscribeFirst) {
-            unregisterAllContractEventFilters();
-        }
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();
 
@@ -147,6 +143,14 @@ public class DefaultSubscriptionService implements SubscriptionService {
         log.info("Resubscribed to event filters: {}", JSON.stringify(filterSubscriptions));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void unsubscribeToAllSubscriptions() {
+        filterSubscriptions.values().forEach(filterSub -> filterSub.getSubscription().unsubscribe());
+    }
+  
     @PreDestroy
     private void unregisterAllContractEventFilters() {
         filterSubscriptions.values().forEach(filterSub -> {
