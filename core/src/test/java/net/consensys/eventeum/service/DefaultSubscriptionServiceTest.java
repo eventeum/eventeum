@@ -130,7 +130,7 @@ public class DefaultSubscriptionServiceTest {
     }
 
     @Test
-    public void testResubscribeToAllSubscriptionsUnsubscribeFirst() {
+    public void testResubscribeToAllSubscriptions() {
         final ContractEventFilter filter1 = createEventFilter(FILTER_ID);
         final ContractEventFilter filter2 = createEventFilter("AnotherId");
         final Subscription sub1 = mock(Subscription.class);
@@ -146,6 +146,11 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter2, true);
 
         reset(mockBlockchainService, mockRepo, mockFilterBroadcaster);
+
+        when(mockBlockchainService.registerEventListener(
+                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
+        when(mockBlockchainService.registerEventListener(
+                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
 
         underTest.resubscribeToAllSubscriptions();
 
@@ -190,9 +195,9 @@ public class DefaultSubscriptionServiceTest {
         final Subscription sub2 = mock(Subscription.class);
 
         when(mockBlockchainService.registerEventListener(
-                eq(filter1), any(ContractEventListener.class))).thenReturn(sub1);
+                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
         when(mockBlockchainService.registerEventListener(
-                eq(filter2), any(ContractEventListener.class))).thenReturn(sub2);
+                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
 
         underTest.registerContractEventFilter(filter1, false);
         underTest.registerContractEventFilter(filter2, false);

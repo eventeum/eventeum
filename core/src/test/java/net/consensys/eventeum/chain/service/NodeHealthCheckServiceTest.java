@@ -30,7 +30,7 @@ public class NodeHealthCheckServiceTest {
         mockReconnectionStrategy = mock(ReconnectionStrategy.class);
         mockSubscriptionService = mock(SubscriptionService.class);
 
-        underTest = new NodeHealthCheckService(mockBlockchainService, mockReconnectionStrategy, mockSubscriptionService);
+        underTest = createUnderTest();
     }
 
     @Test
@@ -207,10 +207,9 @@ public class NodeHealthCheckServiceTest {
         }).when(mockBlockchainService).getClientVersion();
     }
 
-    private NodeHealthCheckService createUnderTest(
-            BlockchainService blockchainService, ReconnectionStrategy reconnectionStrategy) throws Exception {
+    private NodeHealthCheckService createUnderTest() throws Exception {
         final NodeHealthCheckService healthCheckService =
-                new NodeHealthCheckService(blockchainService, reconnectionStrategy);
+                new NodeHealthCheckService(mockBlockchainService, mockReconnectionStrategy, mockSubscriptionService);
 
         Field initiallySubscribed = NodeHealthCheckService.class.getDeclaredField("initiallySubscribed");
         initiallySubscribed.setAccessible(true);
