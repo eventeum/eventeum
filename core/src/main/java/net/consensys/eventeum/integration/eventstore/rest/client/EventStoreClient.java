@@ -20,7 +20,8 @@ public interface EventStoreClient {
             @RequestParam(value = "size") int pageSize,
             @RequestParam(value = "sort") String sortAttribute,
             @RequestParam(value = "dir") Sort.Direction sortDirection,
-            @RequestParam(value = "signature") String signature);
+            @RequestParam(value = "signature") String signature,
+            @RequestParam(value = "contractAddress") String contractAddress);
 
     @RequestMapping(method = RequestMethod.GET, value="${eventStore.latestBlockPath}")
     LatestBlock getLatestBlock(@RequestParam(value = "nodeName") String nodeName);
