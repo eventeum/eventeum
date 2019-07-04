@@ -64,7 +64,8 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
             return latestBlockNumber;
         }
 
-        final Optional<ContractEventDetails> contractEvent = eventStoreService.getLatestContractEvent(eventSignature);
+        final Optional<ContractEventDetails> contractEvent =
+                eventStoreService.getLatestContractEvent(eventSignature, eventFilter.getContractAddress());
 
         if (contractEvent.isPresent()) {
             return contractEvent.get().getBlockNumber();

@@ -34,14 +34,16 @@ public class RESTEventStore implements EventStore {
     }
 
     @Override
-    public Page<ContractEventDetails> getContractEventsForSignature(String eventSignature, PageRequest pagination) {
+    public Page<ContractEventDetails> getContractEventsForSignature(
+            String eventSignature, String contractAddress, PageRequest pagination) {
 
         final Sort.Order firstOrder = pagination.getSort().iterator().next();
         return client.getContractEvents(pagination.getPageNumber(),
                                              pagination.getPageSize(),
                                              firstOrder.getProperty(),
                                              firstOrder.getDirection(),
-                                             eventSignature);
+                                             eventSignature,
+                                             contractAddress);
     }
 
     @Override

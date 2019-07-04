@@ -14,7 +14,8 @@ import java.util.Optional;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 public interface EventStore {
-    Page<ContractEventDetails> getContractEventsForSignature(String eventSignature, PageRequest pagination);
+    Page<ContractEventDetails> getContractEventsForSignature(
+            String eventSignature, String contractAddress, PageRequest pagination);
 
     Optional<LatestBlock> getLatestBlockForNode(String nodeName);
 

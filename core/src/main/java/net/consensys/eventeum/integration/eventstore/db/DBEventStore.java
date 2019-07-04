@@ -46,9 +46,14 @@ public class DBEventStore implements SaveableEventStore {
     }
 
     @Override
-    public Page<ContractEventDetails> getContractEventsForSignature(String eventSignature, PageRequest pagination) {
+    public Page<ContractEventDetails> getContractEventsForSignature(
+            String eventSignature, String contractAddress, PageRequest pagination) {
 
-        final Query query = new Query(Criteria.where("eventSpecificationSignature").is(eventSignature))
+        final Query query = new Query(
+                Criteria.where("eventSpecificationSignature")
+                .is(eventSignature)
+                .and("address")
+                .is(contractAddress))
             .with(new Sort(Direction.DESC, "blockNumber"))
             .collation(Collation.of("en").numericOrderingEnabled());
 

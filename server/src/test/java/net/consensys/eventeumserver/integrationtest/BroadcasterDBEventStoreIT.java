@@ -85,7 +85,7 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
         Thread.sleep(1000);
 
         List<ContractEventDetails> savedEvents = eventStore.getContractEventsForSignature(
-            eventDetails.getEventSpecificationSignature(), PageRequest.of(0, 100000)).getContent();
+            eventDetails.getEventSpecificationSignature(), emitter.getContractAddress(), PageRequest.of(0, 100000)).getContent();
 
         assertEquals(1, savedEvents.size());
         assertEquals(eventDetails, savedEvents.get(0));
