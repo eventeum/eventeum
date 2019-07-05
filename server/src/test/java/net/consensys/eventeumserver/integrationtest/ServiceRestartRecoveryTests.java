@@ -122,7 +122,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         restartEventeum(() -> {
             try {
-                emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+                emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
                 waitForBroadcast();
             } catch (Exception e) {
                 e.printStackTrace();

@@ -60,7 +60,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         clearMessages();
 
-        emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForBroadcast();
 
@@ -128,7 +128,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         waitForFilterEventMessages(1);
 
-        emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForContractEventMessages(1);
 

@@ -60,7 +60,7 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
     private void emitEventAndVerify(EventEmitter emitter, ContractEventFilter registeredFilter) throws Exception {
         final String valueOne = UUID.randomUUID().toString().substring(0, 10);
         final String valueFour = UUID.randomUUID().toString().substring(0, 10);
-        emitter.emit(stringToBytes(valueOne), BigInteger.valueOf(123), valueFour).send();
+        emitter.emitEvent(stringToBytes(valueOne), BigInteger.valueOf(123), valueFour).send();
 
         waitForContractEventMessages(1);
 

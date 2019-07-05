@@ -32,7 +32,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
-        emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForContractEventMessages(1);
 
@@ -47,7 +47,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
         final ContractEventFilter filter = createDummyEventNotOrderedFilter(emitter.getContractAddress());
         final ContractEventFilter registeredFilter = registerEventFilter(filter);
-        emitter.emitNotOrdered(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEventNotOrdered(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForContractEventMessages(1);
 
@@ -62,7 +62,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
-        emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForFilterPoll();
         triggerBlocks(12);
@@ -77,7 +77,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
     public void doTestContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
         final ContractEventFilter filter = doRegisterAndUnregister(emitter.getContractAddress());
-        emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForBroadcast();
 
