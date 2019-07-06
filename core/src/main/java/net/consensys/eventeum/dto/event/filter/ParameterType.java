@@ -10,6 +10,7 @@ public enum ParameterType {
     UINT8,
     UINT256,
     ADDRESS,
+    BYTES16,
     BYTES32,
     STRING;
 }

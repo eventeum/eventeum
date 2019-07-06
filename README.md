@@ -152,7 +152,7 @@ Eventeum exposes a REST api that can be used to register events that should be s
 | position | Number | yes | | The zero indexed position of the parameter within the event specification |
 | type | String | yes | | The type of the event parameter. |
 
-Currently supported parameter types: UINT256, ADDRESS, BYTES32, STRING
+Currently supported parameter types: UINT8, UINT256, ADDRESS, BYTES16, BYTES32, STRING
 
 **correlationIdStrategy**:
 

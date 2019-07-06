@@ -448,6 +448,16 @@ public class BaseIntegrationTest {
         return registeredFilter;
     }
 
+    protected ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {
+        final ContractEventFilter contractEventFilter = new ContractEventFilter();
+        contractEventFilter.setId(id);
+        contractEventFilter.setContractAddress(contractAddress);
+        contractEventFilter.setEventSpecification(eventSpec);
+        contractEventFilter.setStartBlock(BigInteger.ONE);
+
+        return contractEventFilter;
+    }
+
     protected static void startParity() {
         parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
         parityContainer.waitingFor(Wait.forListeningPort());
@@ -468,16 +478,6 @@ public class BaseIntegrationTest {
     private void initRestTemplate() {
         restUrl = "http://localhost:" + port;
         restTemplate = new RestTemplate();
-    }
-
-    private ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {
-        final ContractEventFilter contractEventFilter = new ContractEventFilter();
-        contractEventFilter.setId(id);
-        contractEventFilter.setContractAddress(contractAddress);
-        contractEventFilter.setEventSpecification(eventSpec);
-        contractEventFilter.setStartBlock(BigInteger.ONE);
-
-        return contractEventFilter;
     }
 
     private static void waitForParityToStart(long timeToWait, Web3j web3j) {

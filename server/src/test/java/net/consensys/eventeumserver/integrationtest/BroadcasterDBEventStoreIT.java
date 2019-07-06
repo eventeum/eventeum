@@ -74,7 +74,7 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
-        emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         waitForContractEventMessages(1);
 

@@ -31,7 +31,7 @@ public class EventStoreFactoryIT extends BaseIntegrationTest {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
-        emitter.emit(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
         Thread.sleep(15000);
         assertEquals(1, savedEvents.getEntities().size());
