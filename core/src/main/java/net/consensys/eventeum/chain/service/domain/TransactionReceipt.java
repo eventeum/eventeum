@@ -33,4 +33,6 @@ public interface TransactionReceipt {
     List<Log> getLogs();
 
     String getLogsBloom();
+
+    String getStatus();
 }

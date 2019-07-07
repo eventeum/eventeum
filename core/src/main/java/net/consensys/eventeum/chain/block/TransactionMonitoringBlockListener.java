@@ -7,6 +7,7 @@ import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
+import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
@@ -130,7 +131,9 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
         final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
                 tx, TransactionStatus.CONFIRMED, spec.getNodeName());
 
-        if (shouldWaitBeforeConfirmation()) {
+        final boolean isSuccess = isSuccessTransaction(txDetails);
+
+        if (isSuccess && shouldWaitBeforeConfirmation()) {
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
@@ -142,11 +145,29 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
             //we need to rebroadcast the unconfirmed tx in new block
             //The confirmation block listener will unregister this listened after confirmation
         } else {
+            if (!isSuccess) {
+                txDetails.setStatus(TransactionStatus.FAILED);
+            }
+
             broadcaster.broadcastTransaction(txDetails);
             unregister();
         }
     }
 
+    private boolean isSuccessTransaction(TransactionDetails txDetails) {
+        final TransactionReceipt receipt = blockchainService.getTransactionReceipt(txDetails.getHash());
+
+        if (receipt.getStatus() == null) {
+            // status is only present on Byzantium transactions onwards
+            return true;
+        }
+
+        if (receipt.getStatus().equals("0x0")) {
+            return false;
+        }
+
+        return true;
+    }
 
     private boolean shouldWaitBeforeConfirmation() {
         return !confirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);

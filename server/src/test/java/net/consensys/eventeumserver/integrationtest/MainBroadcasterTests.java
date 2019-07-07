@@ -21,6 +21,7 @@ import org.web3j.crypto.Hash;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
@@ -104,21 +105,8 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
     public String doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
 
         final String signedTxHex = createRawSignedTransactionHex();
-        final String txHash = Hash.sha3(signedTxHex);
 
-        monitorTransaction(txHash);
-
-        assertEquals(txHash, sendRawTransaction(signedTxHex));
-
-        waitForTransactionMessages(1);
-
-        assertEquals(1, getBroadcastTransactionMessages().size());
-
-        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
-        assertEquals(txHash, txDetails.getHash());
-        assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
-
-        return txHash;
+        return monitorSendAndAssertTransactionBroadcast(signedTxHex, TransactionStatus.UNCONFIRMED);
     }
 
     public void doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
@@ -132,5 +120,34 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(1);
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
+    }
+
+    public String doTestBroadcastFailedTransaction() throws Exception {
+
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        //Sending ether to the emitter contract will fails as theres no payable fallback
+        final String signedTxHex = createRawSignedTransactionHex(emitter.getContractAddress());
+
+        return monitorSendAndAssertTransactionBroadcast(signedTxHex, TransactionStatus.FAILED);
+    }
+
+    private String monitorSendAndAssertTransactionBroadcast(
+            String signedTxHex, TransactionStatus expectedStatus) throws ExecutionException, InterruptedException {
+
+        final String txHash = Hash.sha3(signedTxHex);
+        monitorTransaction(txHash);
+
+        assertEquals(txHash, sendRawTransaction(signedTxHex));
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(expectedStatus, txDetails.getStatus());
+
+        return txHash;
     }
 }
