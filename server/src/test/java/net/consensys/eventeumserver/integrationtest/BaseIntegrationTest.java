@@ -274,6 +274,10 @@ public class BaseIntegrationTest {
     }
 
     protected String createRawSignedTransactionHex() throws ExecutionException, InterruptedException {
+        return createRawSignedTransactionHex(ZERO_ADDRESS);
+    }
+
+    protected String createRawSignedTransactionHex(String toAddress) throws ExecutionException, InterruptedException {
 
         final EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
                 CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
@@ -281,7 +285,7 @@ public class BaseIntegrationTest {
         final BigInteger nonce = ethGetTransactionCount.getTransactionCount();
 
         final RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
-                nonce, GAS_PRICE, GAS_LIMIT, ZERO_ADDRESS, BigInteger.ONE);
+                nonce, GAS_PRICE, GAS_LIMIT, toAddress, BigInteger.ONE);
 
         final byte[] signedTx = TransactionEncoder.signMessage(rawTransaction, CREDS);
 

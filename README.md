@@ -314,6 +314,16 @@ When a new transaction that matches a transaction monitor is mined, a JSON messa
 }
 ```
 
+#### Transaction Event Statuses
+
+A broadcast transaction event can have the following statuses:
+
+| Status | Description |
+| UNCONFIRMED | Transaction has been mined and we're now waiting for the configured number of blocks |
+| CONFIRMED | The configured number of blocks have been mined since the transaction has been mined |
+| INVALIDATED | The blockchain has forked since the initially broadcast UNCONFIRMED transaction was broadcast |
+| FAILED | The transaction has been mined but the tx execution failed |
+
 ## Configuration
 Eventeum can either be configured by:
 

@@ -10,5 +10,8 @@ public enum TransactionStatus {
     CONFIRMED,
 
     //The chain has been forked and the transaction is no longer valid
-    INVALIDATED;
+    INVALIDATED,
+
+    //The transaction failed
+    FAILED;
 }

@@ -69,6 +69,11 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testBroadcastFailedTransaction() throws Exception {
+        doTestBroadcastFailedTransaction();
+    }
+
+    @Test
     public void testBroadcastEventAddedToEventStore() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
