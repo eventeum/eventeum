@@ -4,6 +4,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import org.web3j.crypto.Keys;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.UUID;
@@ -59,7 +60,7 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
     private void emitEventAndVerify(EventEmitter emitter, ContractEventFilter registeredFilter) throws Exception {
         final String valueOne = UUID.randomUUID().toString().substring(0, 10);
         final String valueFour = UUID.randomUUID().toString().substring(0, 10);
-        emitter.emit(stringToBytes(valueOne), BigInteger.valueOf(123), valueFour).send();
+        emitter.emitEvent(stringToBytes(valueOne), BigInteger.valueOf(123), valueFour).send();
 
         waitForContractEventMessages(1);
 
@@ -67,8 +68,18 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
 
         final ContractEventDetails secondEventDetails = getBroadcastContractEvents().get(0);
 
-        verifyDummyEventDetails(registeredFilter, secondEventDetails, ContractEventStatus.UNCONFIRMED, valueOne,
-                Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.valueOf(123), valueFour);
+        verifyDummyEventDetails(registeredFilter, secondEventDetails, ContractEventStatus.UNCONFIRMED,
+                toHexWithTrailingZeros(valueOne.getBytes(), 66), Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.valueOf(123), valueFour);
+    }
+
+    private String toHexWithTrailingZeros(byte[] bytes, int length) {
+        String hex = Numeric.toHexString(bytes);
+
+        while (hex.length() != length) {
+            hex = hex + "0";
+        }
+
+        return hex;
     }
 
     private void restartParity(long timeToRecovery) throws Exception {

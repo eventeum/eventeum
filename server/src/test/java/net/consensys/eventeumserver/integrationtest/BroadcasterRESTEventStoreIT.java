@@ -17,26 +17,6 @@ import static org.junit.Assert.assertNull;
 public class BroadcasterRESTEventStoreIT extends MainBroadcasterTests {
 
     @Test
-    public void testRegisterEventFilterSavesFilterInDb() {
-        doTestRegisterEventFilterSavesFilterInDb();
-    }
-
-    @Test
-    public void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
-        doTestRegisterEventFilterBroadcastsAddedMessage();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCorrectId() {
-        doTestRegisterEventFilterReturnsCorrectId();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
-        doTestRegisterEventFilterReturnsCreatedIdWhenNotSet();
-    }
-
-    @Test
     public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
         doTestBroadcastsUnconfirmedEventAfterInitialEmit();
     }
@@ -52,22 +32,17 @@ public class BroadcasterRESTEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
-    public void testUnregisterNonExistentFilter() {
-        doTestUnregisterNonExistentFilter();
-    }
-
-    @Test
-    public void testUnregisterEventFilterDeletesFilterInDb() {
-        doTestUnregisterEventFilterDeletesFilterInDb();
-    }
-
-    @Test
-    public void testUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
-        doTestUnregisterEventFilterBroadcastsRemovedMessage();
-    }
-
-    @Test
     public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
+    }
+
+    @Test
+    public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+        doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
+    }
+
+    @Test
+    public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+        doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
     }
 }

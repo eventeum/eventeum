@@ -1,6 +1,5 @@
 package net.consensys.eventeumserver.integrationtest;
 
-import junit.framework.TestCase;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;

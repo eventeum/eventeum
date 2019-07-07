@@ -3,6 +3,7 @@ package net.consensys.eventeumserver.integrationtest;
 import net.consensys.eventeum.chain.service.Web3jService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import org.junit.Before;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +27,7 @@ public class BaseFromBlockIntegrationTest extends BaseKafkaIntegrationTest {
     @Before
     public void spyOnWeb3j() {
         final NodeServices nodeServices = chainServicesContainer.getNodeServices(
-                ContractEventFilter.DEFAULT_NODE_NAME);
+                Constants.DEFAULT_NODE_NAME);
 
         final Web3jService web3jService = (Web3jService) nodeServices.getBlockchainService();
 

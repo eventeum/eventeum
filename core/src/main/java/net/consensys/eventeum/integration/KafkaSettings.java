@@ -45,8 +45,17 @@ public class KafkaSettings {
     @Value("${kafka.topic.blockEvents}")
     private String blockEventsTopic;
 
-    @Value("${kafka.topic.filterEvents}")
-    private String filterEventsTopic;
+    @Value("${kafka.topic.eventeumEvents}")
+    private String eventeumEventsTopic;
+
+    @Value("${kafka.topic.transactionEvents}")
+    private String transactionEventsTopic;
+
+    @Value("${kafka.topic.partitions:3}")
+    private Integer partitions;
+
+    @Value("${kafka.topic.replicationSets:1}")
+    private Integer replicationSets;
 
     @Value("${kafka.sasl.username:}")
     private String username;

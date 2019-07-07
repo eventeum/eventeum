@@ -3,6 +3,7 @@ package net.consensys.eventeumserver.integrationtest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import org.springframework.http.HttpStatus;
 
@@ -31,7 +32,8 @@ public class StubHttpConsumer {
     public StubHttpConsumer() {
         this(HttpStatus.OK);
     }
-    public void start(List<ContractEventDetails> broadcastContractEvents) {
+    public void start(List<ContractEventDetails> broadcastContractEvents,
+                      List<BlockDetails> broadcastBlocks) {
         wireMockServer.start();
 
         wireMockServer.addStubMapping(post(urlPathEqualTo("/consumer/block-event"))
@@ -48,6 +50,18 @@ public class StubHttpConsumer {
 
                 try {
                     broadcastContractEvents.add(objectMapper.readValue(body, ContractEventDetails.class));
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        wireMockServer.addMockServiceRequestListener((request, response) -> {
+            if (request.getUrl().contains("/consumer/block-event")) {
+                final String body = request.getBodyAsString();
+
+                try {
+                    broadcastBlocks.add(objectMapper.readValue(body, BlockDetails.class));
                 } catch(IOException e) {
                     e.printStackTrace();
                 }

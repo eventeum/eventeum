@@ -6,11 +6,13 @@ import java.util.Optional;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.factory.ContractEventFilterRepositoryFactory;
 import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.ListenerInvokingBlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
+import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
@@ -33,6 +35,11 @@ public class EventStoreFactoryConfig {
             public void onContractEvent(ContractEventDetails eventDetails) {
                 //DO NOTHING
             }
+
+            @Override
+            public void onTransactionEvent(TransactionDetails transactionDetails) {
+                //DO NOTHING
+            }
         });
     }
 
@@ -49,8 +56,20 @@ public class EventStoreFactoryConfig {
                     }
 
                     @Override
-                    public Page<ContractEventDetails> getContractEventsForSignature(String eventSignature, PageRequest pagination) {
+                    public void save(LatestBlock latestBlock) {
+                        savedLatestBlock().getEntities().clear();
+                        savedLatestBlock().getEntities().add(latestBlock);
+                    }
+
+                    @Override
+                    public Page<ContractEventDetails> getContractEventsForSignature(
+                            String eventSignature, String contractAddress, PageRequest pagination) {
                         return null;
+                    }
+
+                    @Override
+                    public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
+                        return Optional.empty();
                     }
 
                     @Override
@@ -64,6 +83,11 @@ public class EventStoreFactoryConfig {
 
     @Bean
     Entities<ContractEventDetails> savedEvents() {
+        return new Entities<>();
+    }
+
+    @Bean
+    Entities<LatestBlock> savedLatestBlock() {
         return new Entities<>();
     }
 

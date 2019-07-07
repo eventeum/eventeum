@@ -3,8 +3,8 @@ package net.consensys.eventeum.chain.config.factory;
 import lombok.Data;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
-import net.consensys.eventeum.chain.service.factory.ContractEventDetailsFactory;
-import net.consensys.eventeum.chain.service.factory.DefaultContractEventDetailsFactory;
+import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
+import net.consensys.eventeum.chain.factory.DefaultContractEventDetailsFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.web3j.abi.datatypes.Type;
 

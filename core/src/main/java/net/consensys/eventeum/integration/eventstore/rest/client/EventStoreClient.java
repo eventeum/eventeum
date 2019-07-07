@@ -1,6 +1,7 @@
 package net.consensys.eventeum.integration.eventstore.rest.client;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
@@ -19,5 +20,9 @@ public interface EventStoreClient {
             @RequestParam(value = "size") int pageSize,
             @RequestParam(value = "sort") String sortAttribute,
             @RequestParam(value = "dir") Sort.Direction sortDirection,
-            @RequestParam(value = "signature") String signature);
+            @RequestParam(value = "signature") String signature,
+            @RequestParam(value = "contractAddress") String contractAddress);
+
+    @RequestMapping(method = RequestMethod.GET, value="${eventStore.latestBlockPath}")
+    LatestBlock getLatestBlock(@RequestParam(value = "nodeName") String nodeName);
 }

@@ -4,12 +4,12 @@
 
     <groupId>net.consensys.eventeum</groupId>
     <artifactId>eventeum-server</artifactId>
-    <version>0.5.2-RELEASE</version>
+    <version>0.5.3-SNAPSHOT</version>
 
     <parent>
         <groupId>net.consensys.eventeum</groupId>
         <artifactId>eventeum</artifactId>
-        <version>0.5.2-RELEASE</version>
+        <version>0.5.3-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>net.consensys.eventeum</groupId>
             <artifactId>eventeum-core</artifactId>
-            <version>0.5.2-RELEASE</version>
+            <version>0.5.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
@@ -99,21 +99,32 @@
                     <skipITs>${skipIntegrationTests}</skipITs>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.web3j</groupId>
-                <artifactId>web3j-maven-plugin</artifactId>
-                <version>0.3.1</version>
-
-                <configuration>
-                    <packageName>net.consensys.eventeumserver.integrationtest</packageName>
-                    <sourceDestination>src/test/java</sourceDestination>
-                    <nativeJavaType>true</nativeJavaType>
-                    <soliditySourceFiles>
-                        <directory>src/test/resources/</directory>
-                        <include>EventEmitter.sol</include>
-                    </soliditySourceFiles>
-                </configuration>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.web3j</groupId>-->
+                <!--<artifactId>web3j-maven-plugin</artifactId>-->
+                <!--<version>0.3.7</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>generate-sources</id>-->
+                        <!--<phase>generate-sources</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>generate-sources</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<packageName>net.consensys.eventeumserver.integrationtest</packageName>-->
+                            <!--<sourceDestination>src/test/java</sourceDestination>-->
+                            <!--<nativeJavaType>true</nativeJavaType>-->
+                            <!--<outputFormat>java</outputFormat>-->
+                            <!--<soliditySourceFiles>-->
+                                <!--<directory>${basedir}/src/test/resources</directory>-->
+                                <!--<includes>-->
+                                    <!--<include>**/*.sol</include>-->
+                                <!--</includes>-->
+                            <!--</soliditySourceFiles>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import com.github.tomakehurst.wiremock.WireMockServer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.mixin.SimplePageImpl;
+import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.data.domain.Page;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,9 @@ public class StubEventStoreService {
         final ContractEventDetails dummyContractEventDetails = new ContractEventDetails();
         dummyContractEventDetails.setBlockNumber(BigInteger.TEN);
 
+        final LatestBlock dummyLatestBlock = new LatestBlock();
+        dummyLatestBlock.setNumber(BigInteger.ZERO);
+
         final Page<ContractEventDetails> dummyPage = new SimplePageImpl<>(Arrays.asList(dummyContractEventDetails), 1, 1, 1);
 
         wireMockServer.addStubMapping(get(urlPathEqualTo("/api/rest/v1/event"))
@@ -32,6 +36,12 @@ public class StubEventStoreService {
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON.toString())
                         .withBody(JSON.stringify(dummyPage))).build());
+
+        wireMockServer.addStubMapping(get(urlPathEqualTo("/api/rest/v1/latestblock"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON.toString())
+                        .withBody(JSON.stringify(dummyLatestBlock))).build());
     }
 
     static void stop() {
