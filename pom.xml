@@ -4,7 +4,7 @@
 
     <groupId>net.consensys.eventeum</groupId>
     <artifactId>eventeum</artifactId>
-    <version>0.5.3-SNAPSHOT</version>
+    <version>0.6.0-RELEASE</version>
     <packaging>pom</packaging>
 
     <parent>
