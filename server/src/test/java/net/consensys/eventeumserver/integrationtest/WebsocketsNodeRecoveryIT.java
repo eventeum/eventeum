@@ -24,7 +24,6 @@ public class WebsocketsNodeRecoveryIT extends NodeRecoveryTests {
     }
 
     @Test
-    public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
-        doQuickSuccessionNodeFailuresRecoveryTest();
+    public void quickSuccessionNodeFailuresRecoveryTest() throws Exception { doQuickSuccessionNodeFailuresRecoveryTest();
     }
 }

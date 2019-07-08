@@ -17,6 +17,7 @@ ethereum:
   nodes:
     - name: default
       url: http://localhost:8545
+      pollingInterval: ${POLLING_INTERVAL:10000}
 
   healthcheck:
     pollInterval: 2000
@@ -52,6 +53,7 @@ broadcaster:
       numBlocksToWait: 12
       numBlocksToWaitForMissingTx: 100
   multiInstance: false
+  bytesToAscii: false
 
 # For Kafka
 zookeeper:
@@ -62,7 +64,7 @@ kafka:
   topic:
     contractEvents: contract-events
     blockEvents: block-events
-    filterEvents: filter-events
+    eventeumEvents: eventeum-events
   request:
     timeout:
       msConfig: ${KAFKA_REQUEST_TIMEOUT_MS:20000}

@@ -3,6 +3,9 @@ package net.consensys.eventeum.chain.config;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.bind.DatatypeConverter;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.config.factory.ContractEventDetailsFactoryFactoryBean;
 import net.consensys.eventeum.chain.converter.Web3jEventParameterConverter;
@@ -27,6 +30,7 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.protocol.websocket.EventeumWebSocketService;
 import org.web3j.protocol.websocket.WebSocketClient;
 import org.web3j.protocol.websocket.WebSocketService;
+import org.web3j.utils.Async;
 
 @AllArgsConstructor
 public class NodeBeanRegistrationStrategy {
@@ -44,6 +48,9 @@ public class NodeBeanRegistrationStrategy {
 
     private static final String NODE_FAILURE_LISTENER_BEAN_NAME =
             "%sNodeFailureListener";
+
+    private static final String NODE_BLOCK_SUB_STRATEGY_BEAN_NAME =
+            "%sBlockSubscriptionStategy";
 
     private static final String WEB_SOCKET_CLIENT_BEAN_NAME = "%sWebSocketClient";
 
@@ -83,7 +90,7 @@ public class NodeBeanRegistrationStrategy {
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 ContractEventDetailsFactoryFactoryBean.class);
 
-        builder.addPropertyValue("parameterConverter", new Web3jEventParameterConverter())
+        builder.addPropertyReference("parameterConverter", "web3jEventParameterConverter")
                 .addPropertyReference("eventConfirmationConfig", "eventConfirmationConfig")
                 .addPropertyValue("nodeName", node.getName());
 
@@ -95,7 +102,7 @@ public class NodeBeanRegistrationStrategy {
     }
 
     private String registerBlockchainServiceBean(Node node, Web3j web3j, BeanDefinitionRegistry registry) {
-        final BlockSubscriptionStrategy blockSubscriptionStrategy = buildBlockSubscriptionStrategy(node, web3j);
+        final String blockSubStrategyBeanName = registerBlockSubscriptionStrategyBean(node, web3j, registry);
 
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 net.consensys.eventeum.chain.service.Web3jService.class);
@@ -104,7 +111,7 @@ public class NodeBeanRegistrationStrategy {
                 .addConstructorArgValue(web3j)
                 .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()))
                 .addConstructorArgReference("defaultEventBlockManagementService")
-                .addConstructorArgValue(blockSubscriptionStrategy);
+                .addConstructorArgReference(blockSubStrategyBeanName);
 
         final String beanName = String.format(WEB3J_SERVICE_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
@@ -167,10 +174,21 @@ public class NodeBeanRegistrationStrategy {
     private Web3jService buildWeb3jService(Node node) {
         Web3jService web3jService = null;
 
+        Map<String, String> authHeaders;
+        if (node.getUsername() != null && node.getPassword() != null) {
+            authHeaders = new HashMap<>();
+            authHeaders.put(
+                    "Authorization",
+                    "Basic " + DatatypeConverter.printBase64Binary(
+                            String.format("%s:%s", node.getUsername(), node.getPassword()).getBytes()));
+        } else {
+            authHeaders = null;
+        }
+
         if (isWebSocketUrl(node.getUrl())) {
             final URI uri = parseURI(node.getUrl());
 
-            final WebSocketClient client = new WebSocketClient(uri);
+            final WebSocketClient client = authHeaders != null ? new WebSocketClient(uri, authHeaders) : new WebSocketClient(uri);
 
             WebSocketService wsService = new EventeumWebSocketService(client, false);
 
@@ -182,7 +200,11 @@ public class NodeBeanRegistrationStrategy {
 
             web3jService = wsService;
         } else {
-            web3jService = new HttpService(node.getUrl());
+            HttpService httpService = new HttpService(node.getUrl());
+            if (authHeaders != null) {
+                httpService.addHeaders(authHeaders);
+            }
+            web3jService = httpService;
         }
 
         return web3jService;
@@ -190,17 +212,28 @@ public class NodeBeanRegistrationStrategy {
 
     private Web3j buildWeb3j(Node node, Web3jService web3jService) {
 
-        return Web3j.build(web3jService);
+        return Web3j.build(web3jService, node.getPollingInterval(), Async.defaultExecutorService());
     }
 
-    private BlockSubscriptionStrategy buildBlockSubscriptionStrategy(Node node, Web3j web3j) {
+    private String registerBlockSubscriptionStrategyBean(Node node,
+                                                         Web3j web3j,
+                                                         BeanDefinitionRegistry registry) {
+        BeanDefinitionBuilder builder = null;
+
         if (nodeSettings.getBlockStrategy().equals("POLL")) {
-            return new PollingBlockSubscriptionStrategy(web3j, node.getName());
+            builder = BeanDefinitionBuilder.genericBeanDefinition(PollingBlockSubscriptionStrategy.class);
         } else if (nodeSettings.getBlockStrategy().equals("PUBSUB")) {
-            return new PubSubBlockSubscriptionStrategy(web3j, node.getName());
+            builder = BeanDefinitionBuilder.genericBeanDefinition(PubSubBlockSubscriptionStrategy.class);
         }
 
-        throw new BlockchainException("Invalid blockstrategy configured");
+        builder.addConstructorArgValue(web3j)
+                .addConstructorArgValue(node.getName())
+                .addConstructorArgReference("defaultEventStoreService");
+
+        final String beanName = String.format(NODE_BLOCK_SUB_STRATEGY_BEAN_NAME, node.getName());
+        registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
+
+        return beanName;
     }
 
     private boolean isWebSocketUrl(String nodeUrl) {

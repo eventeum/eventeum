@@ -22,7 +22,9 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultEventStoreServiceTest {
 
-    private static final String EVENT_SIGNATURE = "signture";
+    private static final String EVENT_SIGNATURE = "signature";
+
+    private static final String CONTRACT_ADDRESS = "0xd94a9d6733a64cecdcc8ca01da72554b4d883a47";
 
     private DefaultEventStoreService underTest;
 
@@ -47,23 +49,23 @@ public class DefaultEventStoreServiceTest {
     public void testGetLatestContractEvent() {
         when(mockPage.getContent()).thenReturn(Arrays.asList(mockEventDetails1, mockEventDetails2));
         when(mockEventStore.getContractEventsForSignature(
-                eq(EVENT_SIGNATURE), any(PageRequest.class))).thenReturn(mockPage);
-        assertEquals(mockEventDetails1, underTest.getLatestContractEvent(EVENT_SIGNATURE));
+                eq(EVENT_SIGNATURE), eq(CONTRACT_ADDRESS), any(PageRequest.class))).thenReturn(mockPage);
+        assertEquals(mockEventDetails1, underTest.getLatestContractEvent(EVENT_SIGNATURE, CONTRACT_ADDRESS).get());
     }
 
     @Test
     public void testGetLatestContractEventNullEvents() {
         when(mockPage.getContent()).thenReturn(null);
         when(mockEventStore.getContractEventsForSignature(
-                eq(EVENT_SIGNATURE), any(PageRequest.class))).thenReturn(mockPage);
-        assertNull(underTest.getLatestContractEvent(EVENT_SIGNATURE));
+                eq(EVENT_SIGNATURE), eq(CONTRACT_ADDRESS), any(PageRequest.class))).thenReturn(mockPage);
+        assertEquals(false, underTest.getLatestContractEvent(EVENT_SIGNATURE, CONTRACT_ADDRESS).isPresent());
     }
 
     @Test
     public void testGetLatestContractEventEmptyEvents() {
         when(mockPage.getContent()).thenReturn(new ArrayList<>());
         when(mockEventStore.getContractEventsForSignature(
-                eq(EVENT_SIGNATURE), any(PageRequest.class))).thenReturn(mockPage);
-        assertNull(underTest.getLatestContractEvent(EVENT_SIGNATURE));
+                eq(EVENT_SIGNATURE), eq(CONTRACT_ADDRESS), any(PageRequest.class))).thenReturn(mockPage);
+        assertEquals(false, underTest.getLatestContractEvent(EVENT_SIGNATURE, CONTRACT_ADDRESS).isPresent());
     }
 }
