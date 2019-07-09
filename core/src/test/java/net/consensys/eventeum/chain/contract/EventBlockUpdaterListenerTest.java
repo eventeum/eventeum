@@ -11,6 +11,8 @@ import static org.mockito.Mockito.*;
 
 public class EventBlockUpdaterListenerTest {
 
+    private static final String ADDRESS = "0x2250683dbe4e0b90395c3c5d7def87784a2b916c";
+
     private EventBlockUpdaterListener underTest;
 
     private EventBlockManagementService mockBlockManagementService;
@@ -27,9 +29,10 @@ public class EventBlockUpdaterListenerTest {
         final ContractEventDetails eventDetails = mock(ContractEventDetails.class);
         when(eventDetails.getEventSpecificationSignature()).thenReturn("spec");
         when(eventDetails.getBlockNumber()).thenReturn(BigInteger.TEN);
+        when(eventDetails.getAddress()).thenReturn(ADDRESS);
 
         underTest.onEvent(eventDetails);
 
-        verify(mockBlockManagementService, times(1)).updateLatestBlock("spec", BigInteger.TEN);
+        verify(mockBlockManagementService, times(1)).updateLatestBlock("spec", BigInteger.TEN, ADDRESS);
     }
 }
