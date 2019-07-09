@@ -220,10 +220,20 @@ public class NodeBeanRegistrationStrategy {
                                                          BeanDefinitionRegistry registry) {
         BeanDefinitionBuilder builder = null;
 
-        if (nodeSettings.getBlockStrategy().equals("POLL")) {
-            builder = BeanDefinitionBuilder.genericBeanDefinition(PollingBlockSubscriptionStrategy.class);
-        } else if (nodeSettings.getBlockStrategy().equals("PUBSUB")) {
-            builder = BeanDefinitionBuilder.genericBeanDefinition(PubSubBlockSubscriptionStrategy.class);
+        String nodeBlockStrategy = node.getBlockStrategy();
+
+        if (nodeBlockStrategy != null) {
+            if (nodeBlockStrategy.equals("POLL")) {
+                builder = BeanDefinitionBuilder.genericBeanDefinition(PollingBlockSubscriptionStrategy.class);
+            } else if (nodeBlockStrategy.equals("PUBSUB")) {
+                builder = BeanDefinitionBuilder.genericBeanDefinition(PubSubBlockSubscriptionStrategy.class);
+            }
+        } else {
+            if (nodeSettings.getBlockStrategy().equals("POLL")) {
+                builder = BeanDefinitionBuilder.genericBeanDefinition(PollingBlockSubscriptionStrategy.class);
+            } else if (nodeSettings.getBlockStrategy().equals("PUBSUB")) {
+                builder = BeanDefinitionBuilder.genericBeanDefinition(PubSubBlockSubscriptionStrategy.class);
+            }
         }
 
         builder.addConstructorArgValue(web3j)
