@@ -505,5 +505,7 @@ Eventeum offers a healthcheck url where you can ask for the status of the system
 
 Returning this information it is very easy to create alerts over the status of the system.
 
+The endpoint is: GET /monitoring/health
+
 ## Known Caveats / Issues
 * In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.
