@@ -77,3 +77,11 @@ rabbitmq:
   exchange: ThisIsAExchange
   routingKeyPrefix: thisIsRoutingKey
 
+management:
+  endpoints:
+    web.base-path: /monitoring
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
