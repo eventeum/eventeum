@@ -479,5 +479,31 @@ Eventeum can be embedded into an existing Spring Application via an annotation.
 
 3. Within your Application class or a `@Configuration` annotated class, add the `@EnableEventeum` annotation.
 
+#### Health check endpoint
+
+Eventeum offers a healthcheck url where you can ask for the status of the systems you are using. It will look like:
+
+```
+{
+   "status":"UP",
+   "details":{
+      "rabbit":{
+         "status":"UP",
+         "details":{
+            "version":"3.7.13"
+         }
+      },
+      "mongo":{
+         "status":"UP",
+         "details":{
+            "version":"4.0.8"
+         }
+      }
+   }
+}
+```
+
+Returning this information it is very easy to create alerts over the status of the system.
+
 ## Known Caveats / Issues
 * In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.
