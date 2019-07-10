@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.web3j.crypto.Keys;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class EventFilterConfiguration {
                 final ContractEventFilter contractEventFilter = new ContractEventFilter();
                 mapper.map(configFilter, contractEventFilter);
                 contractEventFilter.setCorrelationIdStrategy(configFilter.getCorrelationId().toStrategy());
-
+                contractEventFilter.setContractAddress(Keys.toChecksumAddress(contractEventFilter.getContractAddress()));
                 filtersToReturn.add(contractEventFilter);
             });
         }
