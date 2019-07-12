@@ -1,6 +1,8 @@
 # Eventeum
 An Ethereum event listener that bridges your smart contract events and backend microservices. Eventeum listens for specified event emissions from the Ethereum network, and broadcasts these events into your middleware layer. This provides a distinct separation of concerns and means that your microservices do not have to subscribe to events directly to an Ethereum node.
 
+[![Gitter](https://badges.gitter.im/eventeum/community.svg)](https://gitter.im/eventeum/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 **Master**
 
 [![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/master.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/master)
