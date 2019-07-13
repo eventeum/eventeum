@@ -57,7 +57,7 @@ jobs:
           command: mvn clean install -DskipTests
       - run:
           name: Release docker image
-          command: ./.scripts/build-docker-image.sh latest
+          command: sh .scripts/build-docker-image.sh latest
 
   release-docker-image-snapshot:
     machine: true
@@ -68,7 +68,7 @@ jobs:
           command: mvn clean install -DskipTests
       - run:
           name: Release docker image
-          command: ./.scripts/build-docker-image.sh snapshot
+          command: sh .scripts/build-docker-image.sh snapshot
 
   publish:
     docker:
