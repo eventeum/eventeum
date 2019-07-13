@@ -96,7 +96,9 @@ workflows:
             - build-and-test
           filters:
             branches:
-              only: development
+              only:
+                - development
+                - docker-publish
       - release-docker-image:
           requires:
             - build-and-test
