@@ -98,7 +98,6 @@ workflows:
             branches:
               only:
                 - development
-                - docker-publish
       - release-docker-image:
           requires:
             - build-and-test
