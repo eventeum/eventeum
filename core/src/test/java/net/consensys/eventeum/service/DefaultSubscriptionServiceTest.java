@@ -201,7 +201,7 @@ public class DefaultSubscriptionServiceTest {
 
         underTest.registerContractEventFilter(filter1, false);
         underTest.registerContractEventFilter(filter2, false);
-        underTest.unsubscribeToAllSubscriptions();
+        underTest.unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
 
         verify(sub1, times(1)).unsubscribe();
         verify(sub2, times(1)).unsubscribe();

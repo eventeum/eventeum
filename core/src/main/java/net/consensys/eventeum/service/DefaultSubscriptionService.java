@@ -147,8 +147,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void unsubscribeToAllSubscriptions() {
-        filterSubscriptions.values().forEach(filterSub -> filterSub.getSubscription().unsubscribe());
+    public void unsubscribeToAllSubscriptions(String nodeName) {
+        filterSubscriptions.values().forEach(filterSub -> {
+            if (filterSub.getFilter().getNode().equals(nodeName)) {
+                unsubscribeFilterSubscription(filterSub);
+            }
+        });
     }
   
     @PreDestroy

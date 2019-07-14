@@ -22,6 +22,6 @@ public class EventBlockUpdaterListener implements ContractEventListener {
 
     @Override
     public void onEvent(ContractEventDetails eventDetails) {
-        blockManagement.updateLatestBlock(eventDetails.getEventSpecificationSignature(), eventDetails.getBlockNumber());
+        blockManagement.updateLatestBlock(eventDetails.getEventSpecificationSignature(), eventDetails.getBlockNumber(), eventDetails.getAddress());
     }
 }

@@ -58,5 +58,5 @@ public interface SubscriptionService {
     /**
      * Unsubscribe all active listeners
      */
-    void unsubscribeToAllSubscriptions();
+    void unsubscribeToAllSubscriptions(String nodeName);
 }
