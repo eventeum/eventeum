@@ -49,7 +49,8 @@ public class NodeSettings {
                     getNodeUrlProperty(environment, index),
                     getNodePollingIntervalProperty(environment, index),
                     getNodeUsernameProperty(environment, index),
-                    getNodePasswordProperty(environment, index)));
+                    getNodePasswordProperty(environment, index),
+                    getNodeBlockStrategyProperty(environment, index)));
 
             index++;
         }
@@ -88,6 +89,10 @@ public class NodeSettings {
 
     private String getNodePasswordProperty(Environment environment, int index) {
         return getProperty(environment, buildNodeAttribute(NODE_PASSWORD_ATTRIBUTE, index));
+    }
+
+    private String getNodeBlockStrategyProperty(Environment environment, int index) {
+        return getProperty(environment, buildNodeAttribute(BLOCK_STRATEGY_ATTRIBUTE, index));
     }
 
     private String getProperty(Environment environment, String property) {
