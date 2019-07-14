@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.crypto.Keys;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -94,7 +95,7 @@ public class DefaultContractEventDetailsFactoryTest {
 
         assertEquals(eventDetails.getName(), eventSpec.getEventName());
         assertEquals(filter.getId(), eventDetails.getFilterId());
-        assertEquals(ADDRESS, eventDetails.getAddress());
+        assertEquals(Keys.toChecksumAddress(ADDRESS), eventDetails.getAddress());
         assertEquals(LOG_INDEX, eventDetails.getLogIndex());
         assertEquals(TX_HASH, eventDetails.getTransactionHash());
         assertEquals(BLOCK_NUMBER, eventDetails.getBlockNumber());
