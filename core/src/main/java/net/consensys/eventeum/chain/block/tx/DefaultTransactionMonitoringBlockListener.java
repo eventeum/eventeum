@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.block.tx;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
@@ -28,6 +29,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
+@Slf4j
 public class DefaultTransactionMonitoringBlockListener implements TransactionMonitoringBlockListener {
 
     //Keyed by node name
@@ -180,13 +182,13 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                    blockchainService, broadcaster, confirmationConfig, asyncService, this));
+                    blockchainService, broadcaster, confirmationConfig, asyncService,
+                    () -> onConfirmed(txDetails, matchingCriteria)));
 
             broadcaster.broadcastTransaction(txDetails);
 
-            //Don't unregister if we're waiting for x blocks, as if there is a fork
+            //Don't remove criteria if we're waiting for x blocks, as if there is a fork
             //we need to rebroadcast the unconfirmed tx in new block
-            //The confirmation block listener will unregister this listened after confirmation
         } else {
             if (!isSuccess) {
                 txDetails.setStatus(TransactionStatus.FAILED);
@@ -222,5 +224,13 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private BlockchainService getBlockchainService(String nodeName) {
         return blockchainServices.get(nodeName);
+    }
+
+    private void onConfirmed(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
+        if (matchingCriteria.isOneTimeMatch()) {
+            log.debug("Tx {} confirmed, removing matchingCriteria", txDetails.getHash());
+
+            removeMatchingCriteria(matchingCriteria);
+        }
     }
 }

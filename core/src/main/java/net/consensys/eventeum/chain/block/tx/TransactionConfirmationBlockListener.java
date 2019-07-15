@@ -1,6 +1,5 @@
 package net.consensys.eventeum.chain.block.tx;
 
-import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
@@ -27,8 +26,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private BigInteger blocksToWaitForMissingTx;
     private EventConfirmationConfig eventConfirmationConfig;
     private AsyncTaskService asyncTaskService;
-    private BlockListener parentBlockListener;
-
+    private OnConfirmedCallback onConfirmedCallback;
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
 
@@ -37,13 +35,13 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
                                                 BlockchainEventBroadcaster eventBroadcaster,
                                                 EventConfirmationConfig eventConfirmationConfig,
                                                 AsyncTaskService asyncTaskService,
-                                                BlockListener parentBlockListener) {
+                                                OnConfirmedCallback onConfirmedCallback) {
         super(blockchainService);
         this.transactionDetails = transactionDetails;
         this.blockchainService = blockchainService;
         this.eventBroadcaster = eventBroadcaster;
         this.asyncTaskService = asyncTaskService;
-        this.parentBlockListener = parentBlockListener;
+        this.onConfirmedCallback = onConfirmedCallback;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
@@ -110,8 +108,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         transactionDetails.setStatus(TransactionStatus.CONFIRMED);
         broadcastEvent(transactionDetails);
 
-        //Unregister parent monitoring listener as we haven't forked so its no longer needed
-        blockchainService.removeBlockListener(parentBlockListener);
+        onConfirmedCallback.onConfirmed();
     }
 
     private void broadcastEvent(TransactionDetails transactionDetails) {
@@ -127,5 +124,9 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         } else if (blockDetails.getNumber().compareTo(missingTxBlockLimit) > 0) {
             processInvalidatedEvent();
         }
+    }
+
+    public interface OnConfirmedCallback {
+        void onConfirmed();
     }
 }
