@@ -1,7 +1,7 @@
 package net.consensys.eventeum.chain.block.tx;
 
 import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.model.TransactionMonitoringSpec;
+import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 
 public interface TransactionMonitoringBlockListener extends BlockListener {
 

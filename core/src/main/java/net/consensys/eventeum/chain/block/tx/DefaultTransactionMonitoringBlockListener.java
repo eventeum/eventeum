@@ -1,11 +1,12 @@
 package net.consensys.eventeum.chain.block.tx;
 
-import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
+import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
@@ -13,27 +14,27 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultTransactionMonitoringBlockListener extends SelfUnregisteringBlockListener
-        implements TransactionMonitoringBlockListener {
+@Component
+public class DefaultTransactionMonitoringBlockListener implements TransactionMonitoringBlockListener {
 
-    private String nodeName;
+    //Keyed by node name
+    private Map<String, List<TransactionMatchingCriteria>> criteria;
 
-    private List<TransactionMatchingCriteria> criteria;
-
-    private BlockchainService blockchainService;
+    //Keys by node name
+    private Map<String, BlockchainService> blockchainServices;
 
     private BlockchainEventBroadcaster broadcaster;
 
@@ -49,18 +50,23 @@ public class DefaultTransactionMonitoringBlockListener extends SelfUnregistering
 
     private Lock lock = new ReentrantLock();
 
-    public DefaultTransactionMonitoringBlockListener(String nodeName,
-                                                     BlockchainService blockchainService,
+    public DefaultTransactionMonitoringBlockListener(ChainServicesContainer chainServicesContainer,
                                                      BlockchainEventBroadcaster broadcaster,
                                                      TransactionDetailsFactory transactionDetailsFactory,
                                                      EventConfirmationConfig confirmationConfig,
                                                      AsyncTaskService asyncService,
                                                      BlockCache blockCache) {
-        super(blockchainService);
+        this.criteria = new ConcurrentHashMap<>();
 
-        this.criteria = new CopyOnWriteArrayList<>();
+        this.blockchainServices = new HashMap<>();
 
-        this.blockchainService = blockchainService;
+        chainServicesContainer
+                .getNodeNames()
+                .forEach(nodeName -> {
+                    blockchainServices.put(nodeName,
+                            chainServicesContainer.getNodeServices(nodeName).getBlockchainService());
+                });
+
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
         this.confirmationConfig = confirmationConfig;
@@ -85,12 +91,19 @@ public class DefaultTransactionMonitoringBlockListener extends SelfUnregistering
 
     @Override
     public void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
-        criteria.add(matchingCriteria);
+
+        final String nodeName = matchingCriteria.getNodeName();
+
+        if (!criteria.containsKey(nodeName)) {
+            criteria.put(nodeName, new CopyOnWriteArrayList<>());
+        }
+
+        criteria.get(nodeName).add(matchingCriteria);
     }
 
     @Override
     public void removeMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
-        criteria.remove(matchingCriteria);
+        criteria.get(matchingCriteria.getNodeName()).remove(matchingCriteria);
     }
 
     protected RetryTemplate getRetryTemplate() {
@@ -125,26 +138,29 @@ public class DefaultTransactionMonitoringBlockListener extends SelfUnregistering
     }
 
     private void processBlock(BlockDetails blockDetails) {
-        getBlock(blockDetails.getHash())
+        getBlock(blockDetails.getHash(), blockDetails.getNodeName())
                 .ifPresent(block -> {
-                    block.getTransactions().forEach(tx -> broadcastIfMatched(tx));
+                    block.getTransactions().forEach(tx -> broadcastIfMatched(tx, blockDetails.getNodeName()));
                 });
     }
 
-    private void broadcastIfMatched(Transaction tx) {
-        final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
-                tx, TransactionStatus.CONFIRMED, nodeName);
+    private void broadcastIfMatched(Transaction tx, String nodeName) {
+        if (criteria.containsKey(nodeName)) {
+            final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
+                    tx, TransactionStatus.CONFIRMED, nodeName);
 
-        //Only broadcast once, even if multiple matching criteria apply
-        criteria.stream()
-                .filter(matcher -> matcher.isAMatch(txDetails))
-                .findFirst()
-                .ifPresent(matcher -> onTransactionMatched(txDetails));
+            //Only broadcast once, even if multiple matching criteria apply
+            criteria.get(nodeName)
+                    .stream()
+                    .filter(matcher -> matcher.isAMatch(txDetails))
+                    .findFirst()
+                    .ifPresent(matcher -> onTransactionMatched(txDetails, matcher));
+        }
     }
 
-    private Optional<Block> getBlock(String blockHash) {
+    private Optional<Block> getBlock(String blockHash, String nodeName) {
         return getRetryTemplate().execute((context) -> {
-            final Optional<Block> block =  blockchainService.getBlock(blockHash, true);
+            final Optional<Block> block =  getBlockchainService(nodeName).getBlock(blockHash, true);
 
             if (!block.isPresent()) {
                 throw new BlockchainException("Block not found");
@@ -154,7 +170,9 @@ public class DefaultTransactionMonitoringBlockListener extends SelfUnregistering
         });
     }
 
-    private void onTransactionMatched(TransactionDetails txDetails) {
+    private void onTransactionMatched(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
+
+        final BlockchainService blockchainService = getBlockchainService(txDetails.getNodeName());
 
         final boolean isSuccess = isSuccessTransaction(txDetails);
 
@@ -175,12 +193,16 @@ public class DefaultTransactionMonitoringBlockListener extends SelfUnregistering
             }
 
             broadcaster.broadcastTransaction(txDetails);
-            unregister();
+
+            if (matchingCriteria.isOneTimeMatch()) {
+                removeMatchingCriteria(matchingCriteria);
+            }
         }
     }
 
     private boolean isSuccessTransaction(TransactionDetails txDetails) {
-        final TransactionReceipt receipt = blockchainService.getTransactionReceipt(txDetails.getHash());
+        final TransactionReceipt receipt = getBlockchainService(txDetails.getNodeName())
+                .getTransactionReceipt(txDetails.getHash());
 
         if (receipt.getStatus() == null) {
             // status is only present on Byzantium transactions onwards
@@ -196,5 +218,9 @@ public class DefaultTransactionMonitoringBlockListener extends SelfUnregistering
 
     private boolean shouldWaitBeforeConfirmation() {
         return !confirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
+    }
+
+    private BlockchainService getBlockchainService(String nodeName) {
+        return blockchainServices.get(nodeName);
     }
 }
