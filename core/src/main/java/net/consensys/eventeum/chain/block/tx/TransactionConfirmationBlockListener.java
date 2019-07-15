@@ -1,12 +1,11 @@
-package net.consensys.eventeum.chain.block;
+package net.consensys.eventeum.chain.block.tx;
 
+import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
@@ -15,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TransactionConfirmationBlockListener extends SelfUnregisteringBlockListener {

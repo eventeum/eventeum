@@ -1,5 +1,6 @@
-package net.consensys.eventeum.chain.block;
+package net.consensys.eventeum.chain.block.tx;
 
+import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
@@ -19,13 +20,18 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockListener {
+public class DefaultTransactionMonitoringBlockListener extends SelfUnregisteringBlockListener
+        implements TransactionMonitoringBlockListener {
 
-    private TransactionMonitoringSpec spec;
+    private String nodeName;
+
+    private List<TransactionMatchingCriteria> criteria;
 
     private BlockchainService blockchainService;
 
@@ -43,16 +49,17 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
 
     private Lock lock = new ReentrantLock();
 
-    public TransactionMonitoringBlockListener(TransactionMonitoringSpec spec,
-                                              BlockchainService blockchainService,
-                                              BlockchainEventBroadcaster broadcaster,
-                                              TransactionDetailsFactory transactionDetailsFactory,
-                                              EventConfirmationConfig confirmationConfig,
-                                              AsyncTaskService asyncService,
-                                              BlockCache blockCache) {
+    public DefaultTransactionMonitoringBlockListener(String nodeName,
+                                                     BlockchainService blockchainService,
+                                                     BlockchainEventBroadcaster broadcaster,
+                                                     TransactionDetailsFactory transactionDetailsFactory,
+                                                     EventConfirmationConfig confirmationConfig,
+                                                     AsyncTaskService asyncService,
+                                                     BlockCache blockCache) {
         super(blockchainService);
 
-        this.spec = spec;
+        this.criteria = new CopyOnWriteArrayList<>();
+
         this.blockchainService = blockchainService;
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
@@ -74,6 +81,16 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
                 lock.unlock();
             }
         });
+    }
+
+    @Override
+    public void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
+        criteria.add(matchingCriteria);
+    }
+
+    @Override
+    public void removeMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
+        criteria.remove(matchingCriteria);
     }
 
     protected RetryTemplate getRetryTemplate() {
@@ -110,8 +127,19 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
     private void processBlock(BlockDetails blockDetails) {
         getBlock(blockDetails.getHash())
                 .ifPresent(block -> {
-                    getTransaction(block).ifPresent(tx -> onTransactionMined(tx, block));
+                    block.getTransactions().forEach(tx -> broadcastIfMatched(tx));
                 });
+    }
+
+    private void broadcastIfMatched(Transaction tx) {
+        final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
+                tx, TransactionStatus.CONFIRMED, nodeName);
+
+        //Only broadcast once, even if multiple matching criteria apply
+        criteria.stream()
+                .filter(matcher -> matcher.isAMatch(txDetails))
+                .findFirst()
+                .ifPresent(matcher -> onTransactionMatched(txDetails));
     }
 
     private Optional<Block> getBlock(String blockHash) {
@@ -126,10 +154,7 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
         });
     }
 
-    private void onTransactionMined(Transaction tx, Block minedBlock) {
-
-        final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
-                tx, TransactionStatus.CONFIRMED, spec.getNodeName());
+    private void onTransactionMatched(TransactionDetails txDetails) {
 
         final boolean isSuccess = isSuccessTransaction(txDetails);
 
@@ -171,13 +196,5 @@ public class TransactionMonitoringBlockListener extends SelfUnregisteringBlockLi
 
     private boolean shouldWaitBeforeConfirmation() {
         return !confirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
-    }
-    private Optional<Transaction> getTransaction(Block block) {
-
-        return block
-                .getTransactions()
-                .stream()
-                .filter(tx -> tx.getHash().equals(spec.getTransactionIdentifier()))
-                .findFirst();
     }
 }
