@@ -34,8 +34,9 @@ public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
 
     @Before
     public void waitForRabbitInit() throws InterruptedException {
+        //TODO Figure out how to verify when rabbitMQ has started we we don't have to sleep
         if (isFirstTest) {
-            Thread.sleep(5000);
+            Thread.sleep(10000);
         }
 
         isFirstTest = false;

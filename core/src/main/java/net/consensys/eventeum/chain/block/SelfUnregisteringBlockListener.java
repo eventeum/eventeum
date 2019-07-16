@@ -11,7 +11,7 @@ public abstract class SelfUnregisteringBlockListener implements BlockListener {
 
     private BlockchainService blockchainService;
 
-    SelfUnregisteringBlockListener(BlockchainService blockchainService) {
+    protected SelfUnregisteringBlockListener(BlockchainService blockchainService) {
         this.blockchainService = blockchainService;
     }
 

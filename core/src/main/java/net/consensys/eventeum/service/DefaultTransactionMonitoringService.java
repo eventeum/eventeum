@@ -3,13 +3,14 @@ package net.consensys.eventeum.service;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.block.TransactionMonitoringBlockListener;
+import net.consensys.eventeum.chain.block.tx.TransactionMonitoringBlockListener;
+import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
+import net.consensys.eventeum.chain.block.tx.criteria.factory.TransactionMatchingCriteriaFactory;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
-import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
@@ -41,6 +42,10 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
 
     private TransactionMonitoringSpecRepository transactionMonitoringRepo;
 
+    private TransactionMonitoringBlockListener monitoringBlockListener;
+
+    private TransactionMatchingCriteriaFactory matchingCriteriaFactory;
+
     private BlockCache blockCache;
 
     private Map<String, TransactionMonitor> transactionMonitors = new HashMap<>();
@@ -53,6 +58,8 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
                                                EventConfirmationConfig confirmationConfig,
                                                AsyncTaskService asyncService,
                                                TransactionMonitoringSpecRepository transactionMonitoringRepo,
+                                               TransactionMonitoringBlockListener monitoringBlockListener,
+                                               TransactionMatchingCriteriaFactory matchingCriteriaFactory,
                                                BlockCache blockCache) {
         this.chainServices = chainServices;
         this.broadcaster = broadcaster;
@@ -61,6 +68,8 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
         this.confirmationConfig = confirmationConfig;
         this.asyncService = asyncService;
         this.transactionMonitoringRepo = transactionMonitoringRepo;
+        this.monitoringBlockListener = monitoringBlockListener;
+        this.matchingCriteriaFactory = matchingCriteriaFactory;
         this.blockCache = blockCache;
     }
 
@@ -98,7 +107,7 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
             throw new NotFoundException("No monitored transaction with id: " + monitorId);
         }
 
-        removeTransactionMonitorListeners(transactionMonitor);
+        removeTransactionMonitorMatchinCriteria(transactionMonitor);
         deleteTransactionMonitor(monitorId);
 
         if (broadcast) {
@@ -106,13 +115,8 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
         }
     }
 
-    private void removeTransactionMonitorListeners(TransactionMonitor transactionMonitor) {
-        final BlockchainService blockchainService = chainServices.getNodeServices(
-                transactionMonitor.getSpec().getNodeName()).getBlockchainService();
-
-        transactionMonitor
-                .getBlockListeners()
-                .forEach(listener -> blockchainService.removeBlockListener(listener));
+    private void removeTransactionMonitorMatchinCriteria(TransactionMonitor transactionMonitor) {
+        monitoringBlockListener.removeMatchingCriteria(transactionMonitor.getMatchingCriteria());
     }
 
     private void deleteTransactionMonitor(String monitorId) {
@@ -126,17 +130,11 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
     }
 
     private void registerTransactionMonitoring(TransactionMonitoringSpec spec) {
-        final BlockchainService blockchainService = chainServices.getNodeServices(
-                spec.getNodeName()).getBlockchainService();
 
-        final TransactionMonitoringBlockListener monitoringBlockListener =
-                new TransactionMonitoringBlockListener(spec, blockchainService,
-                        broadcaster, transactionDetailsFactory, confirmationConfig, asyncService, blockCache);
+        final TransactionMatchingCriteria matchingCriteria = matchingCriteriaFactory.build(spec);
+        monitoringBlockListener.addMatchingCriteria(matchingCriteria);
 
-        blockchainService.addBlockListener(monitoringBlockListener);
-
-        transactionMonitors.put(spec.getId(),
-                new TransactionMonitor(spec, Collections.singleton(monitoringBlockListener)));
+        transactionMonitors.put(spec.getId(), new TransactionMonitor(spec, matchingCriteria));
     }
 
     private TransactionMonitoringSpec saveTransactionMonitoringSpec(TransactionMonitoringSpec spec) {
@@ -151,11 +149,11 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
     private class TransactionMonitor {
         TransactionMonitoringSpec spec;
 
-        Set<BlockListener> blockListeners;
+        TransactionMatchingCriteria matchingCriteria;
 
-        public TransactionMonitor(TransactionMonitoringSpec spec, Set<BlockListener> blockListeners) {
+        public TransactionMonitor(TransactionMonitoringSpec spec, TransactionMatchingCriteria matchingCriteria) {
             this.spec = spec;
-            this.blockListeners = blockListeners;
+            this.matchingCriteria = matchingCriteria;
         }
 
     }
