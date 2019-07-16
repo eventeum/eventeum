@@ -157,6 +157,8 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
                 final String actualTxHash = sendRawTransaction(signedHex);
                 assertEquals(txHash, actualTxHash);
                 waitForBroadcast();
+
+                triggerBlocks(20);
             } catch (Exception e) {
                 e.printStackTrace();
             }

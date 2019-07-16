@@ -1,6 +1,7 @@
 package net.consensys.eventeum.chain.service;
 
 import com.google.common.collect.EvictingQueue;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import org.springframework.stereotype.Component;
 
@@ -13,27 +14,27 @@ public class DefaultBlockCache implements BlockCache {
 
     private static final Integer CACHE_SIZE = 3;
 
-    private EvictingQueue<BlockDetails> cachedBlocks = EvictingQueue.create(CACHE_SIZE);
+    private EvictingQueue<Block> cachedBlocks = EvictingQueue.create(CACHE_SIZE);
 
     private ReentrantLock lock = new ReentrantLock();
 
     @Override
-    public void add(BlockDetails blockDetails) {
+    public void add(Block block) {
         lock.lock();
 
         try {
-            cachedBlocks.add(blockDetails);
+            cachedBlocks.add(block);
         } finally {
             lock.unlock();
         }
     }
 
     @Override
-    public Set<BlockDetails> getCachedBlocks() {
+    public Set<Block> getCachedBlocks() {
         lock.lock();
 
         try {
-            final Set<BlockDetails> cachedBlocksSet = new HashSet<>();
+            final Set<Block> cachedBlocksSet = new HashSet<>();
             cachedBlocksSet.addAll(cachedBlocks);
 
             return cachedBlocksSet;
