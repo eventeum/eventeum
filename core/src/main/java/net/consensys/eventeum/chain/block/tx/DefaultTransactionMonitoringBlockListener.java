@@ -92,29 +92,22 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     @Override
     public void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
 
-        lock.lock();
+        final String nodeName = matchingCriteria.getNodeName();
 
-        try {
-            final String nodeName = matchingCriteria.getNodeName();
-
-            if (!criteria.containsKey(nodeName)) {
-                criteria.put(nodeName, new CopyOnWriteArrayList<>());
-            }
-
-            criteria.get(nodeName).add(matchingCriteria);
-
-            //Check if any cached blocks match
-            //Note, this makes sense for tx hash but maybe doesn't for some other matchers?
-            blockCache
-                    .getCachedBlocks()
-                    .forEach(block -> {
-                        block.getTransactions().forEach(tx ->
-                                broadcastIfMatched(tx, nodeName, Collections.singletonList(matchingCriteria)));
-                    });
-        } finally {
-            lock.unlock();
+        if (!criteria.containsKey(nodeName)) {
+            criteria.put(nodeName, new CopyOnWriteArrayList<>());
         }
 
+        criteria.get(nodeName).add(matchingCriteria);
+
+        //Check if any cached blocks match
+        //Note, this makes sense for tx hash but maybe doesn't for some other matchers?
+        blockCache
+                .getCachedBlocks()
+                .forEach(block -> {
+                    block.getTransactions().forEach(tx ->
+                            broadcastIfMatched(tx, nodeName, Collections.singletonList(matchingCriteria)));
+                });
     }
 
     @Override
