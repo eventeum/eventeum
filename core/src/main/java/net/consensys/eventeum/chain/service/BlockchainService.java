@@ -2,11 +2,14 @@ package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.model.FilterSubscription;
 import rx.Subscription;
 
 import java.math.BigInteger;
+import java.util.Optional;
 
 /**
  * Interface for a service that interacts directly with an Ethereum blockchain node.
@@ -14,6 +17,12 @@ import java.math.BigInteger;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 public interface BlockchainService {
+
+    /**
+     *
+     * @return The ethereum node name that this service is connected to.
+     */
+    String getNodeName();
 
     /**
      * Add a listener that gets notified when a new block is mined.
@@ -35,9 +44,9 @@ public interface BlockchainService {
      *
      * @param filter The contract event filter that should be matched.
      * @param eventListener The listener to be triggered when a matching event is emitted
-     * @return The registered subscriptopn
+     * @return The registered subscription
      */
-    Subscription registerEventListener(ContractEventFilter filter, ContractEventListener eventListener);
+    FilterSubscription registerEventListener(ContractEventFilter filter, ContractEventListener eventListener);
 
     /**
      *
@@ -52,6 +61,14 @@ public interface BlockchainService {
     BigInteger getCurrentBlockNumber();
 
     /**
+     *
+     * @param blockHash The hash of the block to obtain
+     * @param fullTransactionObjects If full transaction details should be populated
+     * @return The block for the specified hash or nothing if a block with the specified hash does not exist.
+     */
+    public Optional<Block> getBlock(String blockHash, boolean fullTransactionObjects);
+
+    /**
      * Obtain the transaction receipt for a specified transaction id.
      *
      * @param txId the transaction id
@@ -60,7 +77,18 @@ public interface BlockchainService {
     TransactionReceipt getTransactionReceipt(String txId);
 
     /**
+     * Connects to the Ethereum node and starts listening for new blocks
+     */
+    void connect();
+
+    /**
      * Reconnects to the Ethereum node (useful after node failure)
      */
     void reconnect();
+
+    /**
+     *
+     * @return true if the service is correctly connected to the ethereum node.
+     */
+    boolean isConnected();
 }

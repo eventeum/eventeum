@@ -14,10 +14,12 @@ logging:
   file: /logs/application.log
 
 ethereum:
-  node:
-    url: http://localhost:8545
-    healthcheck:
-      pollInterval: 2000
+  nodes:
+    - name: default
+      url: ${ETHEREUM_NODE_URL:http://localhost:8545}
+      blockStrategy: POLL
+  healthcheck:
+    pollInterval: 2000
   blockStrategy: POLL
 
 #eventFilters:
@@ -41,6 +43,7 @@ eventStore:
   type: DB
   url: http://localhost:8081/api/rest/v1
   eventPath: /event
+  latestBlockPath: /latestblock
 
 broadcaster:
   type: KAFKA
@@ -61,4 +64,25 @@ kafka:
   topic:
     contractEvents: contract-events
     blockEvents: block-events
-    filterEvents: filter-events
+    eventeumEvents: eventeum-events
+    transactionEvents: transaction-events
+
+    partitions: 1
+    replicationSets: 1
+
+spring:
+  rabbitmq:
+    host: ${RABBIT_ADDRESS:localhost}
+
+rabbitmq:
+  exchange: ThisIsAExchange
+  routingKeyPrefix: thisIsRoutingKey
+
+management:
+  endpoints:
+    web.base-path: /monitoring
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: always

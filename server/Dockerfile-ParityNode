@@ -1,13 +1,18 @@
-FROM parity/parity:v1.9.5
-EXPOSE 8545 8180
-#Install node
+FROM parity/parity:v2.5.1
+USER root
+# Install
 RUN apt-get update
 RUN apt-get -y install git
 RUN apt-get -y install build-essential
-RUN apt-get -y install curl
-RUN curl -sL https://deb.nodesource.com/setup_9.x | bash -
+RUN apt-get -y install wget
+
+#Standard curl way isn't working for some reason!
+RUN wget https://deb.nodesource.com/setup_10.x
+RUN chmod +x setup_10.x
+RUN sh setup_10.x
+
 RUN apt-get -y install nodejs
-RUN sudo npm install -g web3 --unsafe-perm
+RUN npm install -g web3 --unsafe-perm
 ENV NODE_PATH /usr/lib/node_modules
 ENTRYPOINT ["sh", "run-parity.sh"]
 ADD docker-scripts/run-parity.sh .

@@ -1,40 +1,64 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import java.io.File;
+import java.util.*;
+
 import junit.framework.TestCase;
+import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
+import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
+import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
+import net.consensys.eventeum.utils.JSON;
+import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
+import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.FixedHostPortGenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.crypto.TransactionEncoder;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.admin.Admin;
 import org.web3j.protocol.admin.methods.response.PersonalUnlockAccount;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.utils.Numeric;
+import scala.math.BigInt;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class BaseIntegrationTest {
+
+    private static final String PARITY_VOLUME_PATH = "target/parity";
+
+    //"BytesValue" in hex
+    private static final String BYTES_VALUE_HEX = "0x427974657356616c756500000000000000000000000000000000000000000000";
 
     protected static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
     protected static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000);
@@ -44,15 +68,25 @@ public class BaseIntegrationTest {
     protected static final String FAKE_CONTRACT_ADDRESS = "0xb4f391500fc66e6a1ac5d345f58bdcbea66c1a6f";
 
     protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
-    //protected static final Credentials CREDS = Credentials.create("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d");
+
+    protected static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+    private static FixedHostPortGenericContainer parityContainer;
 
     private List<ContractEventDetails> broadcastContractEvents = new ArrayList<>();
 
-    @LocalServerPort
-    private int port = 12345;
+    private List<BlockDetails> broadcastBlockMessages = new ArrayList<>();
 
-    @Autowired
+    private List<TransactionDetails> broadcastTransactionMessages = new ArrayList<>();
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired(required = false)
     private ContractEventFilterRepository filterRepo;
+
+    @Autowired(required = false)
+    private ContractEventDetailsRepository eventDetailsRepository;
 
     private RestTemplate restTemplate;
 
@@ -66,17 +100,40 @@ public class BaseIntegrationTest {
 
     private String dummyEventNotOrderedFilterId;
 
+    private Map<String, ContractEventFilter> registeredFilters = new HashMap<>();
+
+    private List<String> registeredTransactionMonitorIds = new ArrayList<>();
+
     @BeforeClass
-    public static void setupEnvironment() throws IOException {
+    public static void setupEnvironment() throws Exception {
         StubEventStoreService.start();
+
+        final File file = new File(PARITY_VOLUME_PATH);
+        file.mkdirs();
+
+        startParity();
     }
 
     @Before
     public void setUp() throws Exception {
-        restUrl = "http://localhost:" + port;
-        restTemplate = new RestTemplate();
+
+        initRestTemplate();
         this.web3j = Web3j.build(new HttpService("http://localhost:8545"));
         this.admin = Admin.build(new HttpService("http://localhost:8545"));
+
+        this.web3j.ethSendTransaction(Transaction.createEtherTransaction(
+                this.web3j.ethAccounts().send().getAccounts().get(0),
+
+                this.web3j.ethGetTransactionCount(
+                    this.web3j.ethAccounts().send().getAccounts().get(0),
+                        DefaultBlockParameterName.fromString("latest")
+                ).send().getTransactionCount(),
+
+                BigInteger.valueOf(2000),
+                BigInteger.valueOf(6721975),
+                CREDS.getAddress(),
+                new BigInteger("9460000000000000000"))
+        ).send();
 
         dummyEventFilterId = UUID.randomUUID().toString();
         dummyEventNotOrderedFilterId = UUID.randomUUID().toString();
@@ -86,17 +143,54 @@ public class BaseIntegrationTest {
     }
 
     @AfterClass
-    public static void teardownEnvironment() {
+    public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
+
+        stopParity();
+
+        try {
+            //Clear parity data
+            final File file = new File(PARITY_VOLUME_PATH);
+            FileUtils.deleteDirectory(file);
+        } catch (Throwable t) {
+            //When running on circleci the parity dir cannot be deleted but this does no affect tests
+        }
     }
 
     @After
     public void cleanup() {
+        final ArrayList<String> filterIds = new ArrayList<>(registeredFilters.keySet());
+
+        try {
+            filterIds.forEach(filterId -> unregisterEventFilter(filterId));
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
         filterRepo.deleteAll();
+
+        if (eventDetailsRepository != null) {
+            eventDetailsRepository.deleteAll();
+        }
+
+        //Get around concurrent modification exception
+        try {
+            new ArrayList<>(registeredTransactionMonitorIds).forEach(this::unregisterTransactionMonitor);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     protected List<ContractEventDetails> getBroadcastContractEvents() {
         return broadcastContractEvents;
+    }
+
+    protected List<BlockDetails> getBroadcastBlockMessages() {
+        return broadcastBlockMessages;
+    }
+
+    protected List<TransactionDetails> getBroadcastTransactionMessages() {
+        return broadcastTransactionMessages;
     }
 
     protected ContractEventFilterRepository getFilterRepo() {
@@ -116,7 +210,23 @@ public class BaseIntegrationTest {
                 restTemplate.postForEntity(restUrl + "/api/rest/v1/event-filter", filter, AddEventFilterResponse.class);
 
         filter.setId(response.getBody().getId());
+
+        registeredFilters.put(filter.getId(), filter);
         return filter;
+    }
+
+    protected String monitorTransaction(String txHash) {
+        final ResponseEntity<MonitorTransactionsResponse> response =
+                restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction?identifier=" + txHash, "", MonitorTransactionsResponse.class);
+
+        registeredTransactionMonitorIds.add(response.getBody().getId());
+        return response.getBody().getId();
+    }
+
+    protected void unregisterTransactionMonitor(String monitorId) {
+        restTemplate.delete(restUrl + "/api/rest/v1/transaction/" + monitorId);
+
+        registeredTransactionMonitorIds.remove(monitorId);
     }
 
     protected void unregisterDummyEventFilter() {
@@ -125,6 +235,8 @@ public class BaseIntegrationTest {
 
     protected void unregisterEventFilter(String filterId) {
         restTemplate.delete(restUrl + "/api/rest/v1/event-filter/" + filterId);
+
+        registeredFilters.remove(filterId);
     }
 
     protected boolean unlockAccount() throws IOException {
@@ -144,24 +256,70 @@ public class BaseIntegrationTest {
         }
 
         for (int i = 0; i < numberOfBlocks; i++) {
-            EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
-                    CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
-            BigInteger nonce = ethGetTransactionCount.getTransactionCount();
-
-            final Transaction tx = Transaction.createEtherTransaction(CREDS.getAddress(),
-                    nonce, GAS_PRICE, GAS_LIMIT, "0x0000000000000000000000000000000000000000", BigInteger.ONE);
-            web3j.ethSendTransaction(tx).send();
+            sendTransaction();
         }
+    }
+
+    protected String sendTransaction() throws ExecutionException, InterruptedException, IOException {
+        EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
+                CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        final Transaction tx = Transaction.createEtherTransaction(CREDS.getAddress(),
+                nonce, GAS_PRICE, GAS_LIMIT, ZERO_ADDRESS, BigInteger.ONE);
+
+        EthSendTransaction response = web3j.ethSendTransaction(tx).send();
+
+        return response.getTransactionHash();
+    }
+
+    protected String createRawSignedTransactionHex() throws ExecutionException, InterruptedException {
+        return createRawSignedTransactionHex(ZERO_ADDRESS);
+    }
+
+    protected String createRawSignedTransactionHex(String toAddress) throws ExecutionException, InterruptedException {
+
+        final EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
+                CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
+
+        final BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        final RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
+                nonce, GAS_PRICE, GAS_LIMIT, toAddress, BigInteger.ONE);
+
+        final byte[] signedTx = TransactionEncoder.signMessage(rawTransaction, CREDS);
+
+        return Numeric.toHexString(signedTx);
+    }
+
+    protected String sendRawTransaction(String signedTxHex) throws ExecutionException, InterruptedException {
+
+        final EthSendTransaction ethSendTransaction = web3j.ethSendRawTransaction(signedTxHex).sendAsync().get();
+        return ethSendTransaction.getTransactionHash();
     }
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
                                          ContractEventDetails eventDetails, ContractEventStatus status) {
+
+        verifyDummyEventDetails(registeredFilter, eventDetails, status,
+                BYTES_VALUE_HEX, Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.TEN, "StringValue");
+    }
+
+    protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
+                                           ContractEventDetails eventDetails,
+                                           ContractEventStatus status,
+                                           String valueOne,
+                                           String valueTwo,
+                                           BigInteger valueThree,
+                                           String valueFour) {
         assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(status, eventDetails.getStatus());
-        assertEquals("BytesValue", eventDetails.getIndexedParameters().get(0).getValue());
-        assertEquals(CREDS.getAddress(), eventDetails.getIndexedParameters().get(1).getValue());
-        assertEquals(BigInteger.TEN, eventDetails.getNonIndexedParameters().get(0).getValue());
-        assertEquals("StringValue", eventDetails.getNonIndexedParameters().get(1).getValue());
+        assertEquals(valueOne, eventDetails.getIndexedParameters().get(0).getValue());
+        assertEquals(valueTwo,
+                eventDetails.getIndexedParameters().get(1).getValue());
+        assertEquals(valueThree, eventDetails.getNonIndexedParameters().get(0).getValue());
+        assertEquals(valueFour, eventDetails.getNonIndexedParameters().get(1).getValue());
+        assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
     }
@@ -174,38 +332,49 @@ public class BaseIntegrationTest {
     }
 
     protected void waitForBroadcast() throws InterruptedException {
-        Thread.sleep(2000);
+        Thread.sleep(3000);
     }
 
     protected void waitForFilterPoll() throws InterruptedException {
-        Thread.sleep(15000);
+        Thread.sleep(1000);
     }
 
     protected void clearMessages() {
-        broadcastContractEvents.clear();
+        getBroadcastContractEvents().clear();
+        getBroadcastBlockMessages().clear();
+        getBroadcastTransactionMessages().clear();
     }
 
     protected void waitForContractEventMessages(int expectedContractEventMessages) {
-        //Wait for an initial 2 seconds (this is usually enough time and is needed
-        //in order to catch failures when no messages are expected on error topic but one arrives)
+        waitForMessages(expectedContractEventMessages, getBroadcastContractEvents());
+    }
+
+    protected void waitForBlockMessages(int expectedBlockMessages) {
+        waitForMessages(expectedBlockMessages, getBroadcastBlockMessages());
+    }
+
+    protected void waitForTransactionMessages(int expectedTransactionMessages) {
+        waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages());
+    }
+
+    protected <T> void waitForMessages(int expectedMessageCount, List<T> messages) {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        //Wait for another 20 seconds maximum if messages have not yet arrived
         final long startTime = System.currentTimeMillis();
         while(true) {
-            if (broadcastContractEvents.size() == expectedContractEventMessages) {
+            if (messages.size() >= expectedMessageCount) {
                 break;
             }
 
             if (System.currentTimeMillis() > startTime + 20000) {
                 final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
                 builder.append("\n");
-                builder.append("Expected contract event messages: " + expectedContractEventMessages);
-                builder.append(", received: " + broadcastContractEvents.size());
+                builder.append("Expected message count: " + expectedMessageCount);
+                builder.append(", received: " + messages.size());
 
                 TestCase.fail(builder.toString());
             }
@@ -231,7 +400,8 @@ public class BaseIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(2, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING)));
+                              new ParameterDefinition(3, ParameterType.STRING),
+                              new ParameterDefinition(4, ParameterType.UINT8)));
 
         eventSpec.setEventName(DUMMY_EVENT_NAME);
 
@@ -251,19 +421,89 @@ public class BaseIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING)));
+                              new ParameterDefinition(3, ParameterType.STRING),
+                              new ParameterDefinition(4, ParameterType.UINT8)));
 
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
         return createFilter(getDummyEventNotOrderedFilterId(), contractAddress, eventSpec);
     }
 
-    private ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {
+    protected void restartEventeum(Runnable stoppedLogic) {
+
+        SpringRestarter.getInstance().restart(stoppedLogic);
+
+        restUrl = "http://localhost:" + port;
+        restTemplate = new RestTemplate();
+    }
+
+    protected ContractEventFilter doRegisterAndUnregister(String contractAddress) throws InterruptedException {
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(contractAddress);
+        Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertEquals(registeredFilter, saved.get());
+
+        unregisterDummyEventFilter();
+
+        saved = getFilterRepo().findById(getDummyEventFilterId());
+        assertFalse(saved.isPresent());
+
+        Thread.sleep(2000);
+
+        return registeredFilter;
+    }
+
+    protected ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {
         final ContractEventFilter contractEventFilter = new ContractEventFilter();
         contractEventFilter.setId(id);
         contractEventFilter.setContractAddress(contractAddress);
         contractEventFilter.setEventSpecification(eventSpec);
+        contractEventFilter.setStartBlock(BigInteger.ONE);
 
         return contractEventFilter;
+    }
+
+    protected static void startParity() {
+        parityContainer = new FixedHostPortGenericContainer("kauriorg/parity-docker:latest");
+        parityContainer.waitingFor(Wait.forListeningPort());
+        parityContainer.withFixedExposedPort(8545, 8545);
+        parityContainer.withFixedExposedPort(8546, 8546);
+        parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
+                "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        parityContainer.addEnv("NO_BLOCKS", "true");
+        parityContainer.start();
+
+        waitForParityToStart(10000, Web3j.build(new HttpService("http://localhost:8545")));
+    }
+
+    protected static void stopParity() {
+        parityContainer.stop();
+    }
+
+    private void initRestTemplate() {
+        restUrl = "http://localhost:" + port;
+        restTemplate = new RestTemplate();
+    }
+
+    private static void waitForParityToStart(long timeToWait, Web3j web3j) {
+        final long startTime = System.currentTimeMillis();
+
+        while (true) {
+            if (System.currentTimeMillis() > startTime + timeToWait) {
+                throw new IllegalStateException("Parity failed to start...");
+            }
+
+            try {
+                web3j.web3ClientVersion().send();
+                break;
+            } catch (Throwable t) {
+                //If an error occurs, the node is not yet up
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();;
+            }
+        }
     }
 }

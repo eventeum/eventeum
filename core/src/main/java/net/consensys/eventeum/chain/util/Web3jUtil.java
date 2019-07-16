@@ -8,10 +8,9 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.generated.*;
 import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Uint256;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,8 +26,11 @@ public class Web3jUtil {
 
     static {
         //TODO need to add all the missing mappings
+        typeMappings.put(ParameterType.INT256, new TypeMapping(new TypeReference<Int256>() {}, Int256.class));
+        typeMappings.put(ParameterType.UINT8, new TypeMapping(new TypeReference<Uint8>() {}, Uint8.class));
         typeMappings.put(ParameterType.UINT256, new TypeMapping(new TypeReference<Uint256>() {}, Uint256.class));
         typeMappings.put(ParameterType.ADDRESS, new TypeMapping(new TypeReference<Address>() {}, Address.class));
+        typeMappings.put(ParameterType.BYTES16, new TypeMapping(new TypeReference<Bytes16>() {}, Bytes16.class));
         typeMappings.put(ParameterType.BYTES32, new TypeMapping(new TypeReference<Bytes32>() {}, Bytes32.class));
         typeMappings.put(ParameterType.STRING, new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
     }

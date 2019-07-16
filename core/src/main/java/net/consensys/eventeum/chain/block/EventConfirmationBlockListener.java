@@ -8,6 +8,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.service.AsyncTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
     private BigInteger targetBlock;
     private BigInteger blocksToWaitForMissingTx;
     private EventConfirmationConfig eventConfirmationConfig;
+    private AsyncTaskService asyncTaskService;
 
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
@@ -32,11 +34,13 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
     public EventConfirmationBlockListener(ContractEventDetails contractEvent,
                                           BlockchainService blockchainService,
                                           BlockchainEventBroadcaster eventBroadcaster,
-                                          EventConfirmationConfig eventConfirmationConfig) {
+                                          EventConfirmationConfig eventConfirmationConfig,
+                                          AsyncTaskService asyncTaskService) {
         super(blockchainService);
         this.contractEvent = contractEvent;
         this.blockchainService = blockchainService;
         this.eventBroadcaster = eventBroadcaster;
+        this.asyncTaskService = asyncTaskService;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
@@ -45,29 +49,32 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
 
     @Override
     public void onBlock(BlockDetails blockDetails) {
-        final TransactionReceipt receipt = blockchainService.getTransactionReceipt(contractEvent.getTransactionHash());
+        //Needs to be called asynchronously, otherwise websocket is blocked
+        asyncTaskService.execute(() -> {
+            final TransactionReceipt receipt = blockchainService.getTransactionReceipt(contractEvent.getTransactionHash());
 
-        if (receipt == null) {
-            //Tx has disappeared...we've probably forked
-            //Tx should be included in block on new fork soon
-            handleMissingTransaction(blockDetails);
-            return;
-        }
+            if (receipt == null) {
+                //Tx has disappeared...we've probably forked
+                //Tx should be included in block on new fork soon
+                handleMissingTransaction(blockDetails);
+                return;
+            }
 
-        final Optional<Log> log = getCorrespondingLog(receipt);
+            final Optional<Log> log = getCorrespondingLog(receipt);
 
-        if (log.isPresent()) {
-            checkEventStatus(blockDetails.getNumber(), log.get());
-        } else {
-            processInvalidatedEvent();
-        }
-
+            if (log.isPresent()) {
+                checkEventStatus(blockDetails.getNumber(), log.get());
+            } else {
+                processInvalidatedEvent();
+            }
+        });
     }
 
     private void checkEventStatus(BigInteger currentBlockNumber, Log log) {
         if (isEventAnOrphan(log)) {
             processInvalidatedEvent();
         } else if (currentBlockNumber.compareTo(targetBlock) >= 0) {
+            LOG.debug("Target block reached for event: {}", contractEvent.getId());
             broadcastEventConfirmed();
             unregister();
         }
@@ -112,6 +119,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
 
     private void broadcastEvent(ContractEventDetails contractEvent) {
         if (!isInvalidated.get()) {
+            LOG.debug(String.format("Sending confirmed event for contract event: %s", contractEvent.getId()));
             eventBroadcaster.broadcastContractEvent(contractEvent);
         }
     }

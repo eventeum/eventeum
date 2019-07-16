@@ -1,11 +1,26 @@
 package net.consensys.eventeum.integration.eventstore.db;
 
+import java.util.List;
+import java.util.Optional;
+
+import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
+import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
+import net.consensys.eventeum.model.LatestBlock;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Collation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,19 +28,52 @@ import org.springframework.stereotype.Component;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
-@ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
 public class DBEventStore implements SaveableEventStore {
 
-    private ContractEventDetailsRepository repository;
+    private ContractEventDetailsRepository eventDetailsRepository;
 
-    public DBEventStore(ContractEventDetailsRepository repository) {
-        this.repository = repository;
+    private LatestBlockRepository latestBlockRepository;
+
+    private MongoTemplate mongoTemplate;
+
+    public DBEventStore(
+            ContractEventDetailsRepository eventDetailsRepository,
+            LatestBlockRepository latestBlockRepository,
+            MongoTemplate mongoTemplate) {
+        this.eventDetailsRepository = eventDetailsRepository;
+        this.latestBlockRepository = latestBlockRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Override
-    public Page<ContractEventDetails> getContractEventsForSignature(String eventSignature, PageRequest pagination) {
-        return repository.findByEventSpecificationSignature(eventSignature, pagination);
+    public Page<ContractEventDetails> getContractEventsForSignature(
+            String eventSignature, String contractAddress, PageRequest pagination) {
+
+        final Query query = new Query(
+                Criteria.where("eventSpecificationSignature")
+                .is(eventSignature)
+                .and("address")
+                .is(contractAddress))
+            .with(new Sort(Direction.DESC, "blockNumber"))
+            .collation(Collation.of("en").numericOrderingEnabled());
+
+        final long totalResults = mongoTemplate.count(query, ContractEventDetails.class);
+
+        //Set pagination on query
+        query
+            .skip(pagination.getPageNumber() * pagination.getPageSize())
+            .limit(pagination.getPageSize());
+
+        final List<ContractEventDetails> results = mongoTemplate.find(query, ContractEventDetails.class);
+
+        return new PageImpl<>(results, pagination, totalResults);
+    }
+
+    @Override
+    public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
+        final List<LatestBlock> blocks = latestBlockRepository.findAll();
+
+        return latestBlockRepository.findById(nodeName);
     }
 
     @Override
@@ -35,6 +83,11 @@ public class DBEventStore implements SaveableEventStore {
 
     @Override
     public void save(ContractEventDetails contractEventDetails) {
-        repository.save(contractEventDetails);
+        eventDetailsRepository.save(contractEventDetails);
+    }
+
+    @Override
+    public void save(LatestBlock latestBlock) {
+        latestBlockRepository.save(latestBlock);
     }
 }

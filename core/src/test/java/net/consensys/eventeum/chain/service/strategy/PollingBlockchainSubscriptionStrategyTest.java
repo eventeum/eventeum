@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.service.strategy;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.Web3jService;
 import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +25,10 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private static final BigInteger BLOCK_NUMBER = BigInteger.valueOf(123);
 
+    private static final BigInteger BLOCK_TIMESTAMP = BigInteger.valueOf(12345678);
+
+    private static final String NODE_NAME = "mainnet";
+
     private PollingBlockSubscriptionStrategy underTest;
 
     private PublishSubject<EthBlock> blockSubject;
@@ -34,21 +39,25 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private BlockListener mockBlockListener;
 
+    private EventStoreService mockEventStoreService;
+
     @Before
     public void init() {
         this.mockWeb3j = mock(Web3j.class);
 
         mockEthBlock = mock(EthBlock.class);
+        mockEventStoreService = mock(EventStoreService.class);
         final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
 
         when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
         when(mockBlock.getHash()).thenReturn(BLOCK_HASH);
+        when(mockBlock.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
         when(mockEthBlock.getBlock()).thenReturn(mockBlock);
 
         blockSubject = PublishSubject.create();
         when(mockWeb3j.blockObservable(false)).thenReturn(blockSubject);
 
-        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, new DummyAsyncTaskService());
+        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
     }
 
     @Test
@@ -104,6 +113,22 @@ public class PollingBlockchainSubscriptionStrategyTest {
         final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
 
         assertEquals(BLOCK_NUMBER, blockDetails.getNumber());
+    }
+
+    @Test
+    public void testBlockTimestampPassedToListenerIsCorrect() {
+        underTest.subscribe();
+        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+
+        assertEquals(BLOCK_TIMESTAMP, blockDetails.getTimestamp());
+    }
+
+    @Test
+    public void testBlockNodeNamePassedToListenerIsCorrect() {
+        underTest.subscribe();
+        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+
+        assertEquals(NODE_NAME, blockDetails.getNodeName());
     }
 
     private BlockDetails doRegisterBlockListenerAndTrigger() {

@@ -32,6 +32,7 @@ public class Web3jTransactionReceipt implements TransactionReceipt {
     private String to;
     private List<Log> logs;
     private String logsBloom;
+    private String status;
 
     public Web3jTransactionReceipt(
             org.web3j.protocol.core.methods.response.TransactionReceipt web3TransactionReceipt) {

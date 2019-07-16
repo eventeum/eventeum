@@ -2,11 +2,14 @@ package net.consensys.eventeum.service;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
+import net.consensys.eventeum.model.LatestBlock;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @{inheritDoc}
@@ -26,19 +29,32 @@ public class DefaultEventStoreService implements EventStoreService {
      * @{inheritDoc}
      */
     @Override
-    public ContractEventDetails getLatestContractEvent(String eventSignature) {
+    public Optional<ContractEventDetails> getLatestContractEvent(
+            String eventSignature, String contractAddress) {
         int page = eventStore.isPagingZeroIndexed() ? 0 : 1;
 
         final PageRequest pagination = new PageRequest(page,
                 1, new Sort(Sort.Direction.DESC, "blockNumber"));
 
-        final List<ContractEventDetails> events =
-                eventStore.getContractEventsForSignature(eventSignature, pagination).getContent();
+        final Page<ContractEventDetails> eventsPage =
+                eventStore.getContractEventsForSignature(eventSignature, contractAddress, pagination);
 
-        if (events == null || events.isEmpty()) {
-            return null;
+        if (eventsPage == null) {
+            return Optional.empty();
         }
 
-        return events.get(0);
+        final List<ContractEventDetails> events = eventsPage.getContent();
+
+        if (events == null || events.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(events.get(0));
+    }
+
+    @Override
+    public Optional<LatestBlock> getLatestBlock(String nodeName) {
+
+        return eventStore.getLatestBlockForNode(nodeName);
     }
 }

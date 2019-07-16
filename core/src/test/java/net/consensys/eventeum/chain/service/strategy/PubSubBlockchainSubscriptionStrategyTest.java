@@ -2,7 +2,7 @@ package net.consensys.eventeum.chain.service.strategy;
 
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.testutils.DummyAsyncTaskService;
+import net.consensys.eventeum.service.EventStoreService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +30,11 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
     private static final String BLOCK_NUMBER_HEX = "0x7B";
 
+    //12345678
+    private static final String BLOCK_TIMESTAMP = "0xbc614e";
+
+    private static final String NODE_NAME = "mainnet";
+
     private PubSubBlockSubscriptionStrategy underTest;
 
     private PublishSubject<NewHeadsNotification> blockSubject;
@@ -40,36 +45,27 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
     private NewHead mockNewHead;
 
-    private EthBlock mockEthBlock;
-
     private BlockListener mockBlockListener;
+
+    private EventStoreService mockEventStoreService;
 
     @Before
     public void init() throws IOException {
         this.mockWeb3j = mock(Web3j.class);
 
-        mockEthBlock = mock(EthBlock.class);
-        final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
-
-        when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
-        when(mockBlock.getHash()).thenReturn(BLOCK_HASH);
-        when(mockEthBlock.getBlock()).thenReturn(mockBlock);
-
         mockNewHeadsNotification = mock(NewHeadsNotification.class);
+        mockEventStoreService = mock(EventStoreService.class);
         when(mockNewHeadsNotification.getParams()).thenReturn(new NewHeadNotificationParameter());
 
         mockNewHead = mock(NewHead.class);
         when(mockNewHead.getNumber()).thenReturn(BLOCK_NUMBER_HEX);
+        when(mockNewHead.getHash()).thenReturn(BLOCK_HASH);
+        when(mockNewHead.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
 
         blockSubject = PublishSubject.create();
         when(mockWeb3j.newHeadsNotifications()).thenReturn(blockSubject);
 
-        final Request<?, EthBlock> mockRequest = mock(Request.class);
-        when(mockRequest.send()).thenReturn(mockEthBlock);
-
-        doReturn(mockRequest).when(mockWeb3j).ethGetBlockByNumber(any(), eq(false));
-
-        underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, new DummyAsyncTaskService());
+        underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
     }
 
     @Test
@@ -125,6 +121,22 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
 
         assertEquals(BLOCK_NUMBER, blockDetails.getNumber());
+    }
+
+    @Test
+    public void testBlockTimestampPassedToListenerIsCorrect() {
+        underTest.subscribe();
+        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+
+        assertEquals(BigInteger.valueOf(12345678), blockDetails.getTimestamp());
+    }
+
+    @Test
+    public void testBlockNodeNamePassedToListenerIsCorrect() {
+        underTest.subscribe();
+        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+
+        assertEquals(NODE_NAME, blockDetails.getNodeName());
     }
 
     private BlockDetails doRegisterBlockListenerAndTrigger() {

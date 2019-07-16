@@ -3,27 +3,24 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2
+executorType: machine
 jobs:
-  build:
+  build-and-test:
     docker:
-      # specify the version you desire here
-      - image: circleci/openjdk:8-jdk
-
+      - image: circleci/openjdk:8u171-jdk
     working_directory: ~/repo
-
     environment:
       # Customize the JVM maximum heap limit
       MAVEN_OPTS: -Xmx3200m
-
     steps:
       - checkout
 
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "pom.xml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: maven install
@@ -36,5 +33,74 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
 
-      # Build and deploy latest artifacts
-      - run: mvn -s ./.circleci/.circleci.settings.xml deploy
+      - run:
+          name: integration tests
+          command: mvn clean verify -DskipIntegrationTests=false
+
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+
+  release-docker-image:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: maven install
+          command: mvn clean install -DskipTests
+      - run:
+          name: Release docker image
+          command: chmod +x .scripts/build-docker-image.sh && ./.scripts/build-docker-image.sh latest
+
+  release-docker-image-snapshot:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: maven install
+          command: mvn clean install -DskipTests
+      - run:
+          name: Release docker image
+          command: chmod +x .scripts/build-docker-image.sh && ./.scripts/build-docker-image.sh snapshot
+
+  publish:
+    docker:
+      - image: circleci/openjdk:8u171-jdk
+    working_directory: ~/repo
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - run:
+          name: Publish
+          command: mvn -s ./.circleci/.circleci.settings.xml deploy
+
+workflows:
+  version: 2
+  build-and-publish:
+    jobs:
+      - build-and-test
+      - publish:
+          requires:
+            - build-and-test
+      - release-docker-image-snapshot:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only:
+                - development
+      - release-docker-image:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only: master

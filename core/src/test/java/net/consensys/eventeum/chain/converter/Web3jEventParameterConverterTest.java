@@ -1,25 +1,27 @@
 package net.consensys.eventeum.chain.converter;
 
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
+import net.consensys.eventeum.settings.EventeumSettings;
 import org.junit.Before;
 import org.junit.Test;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.generated.Uint8;
 
 import java.math.BigInteger;
 
 import static org.junit.Assert.assertEquals;
 
 public class Web3jEventParameterConverterTest {
-    private static String ADDRESS = "0xbb4f53c05e50574c5fedbfe89c13cc5feb634ae3";
+    private static String ADDRESS = "0xBb4F53C05e50574C5fEdbFE89c13Cc5fEb634ae3";
 
     private Web3jEventParameterConverter underTest;
 
     @Before
     public void init() {
-        underTest = new Web3jEventParameterConverter();
+        underTest = new Web3jEventParameterConverter(new EventeumSettings(true));
     }
 
     @Test
@@ -32,6 +34,13 @@ public class Web3jEventParameterConverterTest {
     @Test
     public void testUint256Conversion() {
         final EventParameter<BigInteger> result = underTest.convert(new Uint256(10));
+
+        assertEquals(BigInteger.TEN, result.getValue());
+    }
+
+    @Test
+    public void testUint8Conversion() {
+        final EventParameter<BigInteger> result = underTest.convert(new Uint8(10));
 
         assertEquals(BigInteger.TEN, result.getValue());
     }

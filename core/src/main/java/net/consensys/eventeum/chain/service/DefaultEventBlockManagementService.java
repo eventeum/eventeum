@@ -1,8 +1,10 @@
 package net.consensys.eventeum.chain.service;
 
+import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.service.EventStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 import java.util.AbstractMap;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,19 +24,20 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Slf4j
 @Component
 public class DefaultEventBlockManagementService implements EventBlockManagementService {
 
-    private AbstractMap<String, BigInteger> latestBlocks = new ConcurrentHashMap<>();
+    private AbstractMap<String, AbstractMap> latestBlocks = new ConcurrentHashMap<>();
 
-    private BlockchainService blockchainService;
+    private ChainServicesContainer chainServicesContainer;
 
     private EventStoreService eventStoreService;
 
     @Autowired
-    public DefaultEventBlockManagementService(@Lazy BlockchainService blockchainService,
+    public DefaultEventBlockManagementService(@Lazy ChainServicesContainer chainServicesContainer,
                                               EventStoreService eventStoreService) {
-        this.blockchainService = blockchainService;
+        this.chainServicesContainer = chainServicesContainer;
         this.eventStoreService = eventStoreService;
     }
 
@@ -41,11 +45,19 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
      * {@inheritDoc}
      */
     @Override
-    public void updateLatestBlock(String eventSpecHash, BigInteger blockNumber) {
-        final BigInteger currentLatest = latestBlocks.get(eventSpecHash);
+    public void updateLatestBlock(String eventSpecHash, BigInteger blockNumber, String address) {
+        AbstractMap<String, BigInteger> events = latestBlocks.get(address);
+
+        if (events == null) {
+            events = new ConcurrentHashMap<>();
+            latestBlocks.put(address, events);
+        }
+
+        final BigInteger currentLatest = events.get(eventSpecHash);
+
 
         if (currentLatest == null || blockNumber.compareTo(currentLatest) > 0) {
-            latestBlocks.put(eventSpecHash, blockNumber);
+            events.put(eventSpecHash, blockNumber);
         }
     }
 
@@ -53,20 +65,46 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
      * {@inheritDoc}
      */
     @Override
-    public BigInteger getLatestBlockForEvent(ContractEventSpecification eventSpec) {
-        final String eventSignature = Web3jUtil.getSignature(eventSpec);
-        final BigInteger latestBlockNumber = latestBlocks.get(eventSignature);
+    public BigInteger getLatestBlockForEvent(ContractEventFilter eventFilter) {
+        final String eventSignature = Web3jUtil.getSignature(eventFilter.getEventSpecification());
+        final AbstractMap<String, BigInteger> events = latestBlocks.get(eventFilter.getContractAddress());
 
-        if (latestBlockNumber != null) {
-            return latestBlockNumber;
+        if (events != null) {
+            final BigInteger latestBlockNumber = events.get(eventSignature);
+
+            if (latestBlockNumber != null) {
+                log.debug("Block number for event {} found in memory, starting at blockNumber: {}", eventFilter.getId(), latestBlockNumber);
+
+                return latestBlockNumber;
+            }
         }
 
-        final ContractEventDetails contractEvent = eventStoreService.getLatestContractEvent(eventSignature);
+        final Optional<ContractEventDetails> contractEvent =
+                eventStoreService.getLatestContractEvent(eventSignature, eventFilter.getContractAddress());
 
-        if (contractEvent != null) {
-            return contractEvent.getBlockNumber();
+        if (contractEvent.isPresent()) {
+            BigInteger blockNumber = contractEvent.get().getBlockNumber();
+
+            log.debug("Block number for event {} found in the database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
+
+            return blockNumber;
         }
 
-        return blockchainService.getCurrentBlockNumber();
+        if (eventFilter.getStartBlock() != null) {
+            BigInteger blockNumber = eventFilter.getStartBlock();
+
+            log.debug("Block number for event {}, starting at blockNumber configured for the event: {}", eventFilter.getId(), blockNumber);
+
+            return blockNumber;
+        }
+
+        final BlockchainService blockchainService =
+                chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
+
+        BigInteger blockNumber =  blockchainService.getCurrentBlockNumber();
+
+        log.debug("Block number for event {} not found in memory or database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
+
+        return blockNumber;
     }
 }

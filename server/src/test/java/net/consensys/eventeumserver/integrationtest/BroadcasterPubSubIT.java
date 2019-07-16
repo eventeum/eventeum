@@ -9,30 +9,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(locations="classpath:application-test-ws-pubsub.properties")
 public class BroadcasterPubSubIT extends MainBroadcasterTests {
-
-
-    @Test
-    public void testRegisterEventFilterSavesFilterInDb() {
-        doTestRegisterEventFilterSavesFilterInDb();
-    }
-
-    @Test
-    public void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
-        doTestRegisterEventFilterBroadcastsAddedMessage();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCorrectId() {
-        doTestRegisterEventFilterReturnsCorrectId();
-    }
-
-    @Test
-    public void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
-        doTestRegisterEventFilterReturnsCreatedIdWhenNotSet();
-    }
 
     @Test
     public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
@@ -50,22 +29,17 @@ public class BroadcasterPubSubIT extends MainBroadcasterTests {
     }
 
     @Test
-    public void testUnregisterNonExistentFilter() {
-        doTestUnregisterNonExistentFilter();
-    }
-
-    @Test
-    public void testUnregisterEventFilterDeletesFilterInDb() {
-        doTestUnregisterEventFilterDeletesFilterInDb();
-    }
-
-    @Test
-    public void testUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
-        doTestUnregisterEventFilterBroadcastsRemovedMessage();
-    }
-
-    @Test
     public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
+    }
+
+    @Test
+    public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+        doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
+    }
+
+    @Test
+    public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+        doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
     }
 }

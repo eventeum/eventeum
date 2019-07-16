@@ -1,12 +1,18 @@
 package net.consensys.eventeum.service;
 
+import java.util.Collections;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.service.container.NodeServices;
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
-import net.consensys.eventeum.integration.broadcast.filter.FilterEventBroadcaster;
+import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
+import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
+import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
@@ -36,11 +42,15 @@ public class DefaultSubscriptionServiceTest {
     private DefaultSubscriptionService underTest;
 
     @Mock
+    private ChainServicesContainer mockChainServicesContainer;
+    @Mock
+    private NodeServices mockNodeServices;
+    @Mock
     private BlockchainService mockBlockchainService;
     @Mock
     private ContractEventFilterRepository mockRepo;
     @Mock
-    private FilterEventBroadcaster mockFilterBroadcaster;
+    private EventeumEventBroadcaster mockFilterBroadcaster;
     @Mock
     private BlockListener mockBlockListener1;
     @Mock
@@ -63,7 +73,13 @@ public class DefaultSubscriptionServiceTest {
 
     @Before
     public void init() {
-        underTest = new DefaultSubscriptionService(mockBlockchainService,
+        when(mockChainServicesContainer.getNodeServices(
+                Constants.DEFAULT_NODE_NAME)).thenReturn(mockNodeServices);
+        when(mockChainServicesContainer.getNodeNames()).thenReturn(
+                Collections.singletonList(Constants.DEFAULT_NODE_NAME));
+        when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
+
+        underTest = new DefaultSubscriptionService(mockChainServicesContainer,
                 mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),
                 Arrays.asList(mockBlockListener1, mockBlockListener2),
                 Arrays.asList(mockEventListener1, mockEventListener2));
@@ -86,6 +102,7 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testRegisterNewContractEventFilterBroadcastFalse() {
         final ContractEventFilter filter = createEventFilter();
+
         underTest.registerContractEventFilter(filter, false);
 
         verifyContractEventFilterRegistration(filter,true, false);
@@ -103,22 +120,26 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testRegisterNewContractEventFilterAutoGenerateId() {
         final ContractEventFilter filter = createEventFilter(null);
+
+        when(mockBlockchainService.registerEventListener(any(ContractEventFilter.class), any(ContractEventListener.class)))
+                .thenReturn(new FilterSubscription(filter, mock(Subscription.class)));
+
         underTest.registerContractEventFilter(filter, true);
 
         assertTrue(!filter.getId().isEmpty());
     }
 
     @Test
-    public void testResubscribeToAllSubscriptionsUnsubscribeFirst() {
+    public void testResubscribeToAllSubscriptions() {
         final ContractEventFilter filter1 = createEventFilter(FILTER_ID);
         final ContractEventFilter filter2 = createEventFilter("AnotherId");
         final Subscription sub1 = mock(Subscription.class);
         final Subscription sub2 = mock(Subscription.class);
 
         when(mockBlockchainService.registerEventListener(
-                eq(filter1), any(ContractEventListener.class))).thenReturn(sub1);
+                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
         when(mockBlockchainService.registerEventListener(
-                eq(filter2), any(ContractEventListener.class))).thenReturn(sub2);
+                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
 
         //Add 2 filters
         underTest.registerContractEventFilter(filter1, true);
@@ -126,41 +147,64 @@ public class DefaultSubscriptionServiceTest {
 
         reset(mockBlockchainService, mockRepo, mockFilterBroadcaster);
 
-        underTest.resubscribeToAllSubscriptions(true);
+        when(mockBlockchainService.registerEventListener(
+                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
+        when(mockBlockchainService.registerEventListener(
+                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
 
-        verify(sub1, times(1)).unsubscribe();
-        verify(sub2, times(1)).unsubscribe();
+        underTest.resubscribeToAllSubscriptions();
 
         verifyContractEventFilterRegistration(filter1, false, false);
         verifyContractEventFilterRegistration(filter2, false, false);
     }
 
     @Test
-    public void testUnnregisterContractEventFilter() throws FilterNotFoundException {
+    public void testUnnregisterContractEventFilter() throws NotFoundException {
         final ContractEventFilter filter = createEventFilter();
         final Subscription sub1 = mock(Subscription.class);
 
         when(mockBlockchainService.registerEventListener(
-                eq(filter), any(ContractEventListener.class))).thenReturn(sub1);
+                eq(filter), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter, sub1));
 
         underTest.registerContractEventFilter(filter, false);
 
         underTest.unregisterContractEventFilter(FILTER_ID);
 
         verify(sub1, times(1)).unsubscribe();
-        verify(mockRepo, times(1)).delete(FILTER_ID);
+        verify(mockRepo, times(1)).deleteById(FILTER_ID);
         verify(mockFilterBroadcaster, times(1)).broadcastEventFilterRemoved(filter);
 
         boolean exceptionThrown = false;
         //This will test that the filter has been deleted from memory
         try {
             underTest.unregisterContractEventFilter(FILTER_ID);
-        } catch (FilterNotFoundException e) {
+        } catch (NotFoundException e) {
             //Expected
             exceptionThrown = true;
         }
 
         assertEquals(true, exceptionThrown);
+    }
+
+    @Test
+    public void testUnsubscribeToAllSubscriptions() {
+        final ContractEventFilter filter1 = createEventFilter("filter1");
+        final Subscription sub1 = mock(Subscription.class);
+
+        final ContractEventFilter filter2 = createEventFilter();
+        final Subscription sub2 = mock(Subscription.class);
+
+        when(mockBlockchainService.registerEventListener(
+                eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
+        when(mockBlockchainService.registerEventListener(
+                eq(filter2), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter2, sub2));
+
+        underTest.registerContractEventFilter(filter1, false);
+        underTest.registerContractEventFilter(filter2, false);
+        underTest.unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
+
+        verify(sub1, times(1)).unsubscribe();
+        verify(sub2, times(1)).unsubscribe();
     }
 
     private void verifyContractEventFilterRegistration(ContractEventFilter filter, boolean save, boolean broadcast) {
@@ -184,7 +228,12 @@ public class DefaultSubscriptionServiceTest {
     }
 
     private ContractEventFilter createEventFilter() {
-        return createEventFilter(FILTER_ID);
+        final ContractEventFilter filter =  createEventFilter(FILTER_ID);
+
+        when(mockBlockchainService.registerEventListener(eq(filter), any(ContractEventListener.class)))
+                .thenReturn(new FilterSubscription(filter, mock(Subscription.class)));
+
+        return filter;
     }
 
 }

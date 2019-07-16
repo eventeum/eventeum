@@ -8,6 +8,8 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
+import net.consensys.eventeum.service.AsyncTaskService;
+import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,6 +35,7 @@ public class EventConfirmationBlockListenerTest {
     private BlockchainService mockBlockchainService;
     private BlockchainEventBroadcaster mockEventBroadcaster;
     private TransactionReceipt mockTransactionReceipt;
+    private AsyncTaskService asyncTaskService = new DummyAsyncTaskService();
     private Log mockLog;
 
     @Before
@@ -60,7 +63,7 @@ public class EventConfirmationBlockListenerTest {
                 new EventConfirmationConfig(BLOCKS_TO_WAIT, BLOCKS_TO_WAIT_MISSING);
 
         underTest = new EventConfirmationBlockListener(mockEventDetails,
-                mockBlockchainService, mockEventBroadcaster, eventConfirmationConfig);
+                mockBlockchainService, mockEventBroadcaster, eventConfirmationConfig, asyncTaskService);
     }
 
     @Test
