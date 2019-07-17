@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 public abstract class SingleValueMatchingCriteria<T> implements TransactionMatchingCriteria {
@@ -11,6 +13,8 @@ public abstract class SingleValueMatchingCriteria<T> implements TransactionMatch
     private String nodeName;
 
     private T valueToMatch;
+
+    private List<String> statuses;
 
     @Override
     public boolean isAMatch(TransactionDetails tx) {
