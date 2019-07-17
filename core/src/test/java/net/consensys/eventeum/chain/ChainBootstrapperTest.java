@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain;
 
+import net.consensys.eventeum.chain.config.ContractTransactionFilterConfiguration;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
@@ -47,6 +48,10 @@ public class ChainBootstrapperTest {
     @Mock
     private ContractEventFilterFactory mockFilterFactory;
 
+    @Mock
+    private ContractTransactionFilterConfiguration transactionFilterConfiguration;
+
+
     private List<BlockListener> mockBlockListeners =
             Arrays.asList(mock(BlockListener.class), mock(BlockListener.class));
 
@@ -56,7 +61,7 @@ public class ChainBootstrapperTest {
     public void init() {
         underTest = new ChainBootstrapper(mockSubscriptionService, mockTransactionMonitoringService, mockConfig,
                 mockFilterRepository, mockTransactionMonitoringRepository,
-                Optional.of(Collections.singletonList(mockFilterFactory)));
+                Optional.of(Collections.singletonList(mockFilterFactory)), transactionFilterConfiguration);
     }
 
     @Test
