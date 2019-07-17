@@ -13,4 +13,6 @@ public interface TransactionMatchingCriteria {
     boolean isAMatch(TransactionDetails tx);
 
     boolean isOneTimeMatch();
+
+    boolean canBeRemoved();
 }
