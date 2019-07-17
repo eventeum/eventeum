@@ -86,7 +86,10 @@ public class DefaultSubscriptionServiceTest {
     }
 
     @Test
-    public void testSubscribeToNewBlocksOnConstruction() {
+    public void testSubscribeToNewBlocksOnInit() {
+
+        underTest.init();
+
         verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener1);
         verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener2);
     }

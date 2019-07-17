@@ -11,6 +11,11 @@ import net.consensys.eventeum.service.exception.NotFoundException;
 public interface SubscriptionService {
 
     /**
+     * Initialise the subscription service
+     */
+    void init();
+
+    /**
      * Registers a new contract event filter.
      *
      * If the id is null, then one is assigned.

@@ -144,7 +144,10 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         waitForBlockMessages(1);
 
-        final String signedHex = createRawSignedTransactionHex();
+        //We're going to send 10 transactions in front to trigger blocks so nonce should be 10 higher
+        final BigInteger nonce = getNonce().add(BigInteger.TEN);
+
+        final String signedHex = createRawSignedTransactionHex(nonce);
 
         final String txHash = Hash.sha3(signedHex);
 
@@ -154,9 +157,12 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         restartEventeum(() -> {
             try {
+                triggerBlocks(10);
                 final String actualTxHash = sendRawTransaction(signedHex);
                 assertEquals(txHash, actualTxHash);
                 waitForBroadcast();
+
+                triggerBlocks(10);
             } catch (Exception e) {
                 e.printStackTrace();
             }

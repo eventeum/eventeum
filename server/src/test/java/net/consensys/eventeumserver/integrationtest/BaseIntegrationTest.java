@@ -277,12 +277,25 @@ public class BaseIntegrationTest {
         return createRawSignedTransactionHex(ZERO_ADDRESS);
     }
 
-    protected String createRawSignedTransactionHex(String toAddress) throws ExecutionException, InterruptedException {
+    protected String createRawSignedTransactionHex(BigInteger nonce) throws ExecutionException, InterruptedException {
+        return createRawSignedTransactionHex(ZERO_ADDRESS, nonce);
+    }
 
+    protected BigInteger getNonce() throws ExecutionException, InterruptedException {
         final EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
                 CREDS.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
 
         final BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+
+        return nonce;
+    }
+
+    protected String createRawSignedTransactionHex(String toAddress) throws ExecutionException, InterruptedException {
+
+        return createRawSignedTransactionHex(toAddress, getNonce());
+    }
+
+    protected String createRawSignedTransactionHex(String toAddress, BigInteger nonce) throws ExecutionException, InterruptedException {
 
         final RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, toAddress, BigInteger.ONE);
