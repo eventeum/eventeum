@@ -35,7 +35,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     //Keyed by node name
     private Map<String, List<TransactionMatchingCriteria>> criteria;
 
-    //Keys by node name
+    //Keyed by node name
     private Map<String, BlockchainService> blockchainServices;
 
     private BlockchainEventBroadcaster broadcaster;
@@ -74,8 +74,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         this.confirmationConfig = confirmationConfig;
         this.asyncService = asyncService;
         this.blockCache = blockCache;
-
-        init();
     }
 
     @Override
@@ -94,13 +92,28 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     @Override
     public void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
 
-        final String nodeName = matchingCriteria.getNodeName();
+        lock.lock();
 
-        if (!criteria.containsKey(nodeName)) {
-            criteria.put(nodeName, new CopyOnWriteArrayList<>());
+        try {
+            final String nodeName = matchingCriteria.getNodeName();
+
+            if (!criteria.containsKey(nodeName)) {
+                criteria.put(nodeName, new CopyOnWriteArrayList<>());
+            }
+
+            criteria.get(nodeName).add(matchingCriteria);
+
+            //Check if any cached blocks match
+            //Note, this makes sense for tx hash but maybe doesn't for some other matchers?
+            blockCache
+                    .getCachedBlocks()
+                    .forEach(block -> {
+                        block.getTransactions().forEach(tx ->
+                                broadcastIfMatched(tx, nodeName, Collections.singletonList(matchingCriteria)));
+                    });
+        } finally {
+            lock.unlock();
         }
-
-        criteria.get(nodeName).add(matchingCriteria);
     }
 
     @Override
@@ -124,21 +137,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         return retryTemplate;
     }
 
-    private void init() {
-        asyncService.execute(() -> {
-            lock.lock();
-
-            //Check cached blocks in case transaction has already been recently mined
-            try {
-                blockCache
-                        .getCachedBlocks()
-                        .forEach(blockDetails -> processBlock(blockDetails));
-            } finally {
-                lock.unlock();
-            }
-        });
-    }
-
     private void processBlock(BlockDetails blockDetails) {
         getBlock(blockDetails.getHash(), blockDetails.getNodeName())
                 .ifPresent(block -> {
@@ -146,17 +144,22 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                 });
     }
 
+    private void broadcastIfMatched(Transaction tx, String nodeName, List<TransactionMatchingCriteria> criteriaToCheck) {
+
+        final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
+                tx, TransactionStatus.CONFIRMED, nodeName);
+
+        //Only broadcast once, even if multiple matching criteria apply
+        criteriaToCheck
+                .stream()
+                .filter(matcher -> matcher.isAMatch(txDetails))
+                .findFirst()
+                .ifPresent(matcher -> onTransactionMatched(txDetails, matcher));
+    }
+
     private void broadcastIfMatched(Transaction tx, String nodeName) {
         if (criteria.containsKey(nodeName)) {
-            final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
-                    tx, TransactionStatus.CONFIRMED, nodeName);
-
-            //Only broadcast once, even if multiple matching criteria apply
-            criteria.get(nodeName)
-                    .stream()
-                    .filter(matcher -> matcher.isAMatch(txDetails))
-                    .findFirst()
-                    .ifPresent(matcher -> onTransactionMatched(txDetails, matcher));
+            broadcastIfMatched(tx, nodeName, criteria.get(nodeName));
         }
     }
 
@@ -167,6 +170,8 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
             if (!block.isPresent()) {
                 throw new BlockchainException("Block not found");
             }
+
+            blockCache.add(block.get());
 
             return block;
         });

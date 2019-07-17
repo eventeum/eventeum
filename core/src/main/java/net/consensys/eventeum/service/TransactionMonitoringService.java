@@ -1,6 +1,5 @@
 package net.consensys.eventeum.service;
 
-import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.exception.NotFoundException;
 

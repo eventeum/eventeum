@@ -38,14 +38,15 @@ public class ChainBootstrapper implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        registerTransactionsToMonitor(transactionMonitoringRepository.findAll(), true);
+
+        subscriptionService.init();
         registerFilters(filterConfiguration.getConfiguredEventFilters(), true);
         registerFilters(filterRepository.findAll(), false);
 
         contractEventFilterFactories.ifPresent((factories) -> {
             factories.forEach(factory -> registerFilters(factory.build(), true));
         });
-
-        registerTransactionsToMonitor(transactionMonitoringRepository.findAll(), true);
     }
 
     private void registerFilters(Iterable<ContractEventFilter> filters, boolean broadcast) {

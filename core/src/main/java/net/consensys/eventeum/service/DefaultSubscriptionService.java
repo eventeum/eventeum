@@ -40,6 +40,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private List<ContractEventListener> contractEventListeners;
 
+    private List<BlockListener> blockListeners;
+
     private Map<String, FilterSubscription> filterSubscriptions = new ConcurrentHashMap<>();
 
     @Autowired
@@ -54,7 +56,11 @@ public class DefaultSubscriptionService implements SubscriptionService {
         this.asyncTaskService = asyncTaskService;
         this.eventFilterRepository = eventFilterRepository;
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
+        this.blockListeners = blockListeners;
+    }
 
+    @Override
+    public void init() {
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
     }
