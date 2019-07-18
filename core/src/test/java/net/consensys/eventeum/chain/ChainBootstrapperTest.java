@@ -97,6 +97,20 @@ public class ChainBootstrapperTest {
         verify(mockTransactionMonitoringService, times(1)).registerTransactionsToMonitor(mockMonitorSpecs.get(1), true);
     }
 
+    @Test
+    public void testThatContractTransactionFiltersAreRegistered() throws Exception {
+
+        final List<TransactionMonitoringSpec> mockConfiguredFilters =
+                Arrays.asList(mock(TransactionMonitoringSpec.class), mock(TransactionMonitoringSpec.class));
+
+        when(transactionFilterConfiguration.getConfiguredEventFilters()).thenReturn(mockConfiguredFilters);
+
+        doBootstrap();
+
+        verify(mockTransactionMonitoringService, times(1)).registerTransactionsToMonitor(mockConfiguredFilters.get(0), true);
+        verify(mockTransactionMonitoringService, times(1)).registerTransactionsToMonitor(mockConfiguredFilters.get(1), true);
+     }
+
     private void doBootstrap() throws Exception {
         underTest.afterPropertiesSet();
     }

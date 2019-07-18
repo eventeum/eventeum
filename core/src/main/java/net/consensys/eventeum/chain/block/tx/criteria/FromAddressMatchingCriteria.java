@@ -17,11 +17,6 @@ public class FromAddressMatchingCriteria extends SingleValueMatchingCriteria<Str
 
     @Override
     public boolean isOneTimeMatch() {
-        return true;
-    }
-
-    @Override
-    public boolean canBeRemoved() {
         return false;
     }
 }

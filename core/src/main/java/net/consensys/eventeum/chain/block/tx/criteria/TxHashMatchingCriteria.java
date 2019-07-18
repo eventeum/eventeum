@@ -19,9 +19,4 @@ public class TxHashMatchingCriteria extends SingleValueMatchingCriteria<String> 
     public boolean isOneTimeMatch() {
         return true;
     }
-
-    @Override
-    public boolean canBeRemoved() {
-        return true;
-    }
 }

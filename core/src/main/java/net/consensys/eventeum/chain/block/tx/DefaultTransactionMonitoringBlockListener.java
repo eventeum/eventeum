@@ -201,7 +201,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
             broadcastTransaction(txDetails, matchingCriteria);
 
-            if (matchingCriteria.isOneTimeMatch() && matchingCriteria.canBeRemoved()) {
+            if (matchingCriteria.isOneTimeMatch()) {
                 removeMatchingCriteria(matchingCriteria);
             }
         }
@@ -238,7 +238,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     }
 
     private void onConfirmed(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
-        if (matchingCriteria.isOneTimeMatch() && matchingCriteria.canBeRemoved()) {
+        if (matchingCriteria.isOneTimeMatch()) {
             log.debug("Tx {} confirmed, removing matchingCriteria", txDetails.getHash());
 
             removeMatchingCriteria(matchingCriteria);
