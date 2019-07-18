@@ -119,7 +119,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
         final Optional<TransactionMonitoringSpec> saved =
                 transactionMonitoringSpecRepository.findById(monitorId);
         assertEquals(monitorId, saved.get().getId());
-        assertEquals(txHash, saved.get().getTransactionIdentifier());
+        assertEquals(txHash, saved.get().getTransactionIdentifierValue());
 
         return monitorId;
     }
@@ -136,7 +136,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
                 getBroadcastTransactionEventMessages().get(0);
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorAdded);
-        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifier());
+        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifierValue());
     }
 
     @Test
@@ -174,7 +174,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorRemoved);
         assertEquals(monitorId, broadcastMessage.getDetails().getId());
-        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifier());
+        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifierValue());
     }
 
     private String generateTxHash() {

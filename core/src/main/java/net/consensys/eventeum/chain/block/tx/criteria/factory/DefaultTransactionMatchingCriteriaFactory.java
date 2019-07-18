@@ -14,7 +14,7 @@ public class DefaultTransactionMatchingCriteriaFactory implements TransactionMat
     @Override
     public TransactionMatchingCriteria build(TransactionMonitoringSpec spec) {
         if (spec.getType() == TransactionIdentifierType.HASH) {
-            return new TxHashMatchingCriteria(spec.getNodeName(), spec.getTransactionIdentifier(), spec.getStatuses());
+            return new TxHashMatchingCriteria(spec.getNodeName(), spec.getTransactionIdentifierValue(), spec.getStatuses());
         }
 
         if (spec.getType() == TransactionIdentifierType.TO_ADDRESS) {

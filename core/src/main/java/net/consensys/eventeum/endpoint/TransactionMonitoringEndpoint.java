@@ -35,6 +35,11 @@ public class TransactionMonitoringEndpoint {
             spec.setNodeName(Constants.DEFAULT_NODE_NAME);
         }
 
+        if (spec.getStatuses() == null || spec.getStatuses().isEmpty()) {
+            spec.setDefaultStatuses();
+        }
+
+        spec.generateId();
         monitoringService.registerTransactionsToMonitor(spec);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
 

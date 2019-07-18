@@ -1,12 +1,13 @@
 package net.consensys.eventeum.chain.block.tx.criteria;
 
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 
 import java.util.List;
 
 public class TxHashMatchingCriteria extends SingleValueMatchingCriteria<String> {
 
-    public TxHashMatchingCriteria(String nodeName, String hashToMatch, List<String> statuses) {
+    public TxHashMatchingCriteria(String nodeName, String hashToMatch, List<TransactionStatus> statuses) {
         super(nodeName, hashToMatch, statuses);
     }
 

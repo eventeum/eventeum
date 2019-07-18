@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.block.tx.criteria;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public abstract class SingleValueMatchingCriteria<T> implements TransactionMatch
 
     private T valueToMatch;
 
-    private List<String> statuses;
+    private List<TransactionStatus> statuses;
 
     @Override
     public boolean isAMatch(TransactionDetails tx) {
