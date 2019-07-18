@@ -209,7 +209,18 @@ eventFilters:
 
 ## Registering a Transaction Monitor
 
-From version 0.5.3, eventeum supports monitoring and broadcasting transactions.  Currently the only matching criteria is by transaction hash, but more will be added in the near future.
+From version 0.6.1, eventeum supports monitoring and broadcasting transactions. The matching criteria can be:
+
+- HASH: Monitor a single transaction hash. The monitoring will be removed once is notified.
+- FROM_ADDRESS: Monitor all transactions that are sent from an specific address.
+- TO_ADDRESS: Monitor all transactions that are received for a specific address.
+
+
+Besides on that, it can monitor the transaction for specific statuses: 
+
+- FAILED: It will notify if the transaction has failed
+- CONFIRMED: It will notify if the transaction is confirmed.
+- UNCONFIRMED: In case the network is configured to wait for a certain number of confirmations, this will notify when is mined and not confirmed.
 
 ### REST
 
@@ -221,7 +232,24 @@ To register a transaction monitor, use the below REST endpoint:
 -   **URL Params:** `N/A`
     - identifier - The transaction hash to monitor
     - nodeName - The node name that should be monitored
--   **Body:** `N/A`
+-   **Body:**
+
+```json
+{
+	"type": "HASH",
+	"transactionIdentifierValue": "0x2e8e0f98be22aa1251584e23f792d43c634744340eb274473e01a48db939f94d",
+	"nodeName": "defaultNetwork",
+	"statuses": ["FAIlED", "CONFIRMATION"]
+}
+```
+
+| Name | Type | Mandatory | Default | Description |
+| -------- | -------- | -------- | -------- | -------- |
+| type | String | yes | | The type of the filter you want to create: `HASH`, `FROM_ADDRESS`, `TO_ADDRESS` |
+| transactionIdentifierValue | String | yes |  | The value associated with the type. It should be the tx hash for `HASH` and the address of the contract in the other cases. |
+| nodeName | String | yes | default | The identifier of the node you want to listen the transaction |
+| statuses | List | no | ['FAILED', 'CONFIRMED'] | It will specify the statuses you want to be notified. The default is failed and confirmed transactions. The options are: `FAILED`, `CONFIRMED`, `UNCONFIRMED`, `INVALIDATED` |
+
 
 -   **Success Response:**
     -   **Code:** 200
