@@ -23,7 +23,7 @@ public class TransactionMonitoringSpec {
 
     private String nodeName;
 
-    private List<TransactionStatus> statuses;
+    private List<TransactionStatus> statuses = Arrays.asList(TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
 
     private String transactionIdentifierValue;
 
@@ -39,6 +39,17 @@ public class TransactionMonitoringSpec {
         this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
     }
 
+    public TransactionMonitoringSpec(TransactionIdentifierType type,
+                                     String transactionIdentifierValue,
+                                     String nodeName) {
+        this.type = type;
+        this.transactionIdentifierValue = transactionIdentifierValue;
+        this.nodeName = nodeName;
+
+        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
+    }
+
+
     @JsonSetter("type")
     public void setType(String type) {
         this.type = TransactionIdentifierType.valueOf(type.toUpperCase());
@@ -51,9 +62,5 @@ public class TransactionMonitoringSpec {
 
     public void generateId() {
         this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
-    }
-
-    public void setDefaultStatuses() {
-        this.statuses = Arrays.asList(TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
     }
 }

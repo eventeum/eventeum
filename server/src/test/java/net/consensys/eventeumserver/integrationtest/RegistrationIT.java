@@ -1,7 +1,9 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.*;
+import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import org.junit.Test;
@@ -113,7 +115,9 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     private String doTestRegisterTransactionMonitorSavesInDb(String txHash) {
-        final String monitorId = monitorTransaction(txHash);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+
+        final String monitorId = monitorTransaction(monitorSpec);
 
         transactionMonitoringSpecRepository.findAll();
         final Optional<TransactionMonitoringSpec> saved =
@@ -128,7 +132,9 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     public void testRegisterTransactionMonitorBroadcastsAddedMessage() throws InterruptedException {
         final String txHash = generateTxHash();
 
-        monitorTransaction(txHash);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+
+        monitorTransaction(monitorSpec);
         waitForBroadcast();
         assertEquals(1, getBroadcastTransactionEventMessages().size());
 

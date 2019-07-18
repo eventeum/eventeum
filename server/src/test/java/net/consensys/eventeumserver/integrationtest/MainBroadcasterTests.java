@@ -1,29 +1,20 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
-import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
-import net.consensys.eventeum.dto.message.EventeumMessage;
-import net.consensys.eventeum.dto.message.TransactionMonitorAdded;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
+import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
-import net.consensys.eventeum.utils.JSON;
 import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
 import org.web3j.crypto.Hash;
 
 import java.math.BigInteger;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 
 public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
@@ -135,8 +126,9 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
     private String monitorSendAndAssertTransactionBroadcast(
             String signedTxHex, TransactionStatus expectedStatus) throws ExecutionException, InterruptedException {
 
-        final String txHash = Hash.sha3(signedTxHex);
-        monitorTransaction(txHash);
+        final String txHash = Hash.sha3(signedTxHex);TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+
+        monitorTransaction(monitorSpec);
 
         assertEquals(txHash, sendRawTransaction(signedTxHex));
 
