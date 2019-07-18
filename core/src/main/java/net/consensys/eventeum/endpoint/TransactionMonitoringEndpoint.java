@@ -31,10 +31,6 @@ public class TransactionMonitoringEndpoint {
     @RequestMapping(method = RequestMethod.POST)
     public MonitorTransactionsResponse monitorTransactions(@RequestBody TransactionMonitoringSpec spec,
                                                            HttpServletResponse response) {
-        if (spec.getNodeName() == null) {
-            spec.setNodeName(Constants.DEFAULT_NODE_NAME);
-        }
-
         spec.generateId();
         monitoringService.registerTransactionsToMonitor(spec);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);

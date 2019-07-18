@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import org.web3j.crypto.Hash;
 
@@ -21,7 +22,7 @@ public class TransactionMonitoringSpec {
 
     private TransactionIdentifierType type;
 
-    private String nodeName;
+    private String nodeName = Constants.DEFAULT_NODE_NAME;
 
     private List<TransactionStatus> statuses = Arrays.asList(TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
 
