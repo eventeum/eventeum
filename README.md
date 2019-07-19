@@ -212,7 +212,7 @@ eventFilters:
 From version 0.6.1, eventeum supports monitoring and broadcasting transactions. The matching criteria can be:
 
 - HASH: Monitor a single transaction hash. The monitoring will be removed once is notified.
-- FROM_ADDRESS: Monitor all transactions that are sent from an specific address.
+- FROM_ADDRESS: Monitor all transactions that are sent from a specific address.
 - TO_ADDRESS: Monitor all transactions that are received for a specific address.
 
 
