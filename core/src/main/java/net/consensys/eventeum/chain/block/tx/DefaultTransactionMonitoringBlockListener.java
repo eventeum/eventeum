@@ -188,6 +188,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
                     blockchainService, broadcaster, confirmationConfig, asyncService,
+                    matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 
             broadcastTransaction(txDetails, matchingCriteria);
