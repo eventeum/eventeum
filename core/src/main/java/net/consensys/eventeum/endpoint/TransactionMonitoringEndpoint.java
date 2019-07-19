@@ -1,7 +1,6 @@
 package net.consensys.eventeum.endpoint;
 
 import lombok.AllArgsConstructor;
-import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.exception.NotFoundException;
@@ -32,6 +31,7 @@ public class TransactionMonitoringEndpoint {
     public MonitorTransactionsResponse monitorTransactions(@RequestBody TransactionMonitoringSpec spec,
                                                            HttpServletResponse response) {
         spec.generateId();
+        spec.convertToCheckSum();
         monitoringService.registerTransactionsToMonitor(spec);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
 

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +38,8 @@ public class TransactionMonitoringSpec {
         this.nodeName = nodeName;
         this.statuses = statuses;
 
+        convertToCheckSum();
+
         this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
     }
 
@@ -47,9 +50,10 @@ public class TransactionMonitoringSpec {
         this.transactionIdentifierValue = transactionIdentifierValue;
         this.nodeName = nodeName;
 
+        convertToCheckSum();
+
         this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
     }
-
 
     @JsonSetter("type")
     public void setType(String type) {
@@ -63,5 +67,11 @@ public class TransactionMonitoringSpec {
 
     public void generateId() {
         this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
+    }
+
+    public void convertToCheckSum() {
+        if (this.type != TransactionIdentifierType.HASH) {
+            this.transactionIdentifierValue = Keys.toChecksumAddress(this.transactionIdentifierValue);
+        }
     }
 }
