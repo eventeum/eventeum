@@ -208,7 +208,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     }
 
     private void broadcastTransaction(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
-        if (matchingCriteria.getStatuses().contains(txDetails.getStatus().toString())) {
+        if (matchingCriteria.getStatuses().contains(txDetails.getStatus())) {
             broadcaster.broadcastTransaction(txDetails);
         }
     }
