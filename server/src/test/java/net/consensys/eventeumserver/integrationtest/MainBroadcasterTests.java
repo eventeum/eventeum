@@ -11,8 +11,10 @@ import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import org.junit.Assert;
 import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
@@ -97,7 +99,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
         final String signedTxHex = createRawSignedTransactionHex();
 
-        return monitorSendAndAssertTransactionBroadcast(signedTxHex, TransactionStatus.UNCONFIRMED);
+        return monitorSendAndAssertTransactionBroadcastFilteredByHash(signedTxHex, TransactionStatus.UNCONFIRMED);
     }
 
     public void doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
@@ -113,20 +115,21 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
     }
 
-    public String doTestBroadcastFailedTransaction() throws Exception {
+    public String doTestBroadcastFailedTransactionFilteredByHash() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
 
         //Sending ether to the emitter contract will fails as theres no payable fallback
         final String signedTxHex = createRawSignedTransactionHex(emitter.getContractAddress());
 
-        return monitorSendAndAssertTransactionBroadcast(signedTxHex, TransactionStatus.FAILED);
+        return monitorSendAndAssertTransactionBroadcastFilteredByHash(signedTxHex, TransactionStatus.FAILED);
     }
 
-    private String monitorSendAndAssertTransactionBroadcast(
+    private String monitorSendAndAssertTransactionBroadcastFilteredByHash(
             String signedTxHex, TransactionStatus expectedStatus) throws ExecutionException, InterruptedException {
 
-        final String txHash = Hash.sha3(signedTxHex);TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+        final String txHash = Hash.sha3(signedTxHex);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
 
         monitorTransaction(monitorSpec);
 
@@ -141,5 +144,69 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         assertEquals(expectedStatus, txDetails.getStatus());
 
         return txHash;
+    }
+
+    public String doTestBroadcastFailedTransactionFilteredByTo() throws Exception {
+
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        String toAddress = emitter.getContractAddress();
+        final String signedTxHex = createRawSignedTransactionHex(toAddress);
+
+        return monitorSendAndAssertTransactionBroadcastByTo(signedTxHex, toAddress, TransactionStatus.FAILED);
+    }
+
+    private String monitorSendAndAssertTransactionBroadcastByTo(
+            String signedTxHex, String toAddress, TransactionStatus expectedStatus) throws ExecutionException, InterruptedException {
+
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.TO_ADDRESS, toAddress, Constants.DEFAULT_NODE_NAME);
+
+        monitorTransaction(monitorSpec);
+
+        sendRawTransaction(signedTxHex);
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(Keys.toChecksumAddress(toAddress), txDetails.getTo());
+        assertEquals(expectedStatus, txDetails.getStatus());
+
+        return signedTxHex;
+    }
+
+    public String doTestBroadcastFailedTransactionFilteredByFrom() throws Exception {
+
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        final String signedTxHex = createRawSignedTransactionHex(emitter.getContractAddress());
+
+        return monitorSendAndAssertTransactionBroadcastByFrom(signedTxHex, TransactionStatus.FAILED);
+    }
+
+    private String monitorSendAndAssertTransactionBroadcastByFrom(
+            String signedTxHex, TransactionStatus expectedStatus) throws ExecutionException, InterruptedException {
+
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(
+                TransactionIdentifierType.FROM_ADDRESS,
+                CREDS.getAddress(),
+                Constants.DEFAULT_NODE_NAME,
+                Arrays.asList(TransactionStatus.FAILED)
+        );
+
+        monitorTransaction(monitorSpec);
+
+        sendRawTransaction(signedTxHex);
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(Keys.toChecksumAddress(CREDS.getAddress()), txDetails.getFrom());
+        assertEquals(expectedStatus, txDetails.getStatus());
+
+        return signedTxHex;
     }
 }
