@@ -14,22 +14,23 @@ import java.util.List;
 public class ContractTransactionFilterConfiguration {
     private List<TransactionMonitoringSpec> contractTransactionFilters;
 
-    public List<TransactionMonitoringSpec> getConfiguredEventFilters() {
+    public List<TransactionMonitoringSpec> getConfiguredTransactionFilters() {
         List<TransactionMonitoringSpec> filtersToReturn = new ArrayList<>();
 
-        if (contractTransactionFilters != null) {
-
-            contractTransactionFilters.forEach((configFilter) -> {
-                final TransactionMonitoringSpec contractTransactionFilter = new TransactionMonitoringSpec(
-                        configFilter.getType(),
-                        configFilter.getTransactionIdentifierValue(),
-                        configFilter.getNodeName(),
-                        configFilter.getStatuses()
-                );
-
-                filtersToReturn.add(contractTransactionFilter);
-            });
+        if (contractTransactionFilters == null) {
+            return filtersToReturn;
         }
+
+        contractTransactionFilters.forEach((configFilter) -> {
+            final TransactionMonitoringSpec contractTransactionFilter = new TransactionMonitoringSpec(
+                    configFilter.getType(),
+                    configFilter.getTransactionIdentifierValue(),
+                    configFilter.getNodeName(),
+                    configFilter.getStatuses()
+            );
+
+            filtersToReturn.add(contractTransactionFilter);
+        });
 
         return filtersToReturn;
     }

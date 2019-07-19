@@ -103,7 +103,7 @@ public class ChainBootstrapperTest {
         final List<TransactionMonitoringSpec> mockConfiguredFilters =
                 Arrays.asList(mock(TransactionMonitoringSpec.class), mock(TransactionMonitoringSpec.class));
 
-        when(transactionFilterConfiguration.getConfiguredEventFilters()).thenReturn(mockConfiguredFilters);
+        when(transactionFilterConfiguration.getConfiguredTransactionFilters()).thenReturn(mockConfiguredFilters);
 
         doBootstrap();
 

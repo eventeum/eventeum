@@ -39,7 +39,7 @@ public class ChainBootstrapper implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         registerTransactionsToMonitor(transactionMonitoringRepository.findAll(), true);
-        registerTransactionsToMonitor(transactionFilterConfiguration.getConfiguredEventFilters(), true);
+        registerTransactionsToMonitor(transactionFilterConfiguration.getConfiguredTransactionFilters(), true);
 
         subscriptionService.init();
         registerFilters(filterConfiguration.getConfiguredEventFilters(), true);
