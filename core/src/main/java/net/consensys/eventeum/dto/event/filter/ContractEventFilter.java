@@ -8,16 +8,21 @@ import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdStrate
 
 import java.math.BigInteger;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 /**
  * Represents the details of a contract event filter.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Entity
 @Data
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ContractEventFilter {
 
+    @Id
     private String id;
 
     private String contractAddress;

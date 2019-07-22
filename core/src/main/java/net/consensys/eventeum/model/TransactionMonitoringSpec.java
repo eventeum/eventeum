@@ -7,18 +7,24 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Entity
 @Data
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
 public class TransactionMonitoringSpec {
 
+    @Id
     private String id;
 
     private TransactionIdentifierType type;

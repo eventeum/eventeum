@@ -5,11 +5,15 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+
 /**
  * A number based EventParameter, represented by a BigInteger.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Embeddable
 @Data
 @NoArgsConstructor
 public class NumberParameter extends AbstractEventParameter<BigInteger> {

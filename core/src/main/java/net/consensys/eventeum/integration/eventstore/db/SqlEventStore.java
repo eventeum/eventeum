@@ -1,5 +1,6 @@
 package net.consensys.eventeum.integration.eventstore.db;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,56 +23,63 @@ import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * A saveable event store that stores contract events in a db repository.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-public class DBEventStore implements SaveableEventStore {
+public class SqlEventStore implements SaveableEventStore {
 
     private ContractEventDetailsRepository eventDetailsRepository;
 
     private LatestBlockRepository latestBlockRepository;
 
-    private MongoTemplate mongoTemplate;
+    private JdbcTemplate jdbcTemplate;
 
-    public DBEventStore(
+    public SqlEventStore(
             ContractEventDetailsRepository eventDetailsRepository,
             LatestBlockRepository latestBlockRepository,
-            MongoTemplate mongoTemplate) {
+            JdbcTemplate jdbcTemplate) {
         this.eventDetailsRepository = eventDetailsRepository;
         this.latestBlockRepository = latestBlockRepository;
-        this.mongoTemplate = mongoTemplate;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public Page<ContractEventDetails> getContractEventsForSignature(
             String eventSignature, String contractAddress, PageRequest pagination) {
+        
+        //jdbcTemplate.queryForList("select * from ContractEventDetails", ContractEventDetails.class);
+        Iterable<ContractEventDetails> resultsIterable = eventDetailsRepository.findAll();
+        List<ContractEventDetails> results = new ArrayList<>();
+        resultsIterable.forEach(results::add);
+        long totalResults = results.size();
 
-        final Query query = new Query(
-                Criteria.where("eventSpecificationSignature")
-                .is(eventSignature)
-                .and("address")
-                .is(contractAddress))
-            .with(new Sort(Direction.DESC, "blockNumber"))
-            .collation(Collation.of("en").numericOrderingEnabled());
+        // final Query query = new Query(
+        //         Criteria.where("eventSpecificationSignature")
+        //         .is(eventSignature)
+        //         .and("address")
+        //         .is(contractAddress))
+        //     .with(new Sort(Direction.DESC, "blockNumber"))
+        //     .collation(Collation.of("en").numericOrderingEnabled());
 
-        final long totalResults = mongoTemplate.count(query, ContractEventDetails.class);
+        // final long totalResults = mongoTemplate.count(query, ContractEventDetails.class);
 
-        //Set pagination on query
-        query
-            .skip(pagination.getPageNumber() * pagination.getPageSize())
-            .limit(pagination.getPageSize());
+        // //Set pagination on query
+        // query
+        //     .skip(pagination.getPageNumber() * pagination.getPageSize())
+        //     .limit(pagination.getPageSize());
 
-        final List<ContractEventDetails> results = mongoTemplate.find(query, ContractEventDetails.class);
+        // final List<ContractEventDetails> results = mongoTemplate.find(query, ContractEventDetails.class);
 
         return new PageImpl<>(results, pagination, totalResults);
     }
 
     @Override
     public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
-        final List<LatestBlock> blocks = latestBlockRepository.findAll();
+        final Iterable<LatestBlock> blocks = latestBlockRepository.findAll();
 
         return latestBlockRepository.findById(nodeName);
     }

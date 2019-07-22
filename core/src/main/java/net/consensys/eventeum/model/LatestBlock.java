@@ -7,6 +7,9 @@ import org.springframework.data.annotation.Id;
 
 import java.math.BigInteger;
 
+import javax.persistence.Entity;
+
+@Entity
 @Data
 @NoArgsConstructor
 public class LatestBlock {
@@ -18,6 +21,7 @@ public class LatestBlock {
         this.timestamp = blockDetails.getTimestamp();
     }
 
+    @javax.persistence.Id
     @Id
     private String nodeName;
 
