@@ -50,31 +50,8 @@ public class SqlEventStore implements SaveableEventStore {
     @Override
     public Page<ContractEventDetails> getContractEventsForSignature(
             String eventSignature, String contractAddress, PageRequest pagination) {
-        
-        //jdbcTemplate.queryForList("select * from ContractEventDetails", ContractEventDetails.class);
-        Iterable<ContractEventDetails> resultsIterable = eventDetailsRepository.findAll();
-        List<ContractEventDetails> results = new ArrayList<>();
-        resultsIterable.forEach(results::add);
-        long totalResults = results.size();
-
-        // final Query query = new Query(
-        //         Criteria.where("eventSpecificationSignature")
-        //         .is(eventSignature)
-        //         .and("address")
-        //         .is(contractAddress))
-        //     .with(new Sort(Direction.DESC, "blockNumber"))
-        //     .collation(Collation.of("en").numericOrderingEnabled());
-
-        // final long totalResults = mongoTemplate.count(query, ContractEventDetails.class);
-
-        // //Set pagination on query
-        // query
-        //     .skip(pagination.getPageNumber() * pagination.getPageSize())
-        //     .limit(pagination.getPageSize());
-
-        // final List<ContractEventDetails> results = mongoTemplate.find(query, ContractEventDetails.class);
-
-        return new PageImpl<>(results, pagination, totalResults);
+        return eventDetailsRepository.findByEventSpecificationSignatureAndAddress(
+        		eventSignature, contractAddress, pagination);
     }
 
     @Override
