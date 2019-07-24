@@ -234,6 +234,8 @@ To register a transaction monitor, use the below REST endpoint:
     - nodeName - The node name that should be monitored
 -   **Body:**
 
+An example with type `HASH`:
+
 ```json
 {
 	"type": "HASH",
@@ -242,6 +244,19 @@ To register a transaction monitor, use the below REST endpoint:
 	"statuses": ["FAIlED", "CONFIRMATION"]
 }
 ```
+
+
+Example filtering by `FROM_ADDRES`, this will notify when a transactions fails with origin the address specified in the field `transactionIdentifierValue`
+
+```json
+{
+	"type": "FROM_ADDRESS" ,
+	"transactionIdentifierValue": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
+	"nodeName": "defaultNetwork",
+	"statuses": ["FAIlED"]
+}
+```
+
 
 | Name | Type | Mandatory | Default | Description |
 | -------- | -------- | -------- | -------- | -------- |
