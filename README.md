@@ -209,7 +209,7 @@ eventFilters:
 
 ## Registering a Transaction Monitor
 
-From version 0.6.1, eventeum supports monitoring and broadcasting transactions. The matching criteria can be:
+From version 0.6.2, eventeum supports monitoring and broadcasting transactions. The matching criteria can be:
 
 - HASH: Monitor a single transaction hash. The monitoring will be removed once is notified.
 - FROM_ADDRESS: Monitor all transactions that are sent from a specific address.
