@@ -8,6 +8,7 @@ import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdStrate
 
 import java.math.BigInteger;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -29,8 +30,10 @@ public class ContractEventFilter {
 
     private String node = Constants.DEFAULT_NODE_NAME;
 
+    @Embedded
     private ContractEventSpecification eventSpecification;
-
+    
+    @Embedded
     private CorrelationIdStrategy correlationIdStrategy;
 
     private BigInteger startBlock;
