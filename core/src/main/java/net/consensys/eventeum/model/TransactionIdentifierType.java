@@ -2,5 +2,9 @@ package net.consensys.eventeum.model;
 
 public enum TransactionIdentifierType {
 
-    HASH;
+    HASH,
+
+    TO_ADDRESS,
+
+    FROM_ADDRESS;
 }

@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.service.domain.wrapper;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
+import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.util.List;
@@ -40,7 +41,17 @@ public class Web3jBlock implements Block {
 
     private List<Transaction> convertTransactions(List<EthBlock.TransactionResult> toConvert) {
         return toConvert.stream()
-                .map(tx -> new Web3jTransaction((org.web3j.protocol.core.methods.response.Transaction) tx.get()))
+                .map(tx -> {
+                    org.web3j.protocol.core.methods.response.Transaction transaction = (org.web3j.protocol.core.methods.response.Transaction) tx.get();
+
+                    transaction.setFrom(Keys.toChecksumAddress(transaction.getFrom()));
+
+                    if (transaction.getTo() != null && !transaction.getTo().isEmpty()) {
+                        transaction.setTo(Keys.toChecksumAddress(transaction.getTo()));
+                    }
+
+                    return new Web3jTransaction(transaction);
+                })
                 .collect(Collectors.toList());
     }
 }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TransactionConfirmationBlockListener extends SelfUnregisteringBlockListener {
@@ -29,12 +30,14 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private OnConfirmedCallback onConfirmedCallback;
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
+    private List<TransactionStatus> statusesToFilter;
 
     public TransactionConfirmationBlockListener(TransactionDetails transactionDetails,
                                                 BlockchainService blockchainService,
                                                 BlockchainEventBroadcaster eventBroadcaster,
                                                 EventConfirmationConfig eventConfirmationConfig,
                                                 AsyncTaskService asyncTaskService,
+                                                List<TransactionStatus> statusesToFilter,
                                                 OnConfirmedCallback onConfirmedCallback) {
         super(blockchainService);
         this.transactionDetails = transactionDetails;
@@ -42,6 +45,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         this.eventBroadcaster = eventBroadcaster;
         this.asyncTaskService = asyncTaskService;
         this.onConfirmedCallback = onConfirmedCallback;
+        this.statusesToFilter = statusesToFilter;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
@@ -112,7 +116,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     }
 
     private void broadcastEvent(TransactionDetails transactionDetails) {
-        if (!isInvalidated.get()) {
+        if (!isInvalidated.get() && statusesToFilter.contains(transactionDetails.getStatus())) {
             LOG.debug(String.format("Sending confirmed event for transaction: %s", transactionDetails.getHash()));
             eventBroadcaster.broadcastTransaction(transactionDetails);
         }

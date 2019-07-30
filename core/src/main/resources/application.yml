@@ -39,6 +39,17 @@ ethereum:
 #      type: NON_INDEXED_PARAMETER
 #      index: 0
 
+#contractTransactionFilters:
+#- nodeName: ${ETHEREUM_NETWORK:DefaultNetwork}
+#  type: "FROM_ADDRESS"
+#  transactionIdentifierValue: ${CONTRACT_ADDRESS_EM_TOKEN:0x0f8E7A681019Ec13EfE853a6Eca666E05b214Fd5}
+#  statuses: ['CONFIRMED']
+#- nodeName: ${ETHEREUM_NETWORK:DefaultNetwork}
+#  type: "TO_ADDRESS"
+#  transactionIdentifierValue: ${CONTRACT_ADDRESS_EM_TOKEN:0xfBAB8dE62002c86986C6e070BD3bB46BF983C74e}
+#  statuses: ['FAILED']
+
+
 eventStore:
   type: DB
   url: http://localhost:8081/api/rest/v1

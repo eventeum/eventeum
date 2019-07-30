@@ -1,7 +1,9 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.*;
+import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import org.junit.Test;
@@ -113,13 +115,15 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     private String doTestRegisterTransactionMonitorSavesInDb(String txHash) {
-        final String monitorId = monitorTransaction(txHash);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+
+        final String monitorId = monitorTransaction(monitorSpec);
 
         transactionMonitoringSpecRepository.findAll();
         final Optional<TransactionMonitoringSpec> saved =
                 transactionMonitoringSpecRepository.findById(monitorId);
         assertEquals(monitorId, saved.get().getId());
-        assertEquals(txHash, saved.get().getTransactionIdentifier());
+        assertEquals(txHash, saved.get().getTransactionIdentifierValue());
 
         return monitorId;
     }
@@ -128,7 +132,9 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     public void testRegisterTransactionMonitorBroadcastsAddedMessage() throws InterruptedException {
         final String txHash = generateTxHash();
 
-        monitorTransaction(txHash);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+
+        monitorTransaction(monitorSpec);
         waitForBroadcast();
         assertEquals(1, getBroadcastTransactionEventMessages().size());
 
@@ -136,7 +142,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
                 getBroadcastTransactionEventMessages().get(0);
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorAdded);
-        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifier());
+        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifierValue());
     }
 
     @Test
@@ -174,7 +180,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorRemoved);
         assertEquals(monitorId, broadcastMessage.getDetails().getId());
-        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifier());
+        assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifierValue());
     }
 
     private String generateTxHash() {

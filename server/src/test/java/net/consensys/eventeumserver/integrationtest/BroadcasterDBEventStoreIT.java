@@ -70,8 +70,18 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
-    public void testBroadcastFailedTransaction() throws Exception {
-        doTestBroadcastFailedTransaction();
+    public void testBroadcastFailedTransactionFilteredByHash() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByHash();
+    }
+
+    @Test
+    public void testBroadcastFailedTransactionFilteredByTo() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByTo();
+    }
+
+    @Test
+    public void testBroadcastFailedTransactionFilteredByFrom() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByFrom();
     }
 
     @Test
