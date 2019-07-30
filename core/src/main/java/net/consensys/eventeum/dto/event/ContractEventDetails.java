@@ -18,6 +18,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 
 /**
@@ -40,9 +41,11 @@ public class ContractEventDetails {
 
     private String nodeName;
 
+    @Lob // required because of https://stackoverflow.com/questions/43412517/sql-string-or-binary-data-would-be-truncated-error/43426863
     @ElementCollection
     private List<EventParameter> indexedParameters;
 
+    @Lob
     @ElementCollection
     private List<EventParameter> nonIndexedParameters;
 
