@@ -15,11 +15,14 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 /**
  * Represents the details of a contract event filter.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Document
 @Entity
 @Data
 @EqualsAndHashCode

@@ -11,12 +11,14 @@ import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Document
 @Entity
 @Data
 @EqualsAndHashCode

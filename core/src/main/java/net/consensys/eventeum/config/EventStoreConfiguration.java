@@ -7,17 +7,21 @@ import net.consensys.eventeum.chain.contract.EventStoreContractEventUpdater;
 import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
+import net.consensys.eventeum.integration.eventstore.db.MongoEventStore;
 //import net.consensys.eventeum.integration.eventstore.db.MongoEventStore;
 import net.consensys.eventeum.integration.eventstore.db.SqlEventStore;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
 import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
 import net.consensys.eventeum.integration.eventstore.rest.RESTEventStore;
 import net.consensys.eventeum.integration.eventstore.rest.client.EventStoreClient;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.mongodb.core.MongoTemplate;
 //import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -25,32 +29,34 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Order(0)
 public class EventStoreConfiguration {
 
-    // @Configuration
-    // @ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
-    // @ConditionalOnMissingBean(EventStoreFactory.class)
-    // public static class MongoEventStoreConfiguration {
+     @Configuration
+     //@ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
+     @ConditionalOnExpression("'${eventStore.type}:${db_type}'=='DB:MONGO'")
+     @ConditionalOnMissingBean(EventStoreFactory.class)
+     public static class MongoEventStoreConfiguration {
 
-    //     @Bean
-    //     public SaveableEventStore dbEventStore(
-    //             ContractEventDetailsRepository contractEventRepository,
-    //             LatestBlockRepository latestBlockRepository,
-    //             MongoTemplate mongoTemplate) {
-    //         return new MongoEventStore(contractEventRepository, latestBlockRepository, mongoTemplate);
-    //     }
+         @Bean
+         public SaveableEventStore dbEventStore(
+                 ContractEventDetailsRepository contractEventRepository,
+                 LatestBlockRepository latestBlockRepository,
+                 MongoTemplate mongoTemplate) {
+             return new MongoEventStore(contractEventRepository, latestBlockRepository, mongoTemplate);
+         }
 
-    //     @Bean
-    //     public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
-    //         return new EventStoreContractEventUpdater(eventStore);
-    //     }
+         @Bean
+         public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
+             return new EventStoreContractEventUpdater(eventStore);
+         }
 
-    //     @Bean
-    //     public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore) {
-    //         return new EventStoreLatestBlockUpdater(eventStore);
-    //     }
-    // }
+         @Bean
+         public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore) {
+             return new EventStoreLatestBlockUpdater(eventStore);
+         }
+     }
 
     @Configuration
-    @ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
+    //@ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
+    @ConditionalOnExpression("'${eventStore.type}:${db_type}'=='DB:SQL'")
     @ConditionalOnMissingBean(EventStoreFactory.class)
     public static class SqlEventStoreConfiguration {
 

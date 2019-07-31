@@ -4,7 +4,6 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterRepositoryFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,5 +14,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @ConditionalOnMissingBean(ContractEventFilterRepositoryFactory.class)
-public interface TransactionMonitoringSpecRepository extends JpaRepository<TransactionMonitoringSpec, String> {
+public interface TransactionMonitoringSpecRepository extends CrudRepository<TransactionMonitoringSpec, String> {
 }

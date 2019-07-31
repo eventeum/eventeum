@@ -16,3 +16,6 @@ spring:
 
     # Hibernate ddl auto (create, create-drop, validate, update)
     hibernate.ddl-auto: update
+
+#db_type: SQL
+db_type: SQL
