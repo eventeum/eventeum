@@ -188,9 +188,10 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
                     blockchainService, broadcaster, confirmationConfig, asyncService,
+                    matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 
-            broadcaster.broadcastTransaction(txDetails);
+            broadcastTransaction(txDetails, matchingCriteria);
 
             //Don't remove criteria if we're waiting for x blocks, as if there is a fork
             //we need to rebroadcast the unconfirmed tx in new block
@@ -199,11 +200,17 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                 txDetails.setStatus(TransactionStatus.FAILED);
             }
 
-            broadcaster.broadcastTransaction(txDetails);
+            broadcastTransaction(txDetails, matchingCriteria);
 
             if (matchingCriteria.isOneTimeMatch()) {
                 removeMatchingCriteria(matchingCriteria);
             }
+        }
+    }
+
+    private void broadcastTransaction(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
+        if (matchingCriteria.getStatuses().contains(txDetails.getStatus())) {
+            broadcaster.broadcastTransaction(txDetails);
         }
     }
 

@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.web3j.crypto.Hash;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -17,8 +18,10 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@TestPropertySource(locations="classpath:application-test-db.properties")
+@TestPropertySource(locations="classpath:application-test-tx-monitor.properties")
 public class TransactionMonitorIT extends MainBroadcasterTests {
+
+    private static final String TO_ADDRESS = "0x607f4c5bb672230e8672085532f7e901544a7375";
 
     @Test
     public void testMultipleTransactions() throws Exception {
@@ -40,6 +43,22 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
         triggerBlocksAndCheckMessagesSize(3, 2);
         triggerBlocks(1);
         waitForConfirmedTransaction(hashes[2], 3);
+    }
+
+    @Test
+    public void testLoadFilterFromConfig() throws Exception {
+        final String rawTx = createRawSignedTransactionHex(TO_ADDRESS);
+        final String txHash = Hash.sha3(rawTx);
+
+        sendRawTransaction(rawTx);
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
     }
 
     private void waitForConfirmedTransaction(String hash, int expectedNumMessages) {

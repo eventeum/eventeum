@@ -5,19 +5,19 @@ import net.consensys.eventeum.dto.transaction.TransactionStatus;
 
 import java.util.List;
 
-public class TxHashMatchingCriteria extends SingleValueMatchingCriteria<String> {
+public class FromAddressMatchingCriteria extends SingleValueMatchingCriteria<String> {
 
-    public TxHashMatchingCriteria(String nodeName, String hashToMatch, List<TransactionStatus> statuses) {
-        super(nodeName, hashToMatch, statuses);
+    public FromAddressMatchingCriteria(String nodeName, String fromAddress, List<TransactionStatus> statuses) {
+        super(nodeName, fromAddress, statuses);
     }
 
     @Override
     protected String getValueFromTx(TransactionDetails tx) {
-        return tx.getHash();
+        return tx.getFrom();
     }
 
     @Override
     public boolean isOneTimeMatch() {
-        return true;
+        return false;
     }
 }
