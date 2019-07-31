@@ -8,12 +8,9 @@ import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdStrate
 
 import java.math.BigInteger;
 
-import javax.persistence.CollectionTable;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -37,7 +34,6 @@ public class ContractEventFilter {
     private String node = Constants.DEFAULT_NODE_NAME;
 
     @Embedded
-    //@JoinTable(joinColumns=@JoinColumn(name="contract_event_filter_id"))
     private ContractEventSpecification eventSpecification;
     
     @Embedded

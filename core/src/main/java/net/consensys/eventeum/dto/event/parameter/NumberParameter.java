@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigInteger;
 
 import javax.persistence.Embeddable;
-import javax.persistence.Entity;
 
 /**
  * A number based EventParameter, represented by a BigInteger.

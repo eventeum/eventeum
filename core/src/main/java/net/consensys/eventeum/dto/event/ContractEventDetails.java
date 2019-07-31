@@ -3,8 +3,6 @@ package net.consensys.eventeum.dto.event;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
@@ -17,10 +15,8 @@ import java.util.List;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.OneToMany;
 
 /**
  * Represents the details of an emitted Ethereum smart contract event.

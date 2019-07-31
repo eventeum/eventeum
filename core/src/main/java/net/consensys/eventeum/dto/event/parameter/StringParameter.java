@@ -1,7 +1,6 @@
 package net.consensys.eventeum.dto.event.parameter;
 
 import javax.persistence.Embeddable;
-import javax.persistence.Entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

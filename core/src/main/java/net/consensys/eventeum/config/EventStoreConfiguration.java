@@ -8,7 +8,6 @@ import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.integration.eventstore.db.MongoEventStore;
-//import net.consensys.eventeum.integration.eventstore.db.MongoEventStore;
 import net.consensys.eventeum.integration.eventstore.db.SqlEventStore;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
 import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
@@ -22,7 +21,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.mongodb.core.MongoTemplate;
-//import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration

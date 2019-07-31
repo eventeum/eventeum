@@ -2,9 +2,6 @@ package net.consensys.eventeum.dto.event.parameter;
 
 import java.io.Serializable;
 
-import javax.persistence.Embeddable;
-import javax.persistence.MappedSuperclass;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

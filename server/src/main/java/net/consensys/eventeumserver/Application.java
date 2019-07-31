@@ -1,7 +1,6 @@
 package net.consensys.eventeumserver;
 
 import net.consensys.eventeum.annotation.EnableEventeum;
-import net.consensys.eventeum.config.BaseConfiguration;
 import net.consensys.eventeum.config.DatabaseConfiguration;
 
 import org.springframework.boot.SpringApplication;

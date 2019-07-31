@@ -5,7 +5,6 @@ import java.io.Serializable;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.OrderColumn;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
