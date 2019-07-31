@@ -12,16 +12,16 @@ import java.util.List;
 @ConfigurationProperties
 @Data
 public class TransactionFilterConfiguration {
-    private List<TransactionMonitoringSpec> contractTransactionFilters;
+    private List<TransactionMonitoringSpec> transactionFilters;
 
     public List<TransactionMonitoringSpec> getConfiguredTransactionFilters() {
         List<TransactionMonitoringSpec> filtersToReturn = new ArrayList<>();
 
-        if (contractTransactionFilters == null) {
+        if (transactionFilters == null) {
             return filtersToReturn;
         }
 
-        contractTransactionFilters.forEach((configFilter) -> {
+        transactionFilters.forEach((configFilter) -> {
             final TransactionMonitoringSpec contractTransactionFilter = new TransactionMonitoringSpec(
                     configFilter.getType(),
                     configFilter.getTransactionIdentifierValue(),

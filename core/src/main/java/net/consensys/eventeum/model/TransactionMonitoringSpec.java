@@ -36,7 +36,10 @@ public class TransactionMonitoringSpec {
         this.type = type;
         this.transactionIdentifierValue = transactionIdentifierValue;
         this.nodeName = nodeName;
-        this.statuses = statuses;
+
+        if (statuses != null && !statuses.isEmpty()) {
+            this.statuses = statuses;
+        }
 
         convertToCheckSum();
 
