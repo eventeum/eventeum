@@ -25,7 +25,7 @@ public class TransactionMonitoringSpec {
 
     private String nodeName = Constants.DEFAULT_NODE_NAME;
 
-    private List<TransactionStatus> statuses = Arrays.asList(TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
+    private List<TransactionStatus> statuses = Arrays.asList(TransactionStatus.UNCONFIRMED, TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
 
     private String transactionIdentifierValue;
 

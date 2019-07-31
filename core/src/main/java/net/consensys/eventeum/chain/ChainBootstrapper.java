@@ -1,7 +1,7 @@
 package net.consensys.eventeum.chain;
 
 import lombok.AllArgsConstructor;
-import net.consensys.eventeum.chain.config.ContractTransactionFilterConfiguration;
+import net.consensys.eventeum.chain.config.TransactionFilterConfiguration;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
@@ -34,7 +34,7 @@ public class ChainBootstrapper implements InitializingBean {
     private CrudRepository<ContractEventFilter, String> filterRepository;
     private CrudRepository<TransactionMonitoringSpec, String> transactionMonitoringRepository;
     private Optional<List<ContractEventFilterFactory>> contractEventFilterFactories;
-    private ContractTransactionFilterConfiguration transactionFilterConfiguration;
+    private TransactionFilterConfiguration transactionFilterConfiguration;
 
     @Override
     public void afterPropertiesSet() throws Exception {

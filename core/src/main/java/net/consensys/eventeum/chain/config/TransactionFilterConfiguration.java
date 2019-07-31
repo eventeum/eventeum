@@ -11,7 +11,7 @@ import java.util.List;
 @Configuration
 @ConfigurationProperties
 @Data
-public class ContractTransactionFilterConfiguration {
+public class TransactionFilterConfiguration {
     private List<TransactionMonitoringSpec> contractTransactionFilters;
 
     public List<TransactionMonitoringSpec> getConfiguredTransactionFilters() {
