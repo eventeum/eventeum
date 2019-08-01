@@ -8,7 +8,10 @@ import lombok.NoArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -33,6 +36,8 @@ public class TransactionMonitoringSpec {
 
     private String nodeName = Constants.DEFAULT_NODE_NAME;
 
+    @ElementCollection
+    @Enumerated(EnumType.ORDINAL)
     private List<TransactionStatus> statuses = Arrays.asList(TransactionStatus.UNCONFIRMED, TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
 
     private String transactionIdentifierValue;
