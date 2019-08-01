@@ -29,7 +29,7 @@ public class EventStoreConfiguration {
 
      @Configuration
      //@ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
-     @ConditionalOnExpression("'${eventStore.type}:${db_type}'=='DB:MONGO'")
+     @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:MONGO'")
      @ConditionalOnMissingBean(EventStoreFactory.class)
      public static class MongoEventStoreConfiguration {
 
@@ -54,7 +54,7 @@ public class EventStoreConfiguration {
 
     @Configuration
     //@ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
-    @ConditionalOnExpression("'${eventStore.type}:${db_type}'=='DB:SQL'")
+    @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:SQL'")
     @ConditionalOnMissingBean(EventStoreFactory.class)
     public static class SqlEventStoreConfiguration {
 

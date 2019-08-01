@@ -20,7 +20,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 public class DatabaseConfiguration {
 
     //@Profile("mongo")
-    @ConditionalOnExpression("'${eventStore.type}:${db_type}'=='DB:MONGO'")
+    @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:MONGO'")
     @EnableAutoConfiguration(
             exclude = {DataSourceAutoConfiguration.class,   DataSourceTransactionManagerAutoConfiguration.class,
                 HibernateJpaAutoConfiguration.class, JpaRepositoriesAutoConfiguration.class})
@@ -30,7 +30,7 @@ public class DatabaseConfiguration {
     }
 
     //@Profile("jpa")
-    @ConditionalOnExpression("'${eventStore.type}:${db_type}'=='DB:SQL'")
+    @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:SQL'")
     @EnableJpaRepositories(basePackages = {BaseConfiguration.BASE_PACKAGE})
     @EnableAutoConfiguration(
             exclude = {MongoAutoConfiguration.class,   MongoDataAutoConfiguration.class})
