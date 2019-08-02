@@ -28,7 +28,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class EventStoreConfiguration {
 
      @Configuration
-     //@ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
      @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:MONGO'")
      @ConditionalOnMissingBean(EventStoreFactory.class)
      public static class MongoEventStoreConfiguration {
@@ -53,7 +52,6 @@ public class EventStoreConfiguration {
      }
 
     @Configuration
-    //@ConditionalOnProperty(name = "eventStore.type", havingValue = "DB")
     @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:SQL'")
     @ConditionalOnMissingBean(EventStoreFactory.class)
     public static class SqlEventStoreConfiguration {

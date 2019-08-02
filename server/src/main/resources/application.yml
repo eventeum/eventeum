@@ -83,23 +83,8 @@ kafka:
 spring:
   rabbitmq:
     host: ${RABBIT_ADDRESS:localhost}
-  main:
-    allow-bean-definition-overriding: true
-# PostgreSQL
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
-#drop n create table again, good for testing, comment this in production
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        jdbc:
-          lob:
-            # https://github.com/pgjdbc/pgjdbc/issues/1102
-            non_contextual_creation: true
+
+rabbitmq:
   exchange: ThisIsAExchange
   routingKeyPrefix: thisIsRoutingKey
 

@@ -13,9 +13,12 @@ spring:
         dialect: org.hibernate.dialect.SQLServer2012Dialect
         #see: https://stackoverflow.com/questions/36583185/spring-data-jpa-could-not-initialize-proxy-no-session-with-methods-marke
         enable_lazy_load_no_trans: true
-
-    # Hibernate ddl auto (create, create-drop, validate, update)
-    hibernate.ddl-auto: update
+        # Hibernate ddl auto (create, create-drop, validate, update)
+        ddl-auto: update
+#     jdbc:
+#       lob:
+#         # For postgres, see: https://github.com/pgjdbc/pgjdbc/issues/1102
+#         non_contextual_creation: true
 
 database:
   type: SQL
