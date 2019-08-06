@@ -12,5 +12,6 @@ public enum ParameterType {
     ADDRESS,
     BYTES16,
     BYTES32,
+    BOOL,
     STRING;
 }
