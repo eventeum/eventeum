@@ -54,6 +54,8 @@ eventStore:
   url: http://localhost:8081/api/rest/v1
   eventPath: /event
   latestBlockPath: /latestblock
+database:
+  type: MONGO
 
 broadcaster:
   type: KAFKA
