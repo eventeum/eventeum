@@ -1,7 +1,7 @@
 package net.consensys.eventeum.config;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -19,7 +19,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @Import({DatabaseConfiguration.WithMongo.class, DatabaseConfiguration.WithJpa.class})
 public class DatabaseConfiguration {
 
-    @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:MONGO'")
+    @ConditionalOnProperty(name= "database.type", havingValue="MONGO")
     @EnableAutoConfiguration(
             exclude = {DataSourceAutoConfiguration.class,   DataSourceTransactionManagerAutoConfiguration.class,
                 HibernateJpaAutoConfiguration.class, JpaRepositoriesAutoConfiguration.class})
@@ -28,7 +28,7 @@ public class DatabaseConfiguration {
 
     }
 
-    @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:SQL'")
+    @ConditionalOnProperty(name= "database.type", havingValue="SQL")
     @EnableJpaRepositories(basePackages = {BaseConfiguration.BASE_PACKAGE})
     @EnableAutoConfiguration(
             exclude = {MongoAutoConfiguration.class,   MongoDataAutoConfiguration.class})
