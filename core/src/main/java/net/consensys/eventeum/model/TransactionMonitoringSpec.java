@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,9 +37,11 @@ public class TransactionMonitoringSpec {
 
     private String nodeName = Constants.DEFAULT_NODE_NAME;
 
+    //Need to wrap in an ArrayList so its modifiable
     @ElementCollection
     @Enumerated(EnumType.ORDINAL)
-    private List<TransactionStatus> statuses = Arrays.asList(TransactionStatus.UNCONFIRMED, TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
+    private List<TransactionStatus> statuses = new ArrayList(
+            Arrays.asList(TransactionStatus.UNCONFIRMED, TransactionStatus.CONFIRMED, TransactionStatus.FAILED));
 
     private String transactionIdentifierValue;
 
@@ -56,19 +59,13 @@ public class TransactionMonitoringSpec {
 
         convertToCheckSum();
 
-        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
+        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + this.statuses.toString()).substring(2);
     }
 
     public TransactionMonitoringSpec(TransactionIdentifierType type,
                                      String transactionIdentifierValue,
                                      String nodeName) {
-        this.type = type;
-        this.transactionIdentifierValue = transactionIdentifierValue;
-        this.nodeName = nodeName;
-
-        convertToCheckSum();
-
-        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
+        this(type, transactionIdentifierValue, nodeName, null);
     }
 
     @JsonSetter("type")
