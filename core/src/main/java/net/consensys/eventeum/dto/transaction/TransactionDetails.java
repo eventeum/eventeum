@@ -22,6 +22,7 @@ public class TransactionDetails {
     private String to;
     private String value;
     private String nodeName;
+    private String contractAddress;
 
     private TransactionStatus status;
 }

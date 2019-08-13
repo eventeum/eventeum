@@ -360,6 +360,9 @@ When a new transaction that matches a transaction monitor is mined, a JSON messa
 }
 ```
 
+#### Contract Creation Transaction
+If the transaction is a contract creation transaction, then the `contractAddress` value will be set to the address of the newly deployed smart contract.
+
 #### Transaction Event Statuses
 
 A broadcast transaction event can have the following statuses:

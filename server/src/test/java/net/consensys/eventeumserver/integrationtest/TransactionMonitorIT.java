@@ -1,7 +1,10 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
+import net.consensys.eventeum.model.TransactionIdentifierType;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,10 +12,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
@@ -59,6 +64,25 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
+    }
+
+    @Test
+    public void testContractCreationTransactionContainsContractAddress() throws Exception {
+        final TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(
+                TransactionIdentifierType.FROM_ADDRESS, CREDS.getAddress(), Constants.DEFAULT_NODE_NAME);
+
+        monitorTransaction(monitorSpec);
+
+        final String contractAddress = deployEventEmitterContract().getContractAddress();
+
+        //Not sure why there is always a value sending transaction first...maybe something to do with the genesis block?
+        waitForTransactionMessages(2);
+
+        assertEquals(2, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(1);
+        assertNull(txDetails.getTo());
+        assertEquals(Keys.toChecksumAddress(contractAddress), txDetails.getContractAddress());
     }
 
     private void waitForConfirmedTransaction(String hash, int expectedNumMessages) {
