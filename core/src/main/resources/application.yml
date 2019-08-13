@@ -54,6 +54,9 @@ eventStore:
   type: DB
   url: http://localhost:8081/api/rest/v1
   eventPath: /event
+database:
+  type: MONGO
+# type: SQL
 
 broadcaster:
   type: KAFKA

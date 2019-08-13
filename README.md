@@ -83,6 +83,9 @@ $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
 ```
 
+## SQL Support
+Eventeum now supports a SQL database as well as the default MongoDB.  To use a SQL database (only SQL Server has currently been tested but others should be supported with the correct config), set the `database.type` property to `SQL` and ensure you have all required additional properties in your properties file. See `config-examples/application-template-sqlserver.yml` for a sample SQLServer configuration.
+
 ## Configuring Nodes
 Listening for events from multiple different nodes is supported in Eventeum, and these nodes can be configured in the properties file.
 
@@ -152,7 +155,7 @@ Eventeum exposes a REST api that can be used to register events that should be s
 | position | Number | yes | | The zero indexed position of the parameter within the event specification |
 | type | String | yes | | The type of the event parameter. |
 
-Currently supported parameter types: UINT8, UINT256, ADDRESS, BYTES16, BYTES32, STRING
+Currently supported parameter types: UINT8, UINT256, ADDRESS, BYTES16, BYTES32, STRING, BOOL
 
 **correlationIdStrategy**:
 
@@ -409,6 +412,7 @@ Eventeum can either be configured by:
 | RABBIT_ADDRESS | localhost:5672 | property spring.rabbitmq.host (The rabbitmq address) |
 | RABBIT_EXCHANGE | ThisIsAExchange | property rabbitmq.exchange |
 | RABBIT_ROUTING_KEY | thisIsRoutingKey | property rabbitmq.routingKeyPrefix |
+| DATABASE_TYPE | MONGO | The database to use.  Either MONGO or SQL. |
 
 ### INFURA Support Configuration
 Connecting to an INFURA node is only supported if connecting via websockets (`wss://<...>` node url).  The blockstrategy must also be set to PUBSUB.

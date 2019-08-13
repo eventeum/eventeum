@@ -7,25 +7,41 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
+
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Document
+@Entity
 @Data
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
 public class TransactionMonitoringSpec {
 
+    @Id
     private String id;
 
     private TransactionIdentifierType type;
 
     private String nodeName = Constants.DEFAULT_NODE_NAME;
 
-    private List<TransactionStatus> statuses = Arrays.asList(TransactionStatus.UNCONFIRMED, TransactionStatus.CONFIRMED, TransactionStatus.FAILED);
+    //Need to wrap in an ArrayList so its modifiable
+    @ElementCollection
+    @Enumerated(EnumType.ORDINAL)
+    private List<TransactionStatus> statuses = new ArrayList(
+            Arrays.asList(TransactionStatus.UNCONFIRMED, TransactionStatus.CONFIRMED, TransactionStatus.FAILED));
 
     private String transactionIdentifierValue;
 
@@ -43,19 +59,13 @@ public class TransactionMonitoringSpec {
 
         convertToCheckSum();
 
-        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
+        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + this.statuses.toString()).substring(2);
     }
 
     public TransactionMonitoringSpec(TransactionIdentifierType type,
                                      String transactionIdentifierValue,
                                      String nodeName) {
-        this.type = type;
-        this.transactionIdentifierValue = transactionIdentifierValue;
-        this.nodeName = nodeName;
-
-        convertToCheckSum();
-
-        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
+        this(type, transactionIdentifierValue, nodeName, null);
     }
 
     @JsonSetter("type")
