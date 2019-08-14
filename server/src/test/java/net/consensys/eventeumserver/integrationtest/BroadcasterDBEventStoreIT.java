@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.web3j.crypto.Keys;
 
 
 @RunWith(SpringRunner.class)
@@ -69,8 +70,18 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     }
 
     @Test
-    public void testBroadcastFailedTransaction() throws Exception {
-        doTestBroadcastFailedTransaction();
+    public void testBroadcastFailedTransactionFilteredByHash() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByHash();
+    }
+
+    @Test
+    public void testBroadcastFailedTransactionFilteredByTo() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByTo();
+    }
+
+    @Test
+    public void testBroadcastFailedTransactionFilteredByFrom() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByFrom();
     }
 
     @Test
@@ -90,7 +101,7 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
         Thread.sleep(1000);
 
         List<ContractEventDetails> savedEvents = eventStore.getContractEventsForSignature(
-            eventDetails.getEventSpecificationSignature(), emitter.getContractAddress(), PageRequest.of(0, 100000)).getContent();
+            eventDetails.getEventSpecificationSignature(), Keys.toChecksumAddress(emitter.getContractAddress()), PageRequest.of(0, 100000)).getContent();
 
         assertEquals(1, savedEvents.size());
         assertEquals(eventDetails, savedEvents.get(0));

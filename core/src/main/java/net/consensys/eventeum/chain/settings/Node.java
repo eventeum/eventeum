@@ -13,4 +13,5 @@ public class Node {
     private Long pollingInterval;
     private String username;
     private String password;
+    private String blockStrategy;
 }

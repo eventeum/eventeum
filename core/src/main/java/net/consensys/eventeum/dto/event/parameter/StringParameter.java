@@ -1,5 +1,7 @@
 package net.consensys.eventeum.dto.event.parameter;
 
+import javax.persistence.Embeddable;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +10,7 @@ import lombok.NoArgsConstructor;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Embeddable
 @Data
 @NoArgsConstructor
 public class StringParameter extends AbstractEventParameter<String> {

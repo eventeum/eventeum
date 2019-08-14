@@ -1,5 +1,7 @@
 package net.consensys.eventeum.dto.event.filter.correlationId;
 
+import javax.persistence.Embeddable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -14,6 +16,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Embeddable
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.EXISTING_PROPERTY,

@@ -72,7 +72,7 @@ public class DefaultEventBlockManagementServiceTest {
 
     @Test
     public void testUpdateAndGetNoMatch() {
-        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN);
+        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN, CONTRACT_ADDRESS);
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.TEN, result);
@@ -80,8 +80,8 @@ public class DefaultEventBlockManagementServiceTest {
 
     @Test
     public void testUpdateAndGetLowerMatch() {
-        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE);
-        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN);
+        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE, CONTRACT_ADDRESS);
+        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN, CONTRACT_ADDRESS);
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.TEN, result);
@@ -89,8 +89,8 @@ public class DefaultEventBlockManagementServiceTest {
 
     @Test
     public void testUpdateAndGetHigherMatch() {
-        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN);
-        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE);
+        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN, CONTRACT_ADDRESS);
+        underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE, CONTRACT_ADDRESS);
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
         assertEquals(BigInteger.TEN, result);

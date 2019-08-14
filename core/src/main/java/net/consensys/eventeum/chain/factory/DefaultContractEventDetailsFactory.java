@@ -13,6 +13,7 @@ import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.Log;
 
 import java.math.BigInteger;
@@ -46,7 +47,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
         eventDetails.setFilterId(eventFilter.getId());
         eventDetails.setNonIndexedParameters(nonIndexed);
         eventDetails.setIndexedParameters(indexed);
-        eventDetails.setAddress(log.getAddress());
+        eventDetails.setAddress(Keys.toChecksumAddress(log.getAddress()));
         eventDetails.setLogIndex(log.getLogIndex());
         eventDetails.setTransactionHash(log.getTransactionHash());
         eventDetails.setBlockNumber(log.getBlockNumber());

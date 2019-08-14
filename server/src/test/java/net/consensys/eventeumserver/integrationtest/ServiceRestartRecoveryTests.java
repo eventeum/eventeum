@@ -1,47 +1,30 @@
 package net.consensys.eventeumserver.integrationtest;
 
 import junit.framework.TestCase;
-import net.consensys.eventeum.annotation.EnableEventeum;
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
-import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
-import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.model.TransactionIdentifierType;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
-import net.consensys.eventeumserver.Application;
-import net.consensys.eventeumserver.integrationtest.utils.ExcludeEmbeddedMongoApplication;
 import net.consensys.eventeumserver.integrationtest.utils.RestartingSpringRunner;
-import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.CacheAwareContextLoaderDelegate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Hash;
-import org.web3j.protocol.Web3j;
-import org.web3j.protocol.http.HttpService;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -144,19 +127,27 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         waitForBlockMessages(1);
 
-        final String signedHex = createRawSignedTransactionHex();
+        //We're going to send 10 transactions in front to trigger blocks so nonce should be 10 higher
+        final BigInteger nonce = getNonce().add(BigInteger.TEN);
+
+        final String signedHex = createRawSignedTransactionHex(nonce);
 
         final String txHash = Hash.sha3(signedHex);
 
-        monitorTransaction(txHash);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+
+        monitorTransaction(monitorSpec);
 
         txRepo.findAll();
 
         restartEventeum(() -> {
             try {
+                triggerBlocks(10);
                 final String actualTxHash = sendRawTransaction(signedHex);
                 assertEquals(txHash, actualTxHash);
                 waitForBroadcast();
+
+                triggerBlocks(10);
             } catch (Exception e) {
                 e.printStackTrace();
             }

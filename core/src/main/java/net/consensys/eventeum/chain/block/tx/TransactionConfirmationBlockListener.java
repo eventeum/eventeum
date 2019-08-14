@@ -1,12 +1,10 @@
-package net.consensys.eventeum.chain.block;
+package net.consensys.eventeum.chain.block.tx;
 
+import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
@@ -15,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TransactionConfirmationBlockListener extends SelfUnregisteringBlockListener {
@@ -29,23 +27,25 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private BigInteger blocksToWaitForMissingTx;
     private EventConfirmationConfig eventConfirmationConfig;
     private AsyncTaskService asyncTaskService;
-    private BlockListener parentBlockListener;
-
+    private OnConfirmedCallback onConfirmedCallback;
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
+    private List<TransactionStatus> statusesToFilter;
 
     public TransactionConfirmationBlockListener(TransactionDetails transactionDetails,
                                                 BlockchainService blockchainService,
                                                 BlockchainEventBroadcaster eventBroadcaster,
                                                 EventConfirmationConfig eventConfirmationConfig,
                                                 AsyncTaskService asyncTaskService,
-                                                BlockListener parentBlockListener) {
+                                                List<TransactionStatus> statusesToFilter,
+                                                OnConfirmedCallback onConfirmedCallback) {
         super(blockchainService);
         this.transactionDetails = transactionDetails;
         this.blockchainService = blockchainService;
         this.eventBroadcaster = eventBroadcaster;
         this.asyncTaskService = asyncTaskService;
-        this.parentBlockListener = parentBlockListener;
+        this.onConfirmedCallback = onConfirmedCallback;
+        this.statusesToFilter = statusesToFilter;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
@@ -112,12 +112,11 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         transactionDetails.setStatus(TransactionStatus.CONFIRMED);
         broadcastEvent(transactionDetails);
 
-        //Unregister parent monitoring listener as we haven't forked so its no longer needed
-        blockchainService.removeBlockListener(parentBlockListener);
+        onConfirmedCallback.onConfirmed();
     }
 
     private void broadcastEvent(TransactionDetails transactionDetails) {
-        if (!isInvalidated.get()) {
+        if (!isInvalidated.get() && statusesToFilter.contains(transactionDetails.getStatus())) {
             LOG.debug(String.format("Sending confirmed event for transaction: %s", transactionDetails.getHash()));
             eventBroadcaster.broadcastTransaction(transactionDetails);
         }
@@ -129,5 +128,9 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         } else if (blockDetails.getNumber().compareTo(missingTxBlockLimit) > 0) {
             processInvalidatedEvent();
         }
+    }
+
+    public interface OnConfirmedCallback {
+        void onConfirmed();
     }
 }

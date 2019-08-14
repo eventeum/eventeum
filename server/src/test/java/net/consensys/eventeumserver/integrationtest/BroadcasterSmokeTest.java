@@ -1,11 +1,14 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
+import net.consensys.eventeum.model.TransactionIdentifierType;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -48,7 +51,9 @@ public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
     public void testBroadcastTransactionEvent() throws Exception {
 
         final String txHash = sendTransaction();
-        monitorTransaction(txHash);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+
+        monitorTransaction(monitorSpec);
 
         waitForTransactionMessages(1);
 

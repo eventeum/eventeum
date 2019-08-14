@@ -10,6 +10,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.model.FilterSubscription;
+import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private ChainServicesContainer chainServices;
 
-    private CrudRepository<ContractEventFilter, String> eventFilterRepository;
+    private ContractEventFilterRepository eventFilterRepository;
 
     private EventeumEventBroadcaster eventeumEventBroadcaster;
 
@@ -40,11 +41,13 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private List<ContractEventListener> contractEventListeners;
 
+    private List<BlockListener> blockListeners;
+
     private Map<String, FilterSubscription> filterSubscriptions = new ConcurrentHashMap<>();
 
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
-                                      CrudRepository<ContractEventFilter, String> eventFilterRepository,
+                                      ContractEventFilterRepository eventFilterRepository,
                                       EventeumEventBroadcaster eventeumEventBroadcaster,
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
@@ -54,7 +57,11 @@ public class DefaultSubscriptionService implements SubscriptionService {
         this.asyncTaskService = asyncTaskService;
         this.eventFilterRepository = eventFilterRepository;
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
+        this.blockListeners = blockListeners;
+    }
 
+    @Override
+    public void init() {
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
     }
@@ -147,8 +154,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void unsubscribeToAllSubscriptions() {
-        filterSubscriptions.values().forEach(filterSub -> filterSub.getSubscription().unsubscribe());
+    public void unsubscribeToAllSubscriptions(String nodeName) {
+        filterSubscriptions.values().forEach(filterSub -> {
+            if (filterSub.getFilter().getNode().equals(nodeName)) {
+                unsubscribeFilterSubscription(filterSub);
+            }
+        });
     }
   
     @PreDestroy
