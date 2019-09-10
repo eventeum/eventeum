@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.service.strategy;
 
+import io.reactivex.disposables.Disposable;
 import lombok.Data;
 import lombok.Setter;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -29,19 +30,16 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     }
 
     @Override
-    public Subscription subscribe() {
+    public Disposable subscribe() {
         final Optional<LatestBlock> latestBlock = getLatestBlock();
 
         if (latestBlock.isPresent()) {
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
             //New heads can only start from latest block so we need to obtain missing blocks first
-            web3j.catchUpToLatestBlockObservable(blockParam, false,
-                    Observable.fromCallable(() -> {
-                        blockSubscription = subscribeToNewHeads();
-                        return null;
-                    })
-            ).subscribe(ethBlock -> {triggerListeners(convertToNewHead(ethBlock));});
+            web3j.replayPastAndFutureBlocksFlowable(blockParam, false)
+                    .doOnComplete(() -> blockSubscription = subscribeToNewHeads())
+                    .subscribe(ethBlock -> triggerListeners(convertToNewHead(ethBlock)));
         } else {
             blockSubscription = subscribeToNewHeads();
         }
@@ -49,7 +47,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         return blockSubscription;
     }
 
-    private Subscription subscribeToNewHeads() {
+    private Disposable subscribeToNewHeads() {
         return web3j.newHeadsNotifications().subscribe(newHead -> {
             triggerListeners(newHead.getParams().getResult());
         });

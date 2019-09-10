@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.service.strategy;
 
+import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -23,7 +24,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     private Lock lock = new ReentrantLock();
 
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
-    protected Subscription blockSubscription;
+    protected Disposable blockSubscription;
     protected Web3j web3j;
     protected EventStoreService eventStoreService;
     protected String nodeName;
@@ -38,7 +39,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     public void unsubscribe() {
         try {
             if (blockSubscription != null) {
-                blockSubscription.unsubscribe();
+                blockSubscription.dispose();
             }
         } finally {
             blockSubscription = null;
@@ -56,7 +57,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     public boolean isSubscribed() {
-        return blockSubscription != null && !blockSubscription.isUnsubscribed();
+        return blockSubscription != null && !blockSubscription.isDisposed();
     }
 
     protected void triggerListeners(T blockObject) {
