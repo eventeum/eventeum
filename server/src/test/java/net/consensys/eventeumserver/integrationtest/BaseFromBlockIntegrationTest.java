@@ -39,7 +39,7 @@ public class BaseFromBlockIntegrationTest extends BaseKafkaIntegrationTest {
     protected BigInteger getFromBlockNumberForLatestRegisteredFilter() {
         ArgumentCaptor<EthFilter> captor = ArgumentCaptor.forClass(EthFilter.class);
 
-        Mockito.verify(web3j).ethLogObservable(captor.capture());
+        Mockito.verify(web3j).ethLogFlowable(captor.capture());
 
         List<EthFilter> allInvocationArgs = captor.getAllValues();
         EthFilter lastArg = allInvocationArgs.get(allInvocationArgs.size() - 1);

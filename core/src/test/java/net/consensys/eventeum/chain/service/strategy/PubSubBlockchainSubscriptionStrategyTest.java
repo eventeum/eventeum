@@ -1,5 +1,7 @@
 package net.consensys.eventeum.chain.service.strategy;
 
+import io.reactivex.disposables.Disposable;
+import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.service.EventStoreService;
@@ -7,13 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.Request;
-import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 import org.web3j.protocol.websocket.events.NewHeadsNotification;
 import org.web3j.protocol.websocket.events.NotificationParams;
-import rx.Subscription;
-import rx.subjects.PublishSubject;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -37,7 +35,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
     private PubSubBlockSubscriptionStrategy underTest;
 
-    private PublishSubject<NewHeadsNotification> blockSubject;
+    private PublishProcessor<NewHeadsNotification> blockPublishProcessor;
 
     private Web3j mockWeb3j;
 
@@ -62,28 +60,28 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         when(mockNewHead.getHash()).thenReturn(BLOCK_HASH);
         when(mockNewHead.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
 
-        blockSubject = PublishSubject.create();
-        when(mockWeb3j.newHeadsNotifications()).thenReturn(blockSubject);
+        blockPublishProcessor = PublishProcessor.create();
+        when(mockWeb3j.newHeadsNotifications()).thenReturn(blockPublishProcessor);
 
         underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
     }
 
     @Test
     public void testSubscribe() {
-        final Subscription returnedSubscription = underTest.subscribe();
+        final Disposable returnedSubscription = underTest.subscribe();
 
-        assertEquals(false, returnedSubscription.isUnsubscribed());
+        assertEquals(false, returnedSubscription.isDisposed());
     }
 
     @Test
     public void testUnsubscribe() {
-        final Subscription returnedSubscription = underTest.subscribe();
+        final Disposable returnedSubscription = underTest.subscribe();
 
-        assertEquals(false, returnedSubscription.isUnsubscribed());
+        assertEquals(false, returnedSubscription.isDisposed());
 
         underTest.unsubscribe();
 
-        assertEquals(true, returnedSubscription.isUnsubscribed());
+        assertEquals(true, returnedSubscription.isDisposed());
     }
 
     @Test
@@ -102,7 +100,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         reset(mockBlockListener);
         underTest.removeBlockListener(mockBlockListener);
 
-        blockSubject.onNext(mockNewHeadsNotification);
+        blockPublishProcessor.onNext(mockNewHeadsNotification);
 
         verify(mockBlockListener, never()).onBlock(any());
     }
@@ -144,7 +142,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         mockBlockListener = mock(BlockListener.class);
         underTest.addBlockListener(mockBlockListener);
 
-        blockSubject.onNext(mockNewHeadsNotification);
+        blockPublishProcessor.onNext(mockNewHeadsNotification);
 
         final ArgumentCaptor<BlockDetails> captor = ArgumentCaptor.forClass(BlockDetails.class);
         verify(mockBlockListener).onBlock(captor.capture());
