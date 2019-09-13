@@ -86,7 +86,6 @@ jobs:
           command: mvn -s ./.circleci/.circleci.settings.xml deploy
 
 workflows:
-  version: 2
   test-and-publish:
     jobs:
       - maven/parallel_test
