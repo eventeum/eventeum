@@ -86,14 +86,10 @@ jobs:
           command: mvn -s ./.circleci/.circleci.settings.xml deploy
 
 workflows:
-  version: 2
+  version: 2.1
   test-and-publish:
     jobs:
-      - maven/parallel_test:
-          parallelism: 6
-          command: verify -DskipIntegrationTests=false
-          test_results_path: target/failsafe-reports
-          settings_file: ./.circleci/.circleci.settings.xml
+      - maven/parallel_test
       - publish:
           requires:
             - maven/parallel_test
