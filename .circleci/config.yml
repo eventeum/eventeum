@@ -90,6 +90,7 @@ workflows:
     jobs:
       - maven/parallel_test:
           settings_file: ./.circleci/.circleci.settings.xml
+          test_directory: server/src/test/java
       - publish:
           requires:
             - maven/parallel_test
