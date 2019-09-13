@@ -91,6 +91,7 @@ workflows:
       - maven/parallel_test:
           settings_file: ./.circleci/.circleci.settings.xml
           test_directory: server/src/test/java
+          maven_command: cp -avr .circleci core;cp -avr .circleci server;mvn
       - publish:
           requires:
             - maven/parallel_test
