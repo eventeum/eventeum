@@ -1,6 +1,8 @@
 package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
+import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.EventStoreService;
@@ -24,11 +26,11 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
         if (latestBlock.isPresent()) {
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
-            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, false)
+            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true)
                     .subscribe(block -> { triggerListeners(block); });
 
         } else {
-            blockSubscription = web3j.blockFlowable(false).subscribe(block -> {
+            blockSubscription = web3j.blockFlowable(true).subscribe(block -> {
                 triggerListeners(block);
             });
         }
@@ -37,15 +39,7 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
     }
 
     @Override
-    BlockDetails convertToBlockDetails(EthBlock blockObject) {
-        final EthBlock.Block block = blockObject.getBlock();
-        final BlockDetails blockDetails = new BlockDetails();
-
-        blockDetails.setNumber(block.getNumber());
-        blockDetails.setHash(block.getHash());
-        blockDetails.setTimestamp(block.getTimestamp());
-        blockDetails.setNodeName(nodeName);
-
-        return blockDetails;
+    Block convertToEventeumBlock(EthBlock blockObject) {
+        return new Web3jBlock(blockObject.getBlock(), nodeName);
     }
 }

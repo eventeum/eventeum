@@ -1,22 +1,23 @@
 package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
-import lombok.Data;
 import lombok.Setter;
+import net.consensys.eventeum.chain.service.BlockchainException;
+import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.EventStoreService;
-import net.consensys.eventeum.utils.JSON;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 import org.web3j.utils.Numeric;
-import rx.Observable;
-import rx.Subscription;
 
-import java.math.BigInteger;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -24,6 +25,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<NewHead> {
 
     private Lock lock = new ReentrantLock();
+
+    private RetryTemplate retryTemplate;
 
     public PubSubBlockSubscriptionStrategy(Web3j web3j, String nodeName, EventStoreService eventStoreService) {
         super(web3j, nodeName, eventStoreService);
@@ -63,14 +66,40 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     }
 
     @Override
-    BlockDetails convertToBlockDetails(NewHead blockObject) {
-        final BlockDetails blockDetails = new BlockDetails();
-        blockDetails.setHash(blockObject.getHash());
-        blockDetails.setNumber(Numeric.decodeQuantity(blockObject.getNumber()));
-        blockDetails.setTimestamp(Numeric.decodeQuantity(blockObject.getTimestamp()));
-        blockDetails.setNodeName(nodeName);
+    Block convertToEventeumBlock(NewHead blockObject) {
+        return new Web3jBlock(getEthBlock(blockObject.getHash()).getBlock(), nodeName);
+    }
 
-        return blockDetails;
+    protected RetryTemplate getRetryTemplate() {
+        if (retryTemplate == null) {
+            retryTemplate = new RetryTemplate();
+
+            final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+            fixedBackOffPolicy.setBackOffPeriod(500);
+            retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+            retryPolicy.setMaxAttempts(3);
+            retryTemplate.setRetryPolicy(retryPolicy);
+        }
+
+        return retryTemplate;
+    }
+
+    private EthBlock getEthBlock(String blockHash) {
+        return getRetryTemplate().execute((context) -> {
+            try {
+                final EthBlock block = web3j.ethGetBlockByHash(blockHash, true).send();
+
+                if (block == null || block.getBlock() == null) {
+                    throw new BlockchainException("Block not found");
+                }
+
+                return block;
+            } catch (IOException e) {
+                throw new BlockchainException("Unable to retrieve block details", e);
+            }
+        });
     }
 
     @Setter
