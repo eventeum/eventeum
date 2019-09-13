@@ -88,7 +88,8 @@ jobs:
 workflows:
   test-and-publish:
     jobs:
-      - maven/parallel_test
+      - maven/parallel_test:
+          settings_file: ./.circleci/.circleci.settings.xml
       - publish:
           requires:
             - maven/parallel_test
