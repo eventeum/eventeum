@@ -2,7 +2,9 @@
 #
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
-version: 2
+version: 2.1
+orbs:
+  maven: circleci/maven@0.0.9
 executorType: machine
 jobs:
   build-and-test:
@@ -85,9 +87,12 @@ jobs:
 
 workflows:
   version: 2
-  build-and-publish:
+  test-and-publish:
     jobs:
-      - build-and-test
+      - maven/parallel_test:
+          parallelism: 6
+          command: verify -DskipIntegrationTests=false
+          test_results_path: target/failsafe-reports
       - publish:
           requires:
             - build-and-test
