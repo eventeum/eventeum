@@ -93,6 +93,7 @@ workflows:
           parallelism: 6
           command: verify -DskipIntegrationTests=false
           test_results_path: target/failsafe-reports
+          settings_file: ./.circleci/.circleci.settings.xml
       - publish:
           requires:
             - maven/parallel_test
