@@ -192,7 +192,7 @@ public class Web3jService implements BlockchainService {
                 return Optional.empty();
             }
 
-            return Optional.of(new Web3jBlock(blockResponse.getBlock()));
+            return Optional.of(new Web3jBlock(blockResponse.getBlock(), nodeName));
         } catch (IOException e) {
             throw new BlockchainException("Error when obtaining block with hash: " + blockHash, e);
         }

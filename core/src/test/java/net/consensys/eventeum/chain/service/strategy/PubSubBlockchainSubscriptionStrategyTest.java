@@ -3,15 +3,19 @@ package net.consensys.eventeum.chain.service.strategy;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.service.EventStoreService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 import org.web3j.protocol.websocket.events.NewHeadsNotification;
 import org.web3j.protocol.websocket.events.NotificationParams;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -43,6 +47,8 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
     private NewHead mockNewHead;
 
+    private EthBlock mockEthBlock;
+
     private BlockListener mockBlockListener;
 
     private EventStoreService mockEventStoreService;
@@ -56,12 +62,23 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         when(mockNewHeadsNotification.getParams()).thenReturn(new NewHeadNotificationParameter());
 
         mockNewHead = mock(NewHead.class);
-        when(mockNewHead.getNumber()).thenReturn(BLOCK_NUMBER_HEX);
         when(mockNewHead.getHash()).thenReturn(BLOCK_HASH);
-        when(mockNewHead.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
 
         blockPublishProcessor = PublishProcessor.create();
         when(mockWeb3j.newHeadsNotifications()).thenReturn(blockPublishProcessor);
+
+        mockEthBlock = mock(EthBlock.class);
+        final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
+
+        when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
+        when(mockBlock.getHash()).thenReturn(BLOCK_HASH);
+        when(mockBlock.getTimestamp()).thenReturn(Numeric.toBigInt(BLOCK_TIMESTAMP));
+        when(mockEthBlock.getBlock()).thenReturn(mockBlock);
+
+        final Request<?, EthBlock> mockRequest = mock(Request.class);
+        doReturn(mockRequest).when(mockWeb3j).ethGetBlockByHash(BLOCK_HASH, true);
+
+        when(mockRequest.send()).thenReturn(mockEthBlock);
 
         underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
     }
@@ -87,15 +104,15 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     @Test
     public void testAddBlockListener() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
-        assertNotNull(blockDetails);
+        final Block block = doRegisterBlockListenerAndTrigger();
+        assertNotNull(block);
     }
 
     @Test
     public void testRemoveBlockListener() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
-        assertNotNull(blockDetails);
+        final Block block = doRegisterBlockListenerAndTrigger();
+        assertNotNull(block);
 
         reset(mockBlockListener);
         underTest.removeBlockListener(mockBlockListener);
@@ -108,43 +125,43 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     @Test
     public void testBlockHashPassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(BLOCK_HASH, blockDetails.getHash());
+        assertEquals(BLOCK_HASH, block.getHash());
     }
 
     @Test
     public void testBlockNumberPassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(BLOCK_NUMBER, blockDetails.getNumber());
+        assertEquals(BLOCK_NUMBER, block.getNumber());
     }
 
     @Test
     public void testBlockTimestampPassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(BigInteger.valueOf(12345678), blockDetails.getTimestamp());
+        assertEquals(BigInteger.valueOf(12345678), block.getTimestamp());
     }
 
     @Test
     public void testBlockNodeNamePassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(NODE_NAME, blockDetails.getNodeName());
+        assertEquals(NODE_NAME, block.getNodeName());
     }
 
-    private BlockDetails doRegisterBlockListenerAndTrigger() {
+    private Block doRegisterBlockListenerAndTrigger() {
 
         mockBlockListener = mock(BlockListener.class);
         underTest.addBlockListener(mockBlockListener);
 
         blockPublishProcessor.onNext(mockNewHeadsNotification);
 
-        final ArgumentCaptor<BlockDetails> captor = ArgumentCaptor.forClass(BlockDetails.class);
+        final ArgumentCaptor<Block> captor = ArgumentCaptor.forClass(Block.class);
         verify(mockBlockListener).onBlock(captor.capture());
 
         return captor.getValue();

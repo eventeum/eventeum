@@ -77,12 +77,12 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     }
 
     @Override
-    public void onBlock(BlockDetails blockDetails) {
+    public void onBlock(Block block) {
         asyncService.execute(() -> {
             lock.lock();
 
             try {
-                processBlock(blockDetails);
+                processBlock(block);
             } finally {
                 lock.unlock();
             }
@@ -121,27 +121,9 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         criteria.get(matchingCriteria.getNodeName()).remove(matchingCriteria);
     }
 
-    protected RetryTemplate getRetryTemplate() {
-        if (retryTemplate == null) {
-            retryTemplate = new RetryTemplate();
-
-            final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-            fixedBackOffPolicy.setBackOffPeriod(500);
-            retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-
-            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-            retryPolicy.setMaxAttempts(3);
-            retryTemplate.setRetryPolicy(retryPolicy);
-        }
-
-        return retryTemplate;
-    }
-
-    private void processBlock(BlockDetails blockDetails) {
-        getBlock(blockDetails.getHash(), blockDetails.getNodeName())
-                .ifPresent(block -> {
-                    block.getTransactions().forEach(tx -> broadcastIfMatched(tx, blockDetails.getNodeName()));
-                });
+    private void processBlock(Block block) {
+        block.getTransactions()
+                .forEach(tx -> broadcastIfMatched(tx, block.getNodeName()));
     }
 
     private void broadcastIfMatched(Transaction tx, String nodeName, List<TransactionMatchingCriteria> criteriaToCheck) {
@@ -161,20 +143,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         if (criteria.containsKey(nodeName)) {
             broadcastIfMatched(tx, nodeName, criteria.get(nodeName));
         }
-    }
-
-    private Optional<Block> getBlock(String blockHash, String nodeName) {
-        return getRetryTemplate().execute((context) -> {
-            final Optional<Block> block =  getBlockchainService(nodeName).getBlock(blockHash, true);
-
-            if (!block.isPresent()) {
-                throw new BlockchainException("Block not found");
-            }
-
-            blockCache.add(block.get());
-
-            return block;
-        });
     }
 
     private void onTransactionMatched(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {

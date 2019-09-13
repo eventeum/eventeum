@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.block;
 
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
@@ -12,6 +13,7 @@ import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -124,11 +126,11 @@ public class EventConfirmationBlockListenerTest {
         expectInvalidation();
     }
 
-    private BlockDetails createBlockDetails(int blockNumber) {
-        final BlockDetails blockDetails = mock(BlockDetails.class);
-        when(blockDetails.getNumber()).thenReturn(BigInteger.valueOf(blockNumber));
+    private Block createBlockDetails(int blockNumber) {
+        final Block block = mock(Block.class);
+        when(block.getNumber()).thenReturn(BigInteger.valueOf(blockNumber));
 
-        return blockDetails;
+        return block;
     }
 
     private void wireLog() {

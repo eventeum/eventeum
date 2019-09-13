@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.service.strategy;
 import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
@@ -63,13 +64,13 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected void triggerListeners(T blockObject) {
         lock.lock();
         try {
-            blockListeners.forEach(listener -> triggerListener(listener, convertToBlockDetails(blockObject)));
+            blockListeners.forEach(listener -> triggerListener(listener, convertToEventeumBlock(blockObject)));
         } finally {
             lock.unlock();
         }
     }
 
-    protected void triggerListener(BlockListener listener, BlockDetails block) {
+    protected void triggerListener(BlockListener listener, Block block) {
         try {
             listener.onBlock(block);
         } catch(Throwable t) {
@@ -81,6 +82,6 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         return eventStoreService.getLatestBlock(nodeName);
     }
 
-    abstract BlockDetails convertToBlockDetails(T blockObject);
+    abstract Block convertToEventeumBlock(T blockObject);
 
 }

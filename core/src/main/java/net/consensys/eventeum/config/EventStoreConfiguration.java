@@ -4,6 +4,7 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.EventStoreLatestBlockUpdater;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.contract.EventStoreContractEventUpdater;
+import net.consensys.eventeum.chain.factory.BlockDetailsFactory;
 import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
@@ -46,8 +47,9 @@ public class EventStoreConfiguration {
          }
 
          @Bean
-         public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore) {
-             return new EventStoreLatestBlockUpdater(eventStore);
+         public BlockListener eventStoreLatestBlockUpdater(
+                 SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory) {
+             return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory);
          }
      }
 
@@ -70,8 +72,9 @@ public class EventStoreConfiguration {
         }
 
         @Bean
-        public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore) {
-            return new EventStoreLatestBlockUpdater(eventStore);
+        public BlockListener eventStoreLatestBlockUpdater(
+                SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory) {
+            return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory);
         }
     }
 
