@@ -95,17 +95,17 @@ workflows:
           test_results_path: target/failsafe-reports
       - publish:
           requires:
-            - build-and-test
+            - maven/parallel_test
       - release-docker-image-snapshot:
           requires:
-            - build-and-test
+            - maven/parallel_test
           filters:
             branches:
               only:
                 - development
       - release-docker-image:
           requires:
-            - build-and-test
+            - maven/parallel_test
           filters:
             branches:
               only: master
