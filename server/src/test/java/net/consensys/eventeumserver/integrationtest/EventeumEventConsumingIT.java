@@ -75,7 +75,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         final TransactionMonitoringSpec spec = new TransactionMonitoringSpec();
         spec.setNodeName("default");
-        spec.setTransactionIdentifier(txHash);
+        spec.setTransactionIdentifierValue(txHash);
         spec.setType(TransactionIdentifierType.HASH);
 
         broadcaster.broadcastTransactionMonitorAdded(spec);
@@ -101,7 +101,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         final TransactionMonitoringSpec spec = new TransactionMonitoringSpec();
         spec.setNodeName("default");
-        spec.setTransactionIdentifier(txHash);
+        spec.setTransactionIdentifierValue(txHash);
         spec.setType(TransactionIdentifierType.HASH);
 
         broadcaster.broadcastTransactionMonitorAdded(spec);

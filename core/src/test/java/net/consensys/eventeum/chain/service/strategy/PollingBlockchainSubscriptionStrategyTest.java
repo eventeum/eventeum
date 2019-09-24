@@ -1,7 +1,10 @@
 package net.consensys.eventeum.chain.service.strategy;
 
+import io.reactivex.disposables.Disposable;
+import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.Web3jService;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
@@ -10,8 +13,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
-import rx.Subscription;
-import rx.subjects.PublishSubject;
 
 import java.math.BigInteger;
 
@@ -31,7 +32,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private PollingBlockSubscriptionStrategy underTest;
 
-    private PublishSubject<EthBlock> blockSubject;
+    private PublishProcessor<EthBlock> blockPublishProcessor;
 
     private Web3j mockWeb3j;
 
@@ -54,47 +55,47 @@ public class PollingBlockchainSubscriptionStrategyTest {
         when(mockBlock.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
         when(mockEthBlock.getBlock()).thenReturn(mockBlock);
 
-        blockSubject = PublishSubject.create();
-        when(mockWeb3j.blockObservable(false)).thenReturn(blockSubject);
+        blockPublishProcessor = PublishProcessor.create();
+        when(mockWeb3j.blockFlowable(true)).thenReturn(blockPublishProcessor);
 
         underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
     }
 
     @Test
     public void testSubscribe() {
-        final Subscription returnedSubscription = underTest.subscribe();
+        final Disposable returnedSubscription = underTest.subscribe();
 
-        assertEquals(false, returnedSubscription.isUnsubscribed());
+        assertEquals(false, returnedSubscription.isDisposed());
     }
 
     @Test
     public void testUnsubscribe() {
-        final Subscription returnedSubscription = underTest.subscribe();
+        final Disposable returnedSubscription = underTest.subscribe();
 
-        assertEquals(false, returnedSubscription.isUnsubscribed());
+        assertEquals(false, returnedSubscription.isDisposed());
 
         underTest.unsubscribe();
 
-        assertEquals(true, returnedSubscription.isUnsubscribed());
+        assertEquals(true, returnedSubscription.isDisposed());
     }
 
     @Test
     public void testAddBlockListener() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
-        assertNotNull(blockDetails);
+        final Block block = doRegisterBlockListenerAndTrigger();
+        assertNotNull(block);
     }
 
     @Test
     public void testRemoveBlockListener() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
-        assertNotNull(blockDetails);
+        final Block block = doRegisterBlockListenerAndTrigger();
+        assertNotNull(block);
 
         reset(mockBlockListener);
         underTest.removeBlockListener(mockBlockListener);
 
-        blockSubject.onNext(mockEthBlock);
+        blockPublishProcessor.onNext(mockEthBlock);
 
         verify(mockBlockListener, never()).onBlock(any());
     }
@@ -102,43 +103,43 @@ public class PollingBlockchainSubscriptionStrategyTest {
     @Test
     public void testBlockHashPassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(BLOCK_HASH, blockDetails.getHash());
+        assertEquals(BLOCK_HASH, block.getHash());
     }
 
     @Test
     public void testBlockNumberPassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(BLOCK_NUMBER, blockDetails.getNumber());
+        assertEquals(BLOCK_NUMBER, block.getNumber());
     }
 
     @Test
     public void testBlockTimestampPassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(BLOCK_TIMESTAMP, blockDetails.getTimestamp());
+        assertEquals(BLOCK_TIMESTAMP, block.getTimestamp());
     }
 
     @Test
     public void testBlockNodeNamePassedToListenerIsCorrect() {
         underTest.subscribe();
-        final BlockDetails blockDetails = doRegisterBlockListenerAndTrigger();
+        final Block block = doRegisterBlockListenerAndTrigger();
 
-        assertEquals(NODE_NAME, blockDetails.getNodeName());
+        assertEquals(NODE_NAME, block.getNodeName());
     }
 
-    private BlockDetails doRegisterBlockListenerAndTrigger() {
+    private Block doRegisterBlockListenerAndTrigger() {
 
         mockBlockListener = mock(BlockListener.class);
         underTest.addBlockListener(mockBlockListener);
 
-        blockSubject.onNext(mockEthBlock);
+        blockPublishProcessor.onNext(mockEthBlock);
 
-        final ArgumentCaptor<BlockDetails> captor = ArgumentCaptor.forClass(BlockDetails.class);
+        final ArgumentCaptor<Block> captor = ArgumentCaptor.forClass(Block.class);
         verify(mockBlockListener).onBlock(captor.capture());
 
         return captor.getValue();

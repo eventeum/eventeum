@@ -10,6 +10,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.model.FilterSubscription;
+import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private ChainServicesContainer chainServices;
 
-    private CrudRepository<ContractEventFilter, String> eventFilterRepository;
+    private ContractEventFilterRepository eventFilterRepository;
 
     private EventeumEventBroadcaster eventeumEventBroadcaster;
 
@@ -46,7 +47,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
-                                      CrudRepository<ContractEventFilter, String> eventFilterRepository,
+                                      ContractEventFilterRepository eventFilterRepository,
                                       EventeumEventBroadcaster eventeumEventBroadcaster,
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
@@ -171,7 +172,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
     public void unsubscribeFilterSubscription(FilterSubscription filterSubscription) {
 
         try {
-            filterSubscription.getSubscription().unsubscribe();
+            filterSubscription.getSubscription().dispose();
         } catch (Throwable t) {
             log.info("Unable to unregister filter...this is probably because the " +
                     "node has restarted or we're in websocket mode");

@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain;
 
+import net.consensys.eventeum.chain.config.TransactionFilterConfiguration;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
@@ -47,6 +48,10 @@ public class ChainBootstrapperTest {
     @Mock
     private ContractEventFilterFactory mockFilterFactory;
 
+    @Mock
+    private TransactionFilterConfiguration transactionFilterConfiguration;
+
+
     private List<BlockListener> mockBlockListeners =
             Arrays.asList(mock(BlockListener.class), mock(BlockListener.class));
 
@@ -56,7 +61,7 @@ public class ChainBootstrapperTest {
     public void init() {
         underTest = new ChainBootstrapper(mockSubscriptionService, mockTransactionMonitoringService, mockConfig,
                 mockFilterRepository, mockTransactionMonitoringRepository,
-                Optional.of(Collections.singletonList(mockFilterFactory)));
+                Optional.of(Collections.singletonList(mockFilterFactory)), transactionFilterConfiguration);
     }
 
     @Test
@@ -91,6 +96,20 @@ public class ChainBootstrapperTest {
         verify(mockTransactionMonitoringService, times(1)).registerTransactionsToMonitor(mockMonitorSpecs.get(0), true);
         verify(mockTransactionMonitoringService, times(1)).registerTransactionsToMonitor(mockMonitorSpecs.get(1), true);
     }
+
+    @Test
+    public void testThatContractTransactionFiltersAreRegistered() throws Exception {
+
+        final List<TransactionMonitoringSpec> mockConfiguredFilters =
+                Arrays.asList(mock(TransactionMonitoringSpec.class), mock(TransactionMonitoringSpec.class));
+
+        when(transactionFilterConfiguration.getConfiguredTransactionFilters()).thenReturn(mockConfiguredFilters);
+
+        doBootstrap();
+
+        verify(mockTransactionMonitoringService, times(1)).registerTransactionsToMonitor(mockConfiguredFilters.get(0), true);
+        verify(mockTransactionMonitoringService, times(1)).registerTransactionsToMonitor(mockConfiguredFilters.get(1), true);
+     }
 
     private void doBootstrap() throws Exception {
         underTest.afterPropertiesSet();

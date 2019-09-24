@@ -1,5 +1,6 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import io.reactivex.Flowable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,14 +21,14 @@ import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.response.BaseEventResponse;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * <p>Auto generated code.
@@ -36,10 +37,10 @@ import rx.functions.Func1;
  * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
- * <p>Generated with web3j version 3.6.0.
+ * <p>Generated with web3j version 4.5.0.
  */
 public class EventEmitter extends Contract {
-    private static final String BINARY = "608060405234801561001057600080fd5b506102f7806100206000396000f3fe608060405234801561001057600080fd5b506004361061005d577c010000000000000000000000000000000000000000000000000000000060003504632158498681146100625780635a73130f146100e0578063b2deda5214610110575b600080fd5b6100de6004803603606081101561007857600080fd5b81359160208101359181019060608101604082013564010000000081111561009f57600080fd5b8201836020820111156100b157600080fd5b803590602001918460018302840111640100000000831117156100d357600080fd5b50909250905061018c565b005b6100de600480360360208110156100f657600080fd5b50356fffffffffffffffffffffffffffffffff1916610229565b6100de6004803603606081101561012657600080fd5b81359160208101359181019060608101604082013564010000000081111561014d57600080fd5b82018360208201111561015f57600080fd5b8035906020019184600183028401116401000000008311171561018157600080fd5b509092509050610273565b3373ffffffffffffffffffffffffffffffffffffffff16847f26c16d5e1e9b37f9f69f6ac44adef332c80d1503ea39ae2abf256335886302ec858585600160405180858152602001806020018360028111156101e457fe5b60ff1681526020018281038252858582818152602001925080828437600083820152604051601f909101601f191690920182900397509095505050505050a350505050565b604080516fffffffffffffffffffffffffffffffff19831680825291517f2ece6db06b5a01973109c046552420c8ab4002ec19be630471727967655574d29181900360200190a250565b3373ffffffffffffffffffffffffffffffffffffffff16847f79db4a66c74e0ab851510c0a340a3c925ba311aab3aab6b7dc74ae629c792ea9858585600160405180858152602001806020018360028111156101e457fefea165627a7a723058206febfafa3c5d806657676bdcc563083143686fb81f768e60215d6fd99b1cd9ad0029";
+    private static final String BINARY = "608060405234801561001057600080fd5b5061039e806100206000396000f3fe608060405234801561001057600080fd5b506004361061005e576000357c01000000000000000000000000000000000000000000000000000000009004806321584986146100635780635a73130f146100f0578063b2deda5214610131575b600080fd5b6100ee6004803603606081101561007957600080fd5b810190808035906020019092919080359060200190929190803590602001906401000000008111156100aa57600080fd5b8201836020820111156100bc57600080fd5b803590602001918460018302840111640100000000831117156100de57600080fd5b90919293919293905050506101be565b005b61012f6004803603602081101561010657600080fd5b8101908080356fffffffffffffffffffffffffffffffff1916906020019092919050505061025e565b005b6101bc6004803603606081101561014757600080fd5b8101908080359060200190929190803590602001909291908035906020019064010000000081111561017857600080fd5b82018360208201111561018a57600080fd5b803590602001918460018302840111640100000000831117156101ac57600080fd5b90919293919293905050506102d2565b005b3373ffffffffffffffffffffffffffffffffffffffff16847f26c16d5e1e9b37f9f69f6ac44adef332c80d1503ea39ae2abf256335886302ec8585856001604051808581526020018060200183600281111561021657fe5b60ff1681526020018281038252858582818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a350505050565b806fffffffffffffffffffffffffffffffff19167f2ece6db06b5a01973109c046552420c8ab4002ec19be630471727967655574d28260405180826fffffffffffffffffffffffffffffffff19166fffffffffffffffffffffffffffffffff1916815260200191505060405180910390a250565b3373ffffffffffffffffffffffffffffffffffffffff16847f79db4a66c74e0ab851510c0a340a3c925ba311aab3aab6b7dc74ae629c792ea98585856001604051808581526020018060200183600281111561032a57fe5b60ff1681526020018281038252858582818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a35050505056fea165627a7a72305820dcd452b8001f20377421ced830be152102601a0899d044f69eea623b0699bf0e0029";
 
     public static final String FUNC_EMITEVENT = "emitEvent";
 
@@ -77,7 +78,7 @@ public class EventEmitter extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public RemoteCall<TransactionReceipt> emitEvent(byte[] value1, BigInteger value2, String value3) {
+    public RemoteFunctionCall<TransactionReceipt> emitEvent(byte[] value1, BigInteger value2, String value3) {
         final Function function = new Function(
                 FUNC_EMITEVENT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(value1), 
@@ -87,7 +88,7 @@ public class EventEmitter extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> emitEventBytes16(byte[] bytes16Value) {
+    public RemoteFunctionCall<TransactionReceipt> emitEventBytes16(byte[] bytes16Value) {
         final Function function = new Function(
                 FUNC_EMITEVENTBYTES16, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes16(bytes16Value)), 
@@ -95,7 +96,7 @@ public class EventEmitter extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> emitEventNotOrdered(byte[] value1, BigInteger value2, String value3) {
+    public RemoteFunctionCall<TransactionReceipt> emitEventNotOrdered(byte[] value1, BigInteger value2, String value3) {
         final Function function = new Function(
                 FUNC_EMITEVENTNOTORDERED, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(value1), 
@@ -118,10 +119,10 @@ public class EventEmitter extends Contract {
         return responses;
     }
 
-    public Observable<DummyEventBytes16EventResponse> dummyEventBytes16EventObservable(EthFilter filter) {
-        return web3j.ethLogObservable(filter).map(new Func1<Log, DummyEventBytes16EventResponse>() {
+    public Flowable<DummyEventBytes16EventResponse> dummyEventBytes16EventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, DummyEventBytes16EventResponse>() {
             @Override
-            public DummyEventBytes16EventResponse call(Log log) {
+            public DummyEventBytes16EventResponse apply(Log log) {
                 Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(DUMMYEVENTBYTES16_EVENT, log);
                 DummyEventBytes16EventResponse typedResponse = new DummyEventBytes16EventResponse();
                 typedResponse.log = log;
@@ -132,10 +133,10 @@ public class EventEmitter extends Contract {
         });
     }
 
-    public Observable<DummyEventBytes16EventResponse> dummyEventBytes16EventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<DummyEventBytes16EventResponse> dummyEventBytes16EventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
         filter.addSingleTopic(EventEncoder.encode(DUMMYEVENTBYTES16_EVENT));
-        return dummyEventBytes16EventObservable(filter);
+        return dummyEventBytes16EventFlowable(filter);
     }
 
     public List<DummyEventEventResponse> getDummyEventEvents(TransactionReceipt transactionReceipt) {
@@ -154,10 +155,10 @@ public class EventEmitter extends Contract {
         return responses;
     }
 
-    public Observable<DummyEventEventResponse> dummyEventEventObservable(EthFilter filter) {
-        return web3j.ethLogObservable(filter).map(new Func1<Log, DummyEventEventResponse>() {
+    public Flowable<DummyEventEventResponse> dummyEventEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, DummyEventEventResponse>() {
             @Override
-            public DummyEventEventResponse call(Log log) {
+            public DummyEventEventResponse apply(Log log) {
                 Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(DUMMYEVENT_EVENT, log);
                 DummyEventEventResponse typedResponse = new DummyEventEventResponse();
                 typedResponse.log = log;
@@ -171,10 +172,10 @@ public class EventEmitter extends Contract {
         });
     }
 
-    public Observable<DummyEventEventResponse> dummyEventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<DummyEventEventResponse> dummyEventEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
         filter.addSingleTopic(EventEncoder.encode(DUMMYEVENT_EVENT));
-        return dummyEventEventObservable(filter);
+        return dummyEventEventFlowable(filter);
     }
 
     public List<DummyEventNotOrderedEventResponse> getDummyEventNotOrderedEvents(TransactionReceipt transactionReceipt) {
@@ -193,10 +194,10 @@ public class EventEmitter extends Contract {
         return responses;
     }
 
-    public Observable<DummyEventNotOrderedEventResponse> dummyEventNotOrderedEventObservable(EthFilter filter) {
-        return web3j.ethLogObservable(filter).map(new Func1<Log, DummyEventNotOrderedEventResponse>() {
+    public Flowable<DummyEventNotOrderedEventResponse> dummyEventNotOrderedEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, DummyEventNotOrderedEventResponse>() {
             @Override
-            public DummyEventNotOrderedEventResponse call(Log log) {
+            public DummyEventNotOrderedEventResponse apply(Log log) {
                 Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(DUMMYEVENTNOTORDERED_EVENT, log);
                 DummyEventNotOrderedEventResponse typedResponse = new DummyEventNotOrderedEventResponse();
                 typedResponse.log = log;
@@ -210,28 +211,10 @@ public class EventEmitter extends Contract {
         });
     }
 
-    public Observable<DummyEventNotOrderedEventResponse> dummyEventNotOrderedEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Flowable<DummyEventNotOrderedEventResponse> dummyEventNotOrderedEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
         filter.addSingleTopic(EventEncoder.encode(DUMMYEVENTNOTORDERED_EVENT));
-        return dummyEventNotOrderedEventObservable(filter);
-    }
-
-    public static RemoteCall<EventEmitter> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
-        return deployRemoteCall(EventEmitter.class, web3j, credentials, contractGasProvider, BINARY, "");
-    }
-
-    @Deprecated
-    public static RemoteCall<EventEmitter> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return deployRemoteCall(EventEmitter.class, web3j, credentials, gasPrice, gasLimit, BINARY, "");
-    }
-
-    public static RemoteCall<EventEmitter> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
-        return deployRemoteCall(EventEmitter.class, web3j, transactionManager, contractGasProvider, BINARY, "");
-    }
-
-    @Deprecated
-    public static RemoteCall<EventEmitter> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return deployRemoteCall(EventEmitter.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, "");
+        return dummyEventNotOrderedEventFlowable(filter);
     }
 
     @Deprecated
@@ -252,17 +235,31 @@ public class EventEmitter extends Contract {
         return new EventEmitter(contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public static class DummyEventBytes16EventResponse {
-        public Log log;
+    public static RemoteCall<EventEmitter> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider) {
+        return deployRemoteCall(EventEmitter.class, web3j, credentials, contractGasProvider, BINARY, "");
+    }
 
+    @Deprecated
+    public static RemoteCall<EventEmitter> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return deployRemoteCall(EventEmitter.class, web3j, credentials, gasPrice, gasLimit, BINARY, "");
+    }
+
+    public static RemoteCall<EventEmitter> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+        return deployRemoteCall(EventEmitter.class, web3j, transactionManager, contractGasProvider, BINARY, "");
+    }
+
+    @Deprecated
+    public static RemoteCall<EventEmitter> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return deployRemoteCall(EventEmitter.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, "");
+    }
+
+    public static class DummyEventBytes16EventResponse extends BaseEventResponse {
         public byte[] indexedBytes16;
 
         public byte[] bytes16Value;
     }
 
-    public static class DummyEventEventResponse {
-        public Log log;
-
+    public static class DummyEventEventResponse extends BaseEventResponse {
         public byte[] indexedBytes;
 
         public String indexedAddress;
@@ -274,9 +271,7 @@ public class EventEmitter extends Contract {
         public BigInteger enumValue;
     }
 
-    public static class DummyEventNotOrderedEventResponse {
-        public Log log;
-
+    public static class DummyEventNotOrderedEventResponse extends BaseEventResponse {
         public byte[] indexedBytes;
 
         public String indexedAddress;

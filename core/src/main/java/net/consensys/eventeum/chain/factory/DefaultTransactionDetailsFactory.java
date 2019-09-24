@@ -5,6 +5,7 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
+import org.web3j.crypto.Keys;
 
 @Component
 public class DefaultTransactionDetailsFactory implements TransactionDetailsFactory {
@@ -20,6 +21,10 @@ public class DefaultTransactionDetailsFactory implements TransactionDetailsFacto
 
         transactionDetails.setNodeName(nodeName);
         transactionDetails.setStatus(status);
+
+        if (transaction.getCreates() != null) {
+            transactionDetails.setContractAddress(Keys.toChecksumAddress(transaction.getCreates()));
+        }
 
         return transactionDetails;
     }

@@ -34,6 +34,11 @@ public class BroadcasterPubSubIT extends MainBroadcasterTests {
     }
 
     @Test
+    public void testBroadcastBlock() throws Exception {
+        doTestBroadcastBlock();
+    }
+
+    @Test
     public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
         doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
     }
@@ -41,5 +46,20 @@ public class BroadcasterPubSubIT extends MainBroadcasterTests {
     @Test
     public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
+    }
+
+    @Test
+    public void testBroadcastFailedTransactionFilteredByHash() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByHash();
+    }
+
+    @Test
+    public void testBroadcastFailedTransactionFilteredByTo() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByTo();
+    }
+
+    @Test
+    public void testBroadcastFailedTransactionFilteredByFrom() throws Exception {
+        doTestBroadcastFailedTransactionFilteredByFrom();
     }
 }

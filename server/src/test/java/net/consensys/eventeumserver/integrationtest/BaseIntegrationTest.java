@@ -18,6 +18,7 @@ import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
+import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.utils.JSON;
 import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
@@ -215,9 +216,9 @@ public class BaseIntegrationTest {
         return filter;
     }
 
-    protected String monitorTransaction(String txHash) {
+    protected String monitorTransaction(TransactionMonitoringSpec monitorSpec) {
         final ResponseEntity<MonitorTransactionsResponse> response =
-                restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction?identifier=" + txHash, "", MonitorTransactionsResponse.class);
+                restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction", monitorSpec, MonitorTransactionsResponse.class);
 
         registeredTransactionMonitorIds.add(response.getBody().getId());
         return response.getBody().getId();

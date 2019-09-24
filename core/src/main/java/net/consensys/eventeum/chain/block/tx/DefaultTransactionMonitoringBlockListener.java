@@ -77,12 +77,12 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     }
 
     @Override
-    public void onBlock(BlockDetails blockDetails) {
+    public void onBlock(Block block) {
         asyncService.execute(() -> {
             lock.lock();
 
             try {
-                processBlock(blockDetails);
+                processBlock(block);
             } finally {
                 lock.unlock();
             }
@@ -121,27 +121,9 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         criteria.get(matchingCriteria.getNodeName()).remove(matchingCriteria);
     }
 
-    protected RetryTemplate getRetryTemplate() {
-        if (retryTemplate == null) {
-            retryTemplate = new RetryTemplate();
-
-            final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-            fixedBackOffPolicy.setBackOffPeriod(500);
-            retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-
-            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-            retryPolicy.setMaxAttempts(3);
-            retryTemplate.setRetryPolicy(retryPolicy);
-        }
-
-        return retryTemplate;
-    }
-
-    private void processBlock(BlockDetails blockDetails) {
-        getBlock(blockDetails.getHash(), blockDetails.getNodeName())
-                .ifPresent(block -> {
-                    block.getTransactions().forEach(tx -> broadcastIfMatched(tx, blockDetails.getNodeName()));
-                });
+    private void processBlock(Block block) {
+        block.getTransactions()
+                .forEach(tx -> broadcastIfMatched(tx, block.getNodeName()));
     }
 
     private void broadcastIfMatched(Transaction tx, String nodeName, List<TransactionMatchingCriteria> criteriaToCheck) {
@@ -163,20 +145,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         }
     }
 
-    private Optional<Block> getBlock(String blockHash, String nodeName) {
-        return getRetryTemplate().execute((context) -> {
-            final Optional<Block> block =  getBlockchainService(nodeName).getBlock(blockHash, true);
-
-            if (!block.isPresent()) {
-                throw new BlockchainException("Block not found");
-            }
-
-            blockCache.add(block.get());
-
-            return block;
-        });
-    }
-
     private void onTransactionMatched(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
 
         final BlockchainService blockchainService = getBlockchainService(txDetails.getNodeName());
@@ -188,9 +156,10 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
                     blockchainService, broadcaster, confirmationConfig, asyncService,
+                    matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 
-            broadcaster.broadcastTransaction(txDetails);
+            broadcastTransaction(txDetails, matchingCriteria);
 
             //Don't remove criteria if we're waiting for x blocks, as if there is a fork
             //we need to rebroadcast the unconfirmed tx in new block
@@ -199,11 +168,17 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                 txDetails.setStatus(TransactionStatus.FAILED);
             }
 
-            broadcaster.broadcastTransaction(txDetails);
+            broadcastTransaction(txDetails, matchingCriteria);
 
             if (matchingCriteria.isOneTimeMatch()) {
                 removeMatchingCriteria(matchingCriteria);
             }
+        }
+    }
+
+    private void broadcastTransaction(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
+        if (matchingCriteria.getStatuses().contains(txDetails.getStatus())) {
+            broadcaster.broadcastTransaction(txDetails);
         }
     }
 

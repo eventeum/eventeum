@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.block.tx;
 import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
@@ -11,8 +12,10 @@ import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBr
 import net.consensys.eventeum.service.AsyncTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TransactionConfirmationBlockListener extends SelfUnregisteringBlockListener {
@@ -29,12 +32,14 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private OnConfirmedCallback onConfirmedCallback;
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
+    private List<TransactionStatus> statusesToFilter;
 
     public TransactionConfirmationBlockListener(TransactionDetails transactionDetails,
                                                 BlockchainService blockchainService,
                                                 BlockchainEventBroadcaster eventBroadcaster,
                                                 EventConfirmationConfig eventConfirmationConfig,
                                                 AsyncTaskService asyncTaskService,
+                                                List<TransactionStatus> statusesToFilter,
                                                 OnConfirmedCallback onConfirmedCallback) {
         super(blockchainService);
         this.transactionDetails = transactionDetails;
@@ -42,6 +47,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         this.eventBroadcaster = eventBroadcaster;
         this.asyncTaskService = asyncTaskService;
         this.onConfirmedCallback = onConfirmedCallback;
+        this.statusesToFilter = statusesToFilter;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
@@ -49,7 +55,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     }
 
     @Override
-    public void onBlock(BlockDetails blockDetails) {
+    public void onBlock(Block block) {
         //Needs to be called asynchronously, otherwise websocket is blocked
         asyncTaskService.execute(() -> {
             final TransactionReceipt receipt = blockchainService.getTransactionReceipt(transactionDetails.getHash());
@@ -57,11 +63,11 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
             if (receipt == null) {
                 //Tx has disappeared...we've probably forked
                 //Tx should be included in block on new fork soon
-                handleMissingTransaction(blockDetails);
+                handleMissingTransaction(block);
                 return;
             }
 
-            checkTransactionStatus(blockDetails.getNumber(), receipt);
+            checkTransactionStatus(block.getNumber(), receipt);
         });
     }
 
@@ -112,16 +118,16 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     }
 
     private void broadcastEvent(TransactionDetails transactionDetails) {
-        if (!isInvalidated.get()) {
+        if (!isInvalidated.get() && statusesToFilter.contains(transactionDetails.getStatus())) {
             LOG.debug(String.format("Sending confirmed event for transaction: %s", transactionDetails.getHash()));
             eventBroadcaster.broadcastTransaction(transactionDetails);
         }
     }
 
-    private void handleMissingTransaction(BlockDetails blockDetails) {
+    private void handleMissingTransaction(Block block) {
         if (missingTxBlockLimit == null) {
-            missingTxBlockLimit = blockDetails.getNumber().add(blocksToWaitForMissingTx);
-        } else if (blockDetails.getNumber().compareTo(missingTxBlockLimit) > 0) {
+            missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
+        } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
             processInvalidatedEvent();
         }
     }
