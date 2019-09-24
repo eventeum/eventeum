@@ -20,6 +20,7 @@ import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -166,6 +167,17 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         } else {
             if (!isSuccess) {
                 txDetails.setStatus(TransactionStatus.FAILED);
+
+                String reason = getBlockchainService(txDetails.getNodeName()).getRevertReason(
+                        txDetails.getFrom(),
+                        txDetails.getTo(),
+                        Numeric.toBigInt(txDetails.getBlockNumber()),
+                        txDetails.getInput()
+                );
+
+                if (reason != null) {
+                    txDetails.setRevertReason(reason);
+                }
             }
 
             broadcastTransaction(txDetails, matchingCriteria);
