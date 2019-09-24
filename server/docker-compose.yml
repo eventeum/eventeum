@@ -2,7 +2,7 @@ version: '3'
 
 services:
   eventeum:
-    build: ./
+    image: eventeum/eventeum:latest
     ports:
     - "8060:8060"
     depends_on:
