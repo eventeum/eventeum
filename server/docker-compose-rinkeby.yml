@@ -1,6 +1,21 @@
 version: '3'
 
 services:
+  eventeum:
+    image: eventeum/eventeum:latest
+    ports:
+    - "8060:8060"
+    depends_on:
+      - mongodb
+      - kafka
+    environment:
+      SPRING_DATA_MONGODB_HOST: mongodb
+      ETHEREUM_NODE_URL: wss://rinkeby.infura.io/ws
+      ZOOKEEPER_ADDRESS: zookeeper:2181
+      KAFKA_ADDRESSES: kafka:19092
+      ETHEREUM_NODES_0_BLOCKSTRATEGY: PUBSUB
+    networks:
+      - default
 
   mongodb:
     image: mongo:latest
