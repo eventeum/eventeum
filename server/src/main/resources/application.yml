@@ -16,11 +16,11 @@ logging:
 ethereum:
   nodes:
     - name: default
-      url: ${ETHEREUM_NODE_URL:wss://rinkeby.infura.io/ws}
-      blockStrategy: PUBSUB
+      url: ${ETHEREUM_NODE_URL:http://localhost:8545}
+      blockStrategy: POLL
   healthcheck:
-    pollInterval: 6000
-  blockStrategy: PUBSUB
+    pollInterval: 2000
+  blockStrategy: POLL
 
 #eventFilters:
 #  - id: RequestCreated
