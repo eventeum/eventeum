@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.service;
 
+import io.reactivex.Flowable;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
@@ -15,7 +16,6 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.*;
-import rx.Observable;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -160,8 +160,8 @@ public class Web3jServiceTest {
         final org.web3j.protocol.core.methods.response.Log mockLog
                 = mock(org.web3j.protocol.core.methods.response.Log.class);
 
-        final Observable<org.web3j.protocol.core.methods.response.Log> observable = Observable.just(mockLog);
-        when(mockWeb3j.ethLogObservable(any(EthFilter.class))).thenReturn(observable);
+        final Flowable<org.web3j.protocol.core.methods.response.Log> flowable = Flowable.just(mockLog);
+        when(mockWeb3j.ethLogFlowable(any(EthFilter.class))).thenReturn(flowable);
 
         final ContractEventFilter filter = new ContractEventFilter();
 

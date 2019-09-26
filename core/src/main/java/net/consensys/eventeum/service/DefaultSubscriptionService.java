@@ -172,7 +172,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
     public void unsubscribeFilterSubscription(FilterSubscription filterSubscription) {
 
         try {
-            filterSubscription.getSubscription().unsubscribe();
+            filterSubscription.getSubscription().dispose();
         } catch (Throwable t) {
             log.info("Unable to unregister filter...this is probably because the " +
                     "node has restarted or we're in websocket mode");

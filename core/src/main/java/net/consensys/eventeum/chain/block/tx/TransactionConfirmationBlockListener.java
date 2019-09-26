@@ -3,6 +3,7 @@ package net.consensys.eventeum.chain.block.tx;
 import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
@@ -11,6 +12,7 @@ import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBr
 import net.consensys.eventeum.service.AsyncTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -53,7 +55,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     }
 
     @Override
-    public void onBlock(BlockDetails blockDetails) {
+    public void onBlock(Block block) {
         //Needs to be called asynchronously, otherwise websocket is blocked
         asyncTaskService.execute(() -> {
             final TransactionReceipt receipt = blockchainService.getTransactionReceipt(transactionDetails.getHash());
@@ -61,11 +63,11 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
             if (receipt == null) {
                 //Tx has disappeared...we've probably forked
                 //Tx should be included in block on new fork soon
-                handleMissingTransaction(blockDetails);
+                handleMissingTransaction(block);
                 return;
             }
 
-            checkTransactionStatus(blockDetails.getNumber(), receipt);
+            checkTransactionStatus(block.getNumber(), receipt);
         });
     }
 
@@ -122,10 +124,10 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         }
     }
 
-    private void handleMissingTransaction(BlockDetails blockDetails) {
+    private void handleMissingTransaction(Block block) {
         if (missingTxBlockLimit == null) {
-            missingTxBlockLimit = blockDetails.getNumber().add(blocksToWaitForMissingTx);
-        } else if (blockDetails.getNumber().compareTo(missingTxBlockLimit) > 0) {
+            missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
+        } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
             processInvalidatedEvent();
         }
     }

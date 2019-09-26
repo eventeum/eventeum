@@ -3,19 +3,23 @@ package net.consensys.eventeum.chain.service.domain.wrapper;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
+import net.consensys.eventeum.utils.ModelMapperFactory;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
 import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
 public class Web3jBlock implements Block {
 
-    private String number;
+    private BigInteger number;
     private String hash;
     private String parentHash;
-    private String nonce;
+    private BigInteger nonce;
     private String sha3Uncles;
     private String logsBloom;
     private String transactionsRoot;
@@ -24,19 +28,37 @@ public class Web3jBlock implements Block {
     private String author;
     private String miner;
     private String mixHash;
-    private String difficulty;
-    private String totalDifficulty;
+    private BigInteger difficulty;
+    private BigInteger totalDifficulty;
     private String extraData;
-    private String size;
-    private String gasLimit;
-    private String gasUsed;
-    private String timestamp;
+    private BigInteger size;
+    private BigInteger gasLimit;
+    private BigInteger gasUsed;
+    private BigInteger timestamp;
     private List<Transaction> transactions;
     private List<String> uncles;
     private List<String> sealFields;
+    private String nodeName;
 
-    public Web3jBlock(EthBlock.Block web3jBlock) {
+    public Web3jBlock(EthBlock.Block web3jBlock, String nodeName) {
+        final ModelMapper modelMapper = ModelMapperFactory.getInstance().createModelMapper();
+        modelMapper.typeMap(
+                EthBlock.Block.class, Web3jBlock.class)
+                .addMappings(mapper -> {
+                    mapper.skip(Web3jBlock::setTransactions);
+
+                    //Nonce can be null which throws exception in web3j when
+                    //calling getNonce (because of attempted hex conversion)
+                    if (web3jBlock.getNonceRaw() == null) {
+                        mapper.skip(Web3jBlock::setNonce);
+                    }
+                });
+
+        modelMapper.map(web3jBlock, this);
+
         transactions = convertTransactions(web3jBlock.getTransactions());
+
+        this.nodeName = nodeName;
     }
 
     private List<Transaction> convertTransactions(List<EthBlock.TransactionResult> toConvert) {

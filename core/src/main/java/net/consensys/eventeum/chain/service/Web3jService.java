@@ -1,5 +1,8 @@
 package net.consensys.eventeum.chain.service;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +24,6 @@ import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.*;
-import rx.Observable;
-import rx.Subscription;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -98,9 +99,9 @@ public class Web3jService implements BlockchainService {
             ethFilter = ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
         }
 
-        final Observable<Log> observable = web3j.ethLogObservable(ethFilter);
+        final Flowable<Log> flowable = web3j.ethLogFlowable(ethFilter);
 
-        final Subscription sub = observable.subscribe(theLog -> {
+        final Disposable sub = flowable.subscribe(theLog -> {
             lock.lock();
 
             try {
@@ -191,7 +192,7 @@ public class Web3jService implements BlockchainService {
                 return Optional.empty();
             }
 
-            return Optional.of(new Web3jBlock(blockResponse.getBlock()));
+            return Optional.of(new Web3jBlock(blockResponse.getBlock(), nodeName));
         } catch (IOException e) {
             throw new BlockchainException("Error when obtaining block with hash: " + blockHash, e);
         }

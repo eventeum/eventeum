@@ -1,7 +1,9 @@
 package net.consensys.eventeum.chain.service.strategy;
 
+import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
@@ -23,7 +25,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     private Lock lock = new ReentrantLock();
 
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
-    protected Subscription blockSubscription;
+    protected Disposable blockSubscription;
     protected Web3j web3j;
     protected EventStoreService eventStoreService;
     protected String nodeName;
@@ -38,7 +40,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     public void unsubscribe() {
         try {
             if (blockSubscription != null) {
-                blockSubscription.unsubscribe();
+                blockSubscription.dispose();
             }
         } finally {
             blockSubscription = null;
@@ -56,19 +58,19 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     public boolean isSubscribed() {
-        return blockSubscription != null && !blockSubscription.isUnsubscribed();
+        return blockSubscription != null && !blockSubscription.isDisposed();
     }
 
     protected void triggerListeners(T blockObject) {
         lock.lock();
         try {
-            blockListeners.forEach(listener -> triggerListener(listener, convertToBlockDetails(blockObject)));
+            blockListeners.forEach(listener -> triggerListener(listener, convertToEventeumBlock(blockObject)));
         } finally {
             lock.unlock();
         }
     }
 
-    protected void triggerListener(BlockListener listener, BlockDetails block) {
+    protected void triggerListener(BlockListener listener, Block block) {
         try {
             listener.onBlock(block);
         } catch(Throwable t) {
@@ -80,6 +82,6 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         return eventStoreService.getLatestBlock(nodeName);
     }
 
-    abstract BlockDetails convertToBlockDetails(T blockObject);
+    abstract Block convertToEventeumBlock(T blockObject);
 
 }

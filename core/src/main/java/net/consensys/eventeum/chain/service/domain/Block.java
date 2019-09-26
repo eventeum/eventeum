@@ -1,15 +1,14 @@
 package net.consensys.eventeum.chain.service.domain;
 
-import org.web3j.protocol.core.methods.response.EthBlock;
-
+import java.math.BigInteger;
 import java.util.List;
 
 public interface Block {
 
-    String getNumber();
+    BigInteger getNumber();
     String getHash();
     String getParentHash();
-    String getNonce();
+    BigInteger getNonce();
     String getSha3Uncles();
     String getLogsBloom();
     String getTransactionsRoot();
@@ -18,15 +17,18 @@ public interface Block {
     String getAuthor();
     String getMiner();
     String getMixHash();
-    String getDifficulty();
-    String getTotalDifficulty();
+    BigInteger getDifficulty();
+    BigInteger getTotalDifficulty();
     String getExtraData();
-    String getSize();
-    String getGasLimit();
-    String getGasUsed();
-    String getTimestamp();
+    BigInteger getSize();
+    BigInteger getGasLimit();
+    BigInteger getGasUsed();
+    BigInteger getTimestamp();
     List<Transaction> getTransactions();
     List<String> getUncles();
     List<String> getSealFields();
+
+    //Eventeum specific
+    String getNodeName();
 }
 

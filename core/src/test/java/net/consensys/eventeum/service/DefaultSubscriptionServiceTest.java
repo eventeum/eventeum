@@ -1,6 +1,8 @@
 package net.consensys.eventeum.service;
 
 import java.util.Collections;
+
+import io.reactivex.disposables.Disposable;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
@@ -21,7 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import rx.Subscription;
 
 import java.util.Arrays;
 
@@ -125,7 +126,7 @@ public class DefaultSubscriptionServiceTest {
         final ContractEventFilter filter = createEventFilter(null);
 
         when(mockBlockchainService.registerEventListener(any(ContractEventFilter.class), any(ContractEventListener.class)))
-                .thenReturn(new FilterSubscription(filter, mock(Subscription.class)));
+                .thenReturn(new FilterSubscription(filter, mock(Disposable.class)));
 
         underTest.registerContractEventFilter(filter, true);
 
@@ -136,8 +137,8 @@ public class DefaultSubscriptionServiceTest {
     public void testResubscribeToAllSubscriptions() {
         final ContractEventFilter filter1 = createEventFilter(FILTER_ID);
         final ContractEventFilter filter2 = createEventFilter("AnotherId");
-        final Subscription sub1 = mock(Subscription.class);
-        final Subscription sub2 = mock(Subscription.class);
+        final Disposable sub1 = mock(Disposable.class);
+        final Disposable sub2 = mock(Disposable.class);
 
         when(mockBlockchainService.registerEventListener(
                 eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
@@ -164,7 +165,7 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testUnnregisterContractEventFilter() throws NotFoundException {
         final ContractEventFilter filter = createEventFilter();
-        final Subscription sub1 = mock(Subscription.class);
+        final Disposable sub1 = mock(Disposable.class);
 
         when(mockBlockchainService.registerEventListener(
                 eq(filter), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter, sub1));
@@ -173,7 +174,7 @@ public class DefaultSubscriptionServiceTest {
 
         underTest.unregisterContractEventFilter(FILTER_ID);
 
-        verify(sub1, times(1)).unsubscribe();
+        verify(sub1, times(1)).dispose();
         verify(mockRepo, times(1)).deleteById(FILTER_ID);
         verify(mockFilterBroadcaster, times(1)).broadcastEventFilterRemoved(filter);
 
@@ -192,10 +193,10 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testUnsubscribeToAllSubscriptions() {
         final ContractEventFilter filter1 = createEventFilter("filter1");
-        final Subscription sub1 = mock(Subscription.class);
+        final Disposable sub1 = mock(Disposable.class);
 
         final ContractEventFilter filter2 = createEventFilter();
-        final Subscription sub2 = mock(Subscription.class);
+        final Disposable sub2 = mock(Disposable.class);
 
         when(mockBlockchainService.registerEventListener(
                 eq(filter1), any(ContractEventListener.class))).thenReturn(new FilterSubscription(filter1, sub1));
@@ -206,8 +207,8 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter2, false);
         underTest.unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
 
-        verify(sub1, times(1)).unsubscribe();
-        verify(sub2, times(1)).unsubscribe();
+        verify(sub1, times(1)).dispose();
+        verify(sub2, times(1)).dispose();
     }
 
     private void verifyContractEventFilterRegistration(ContractEventFilter filter, boolean save, boolean broadcast) {
@@ -234,7 +235,7 @@ public class DefaultSubscriptionServiceTest {
         final ContractEventFilter filter =  createEventFilter(FILTER_ID);
 
         when(mockBlockchainService.registerEventListener(eq(filter), any(ContractEventListener.class)))
-                .thenReturn(new FilterSubscription(filter, mock(Subscription.class)));
+                .thenReturn(new FilterSubscription(filter, mock(Disposable.class)));
 
         return filter;
     }
