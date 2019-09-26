@@ -13,6 +13,7 @@ services:
       ETHEREUM_NODE_URL: wss://rinkeby.infura.io/ws
       ZOOKEEPER_ADDRESS: zookeeper:2181
       KAFKA_ADDRESSES: kafka:19092
+      ETHEREUM_NODES_0_BLOCKSTRATEGY: PUBSUB
     networks:
       - default
 
