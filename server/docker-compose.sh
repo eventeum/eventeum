@@ -18,6 +18,9 @@ composescript="docker-compose.yml"
 if [ "$1" = "rinkeby" ]; then
    composescript="docker-compose-rinkeby.yml"
    echo "Running in Rinkeby Infura mode..."
+elif [ "$1" = "infra" ]; then
+   composescript="docker-compose-infra.yml"
+   echo "Running in Infrastructure mode..."
 fi
 
 docker-compose -f "$composescript" build

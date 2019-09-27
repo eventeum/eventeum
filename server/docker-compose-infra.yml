@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - $HOME/mongodb/data/db:/data/db
+    networks:
+      - default
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.0.1-1
+    ports:
+      - "2181:2181"
+    environment:
+      zk_id: "1"
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - default
+
+  kafka:
+    image: confluentinc/cp-kafka:5.0.1-1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - default
