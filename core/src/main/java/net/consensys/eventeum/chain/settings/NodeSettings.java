@@ -28,6 +28,8 @@ public class NodeSettings {
 
     private static final String BLOCK_STRATEGY_ATTRIBUTE = "blockStrategy";
 
+    private static final String TRANSACTION_REVERT_REASON = "addTransactionRevertReason";
+
     private List<Node> nodes;
 
     private String blockStrategy;
@@ -50,7 +52,9 @@ public class NodeSettings {
                     getNodePollingIntervalProperty(environment, index),
                     getNodeUsernameProperty(environment, index),
                     getNodePasswordProperty(environment, index),
-                    getNodeBlockStrategyProperty(environment, index)));
+                    getNodeBlockStrategyProperty(environment, index),
+                    getNodeTransactionRevertReasonProperty(environment, index)
+            ));
 
             index++;
         }
@@ -93,6 +97,10 @@ public class NodeSettings {
 
     private String getNodeBlockStrategyProperty(Environment environment, int index) {
         return getProperty(environment, buildNodeAttribute(BLOCK_STRATEGY_ATTRIBUTE, index));
+    }
+
+    private Boolean getNodeTransactionRevertReasonProperty(Environment environment, int index) {
+        return Boolean.parseBoolean(getProperty(environment, buildNodeAttribute(TRANSACTION_REVERT_REASON, index)));
     }
 
     private String getProperty(Environment environment, String property) {
