@@ -185,12 +185,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
             if (!isSuccess) {
                 txDetails.setStatus(TransactionStatus.FAILED);
 
-                String reason = getBlockchainService(txDetails.getNodeName()).getRevertReason(
-                        txDetails.getFrom(),
-                        txDetails.getTo(),
-                        Numeric.toBigInt(txDetails.getBlockNumber()),
-                        txDetails.getInput()
-                );
+                String reason = getRevertReason(txDetails);
 
                 if (reason != null) {
                     txDetails.setRevertReason(reason);
@@ -241,5 +236,20 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
             removeMatchingCriteria(matchingCriteria);
         }
+    }
+
+    private String getRevertReason(TransactionDetails txDetails) {
+        Node node = nodes.get(txDetails.getNodeName());
+
+        if (!node.getAddTransactionRevertReason()) {
+            return null;
+        }
+
+        return getBlockchainService(txDetails.getNodeName()).getRevertReason(
+                txDetails.getFrom(),
+                txDetails.getTo(),
+                Numeric.toBigInt(txDetails.getBlockNumber()),
+                txDetails.getInput()
+        );
     }
 }
