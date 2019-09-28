@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.block.tx;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
@@ -11,11 +12,14 @@ import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.settings.Node;
+import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.service.AsyncTaskService;
+import org.springframework.core.env.Environment;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -53,15 +57,24 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private Lock lock = new ReentrantLock();
 
+    private Environment environment;
+
+    //Keyed by node name
+    private Map<String, Node> nodes;
+
     public DefaultTransactionMonitoringBlockListener(ChainServicesContainer chainServicesContainer,
                                                      BlockchainEventBroadcaster broadcaster,
                                                      TransactionDetailsFactory transactionDetailsFactory,
                                                      EventConfirmationConfig confirmationConfig,
                                                      AsyncTaskService asyncService,
-                                                     BlockCache blockCache) {
+                                                     BlockCache blockCache,
+                                                     Environment environment
+    ) {
         this.criteria = new ConcurrentHashMap<>();
 
         this.blockchainServices = new HashMap<>();
+
+        this.nodes = new HashMap<>();
 
         chainServicesContainer
                 .getNodeNames()
@@ -69,6 +82,10 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                     blockchainServices.put(nodeName,
                             chainServicesContainer.getNodeServices(nodeName).getBlockchainService());
                 });
+
+        new NodeSettings(environment).getNodes().forEach(node -> {
+            nodes.put(node.getName(), node);
+        });
 
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
