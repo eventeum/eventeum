@@ -13,6 +13,8 @@ import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBr
 import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
+
 /**
  * A contract event listener that initialises a block listener after being passed an unconfirmed event.
  *
@@ -34,10 +36,24 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
     @Override
     public void onEvent(ContractEventDetails eventDetails) {
         if (eventDetails.getStatus() == ContractEventStatus.UNCONFIRMED) {
-            log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
 
             final BlockchainService blockchainService = getBlockchainService(eventDetails);
+
+            BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
+            BigInteger waitBlocks = eventConfirmationConfig.getBlocksToWaitForConfirmation();
+            BigInteger confirmationBlock = eventDetails.getBlockNumber().add(waitBlocks);
+
+            if (currentBlock.compareTo(confirmationBlock) >= 0) {
+                eventDetails.setStatus(ContractEventStatus.CONFIRMED);
+                eventBroadcaster.broadcastContractEvent(eventDetails);
+
+                return;
+            }
+
+            log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
+
             blockchainService.addBlockListener(createEventConfirmationBlockListener(eventDetails));
+
         }
     }
 
