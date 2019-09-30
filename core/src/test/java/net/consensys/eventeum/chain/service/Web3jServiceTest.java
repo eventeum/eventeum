@@ -12,6 +12,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.reactivestreams.Subscriber;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -160,7 +161,7 @@ public class Web3jServiceTest {
         final org.web3j.protocol.core.methods.response.Log mockLog
                 = mock(org.web3j.protocol.core.methods.response.Log.class);
 
-        final Flowable<org.web3j.protocol.core.methods.response.Log> flowable = Flowable.just(mockLog);
+        final Flowable<org.web3j.protocol.core.methods.response.Log> flowable = new DummyFlowable<>(mockLog);
         when(mockWeb3j.ethLogFlowable(any(EthFilter.class))).thenReturn(flowable);
 
         final ContractEventFilter filter = new ContractEventFilter();
@@ -254,5 +255,19 @@ public class Web3jServiceTest {
         assertEquals(DATA, log.getData());
         assertEquals(TYPE, log.getType());
         assertEquals(TOPIC, log.getTopics().get(0));
+    }
+
+    private class DummyFlowable<T> extends Flowable<T> {
+
+        private T value;
+
+        public DummyFlowable(T value) {
+            this.value = value;
+        }
+
+        @Override
+        protected void subscribeActual(Subscriber<? super T> s) {
+            s.onNext(value);
+        }
     }
  }

@@ -64,7 +64,8 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected void triggerListeners(T blockObject) {
         lock.lock();
         try {
-            blockListeners.forEach(listener -> triggerListener(listener, convertToEventeumBlock(blockObject)));
+            final Block eventeumBlock = convertToEventeumBlock(blockObject);
+            blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
         } finally {
             lock.unlock();
         }

@@ -7,6 +7,7 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -28,8 +29,15 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
 
     private RetryTemplate retryTemplate;
 
-    public PubSubBlockSubscriptionStrategy(Web3j web3j, String nodeName, EventStoreService eventStoreService) {
+    private AsyncTaskService asyncService;
+
+    public PubSubBlockSubscriptionStrategy(Web3j web3j,
+                                           String nodeName,
+                                           EventStoreService eventStoreService,
+                                           AsyncTaskService asyncService) {
         super(web3j, nodeName, eventStoreService);
+
+        this.asyncService = asyncService;
     }
 
     @Override
@@ -51,9 +59,15 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     }
 
     private Disposable subscribeToNewHeads() {
-        return web3j.newHeadsNotifications().subscribe(newHead -> {
-            triggerListeners(newHead.getParams().getResult());
+        final Disposable disposable = web3j.newHeadsNotifications().subscribe(newHead -> {
+            asyncService.execute(() -> triggerListeners(newHead.getParams().getResult()));
         });
+
+        if (disposable.isDisposed()) {
+            throw new BlockchainException("Error when subscribing to newheads.  Disposable already disposed.");
+        }
+
+        return disposable;
     }
 
     NewHead convertToNewHead(EthBlock ethBlock) {

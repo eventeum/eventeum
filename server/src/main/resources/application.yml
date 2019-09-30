@@ -17,7 +17,7 @@ ethereum:
   nodes:
     - name: default
       url: ${ETHEREUM_NODE_URL:http://localhost:8545}
-      blockStrategy: POLL
+#      blockStrategy: POLL
   healthcheck:
     pollInterval: 2000
   blockStrategy: POLL
