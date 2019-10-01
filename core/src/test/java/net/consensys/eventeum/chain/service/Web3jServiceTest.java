@@ -13,8 +13,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
 
 import java.io.IOException;
@@ -38,6 +40,8 @@ public class Web3jServiceTest {
     private static final BigInteger BLOCK_NUMBER = BigInteger.valueOf(123);
 
     private static final String CONTRACT_ADDRESS = "0x7a55a28856d43bba3c6a7e36f2cee9a82923e99b";
+
+    private static final String REVERT_REASON = "error";
 
     private Web3jService underTest;
 
@@ -154,6 +158,18 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenThrow(new IOException());
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
         underTest.getCurrentBlockNumber();
+    }
+
+    @Test
+    public void testGetRevertReason() throws IOException {
+        final Request<?, EthCall> mockRequest = mock(Request.class);
+        final EthCall ethCall = mock(EthCall.class);
+
+        when(ethCall.getRevertReason()).thenReturn(REVERT_REASON);
+        when(mockRequest.send()).thenReturn(ethCall);
+        doReturn(mockRequest).when(mockWeb3j).ethCall(any(Transaction.class), any(DefaultBlockParameter.class));
+
+        assertEquals(REVERT_REASON, underTest.getRevertReason(FROM_ADDRESS, TO_ADDRESS, BLOCK_NUMBER, "0x1"));
     }
 
     private ContractEventDetails doRegisterEventListenerAndTrigger() {

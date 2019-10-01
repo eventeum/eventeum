@@ -1,7 +1,6 @@
 package net.consensys.eventeum.chain.config;
 
 import lombok.Setter;
-import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
@@ -18,7 +17,7 @@ public class BlockchainServiceRegistrar implements ImportBeanDefinitionRegistrar
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
         final NodeSettings nodeSettings = getNodeSettings();
 
-        nodeSettings.getNodes().forEach(node ->
+        nodeSettings.getNodes().forEach((name, node) ->
                 getNodeBeanRegistratioStrategy(nodeSettings).register(node, registry));
     }
 

@@ -14,4 +14,5 @@ public class Node {
     private String username;
     private String password;
     private String blockStrategy;
+    private Boolean addTransactionRevertReason;
 }

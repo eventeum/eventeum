@@ -19,11 +19,14 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.model.FilterSubscription;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
+import org.web3j.utils.Numeric;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -202,6 +205,18 @@ public class Web3jService implements BlockchainService {
     @Override
     public boolean isConnected() {
         return blockSubscriptionStrategy != null && blockSubscriptionStrategy.isSubscribed();
+    }
+
+    @Override
+    public String getRevertReason(String from, String to, BigInteger blockNumber, String input) {
+        try {
+            return web3j.ethCall(
+                    Transaction.createEthCallTransaction(from, to, input),
+                    DefaultBlockParameter.valueOf(blockNumber)
+            ).send().getRevertReason();
+        } catch (IOException e) {
+            throw new BlockchainException("Error getting the revert reason", e);
+        }
     }
 
     @PreDestroy
