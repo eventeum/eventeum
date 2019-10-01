@@ -1,7 +1,6 @@
 package net.consensys.eventeum.chain.settings;
 
 import java.util.HashMap;
-import java.util.Map;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import org.springframework.core.env.Environment;
@@ -31,7 +30,7 @@ public class NodeSettings {
 
     private static final String TRANSACTION_REVERT_REASON = "addTransactionRevertReason";
 
-    private Map<String, Node> nodes;
+    private HashMap<String, Node> nodes;
 
     private String blockStrategy;
 
