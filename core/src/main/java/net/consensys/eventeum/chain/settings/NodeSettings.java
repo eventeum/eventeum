@@ -1,13 +1,14 @@
 package net.consensys.eventeum.chain.settings;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import org.springframework.core.env.Environment;
-import org.web3j.abi.datatypes.Int;
+import org.springframework.stereotype.Component;
 
 @Data
+@Component
 public class NodeSettings {
 
     private static final Long DEFAULT_POLLING_INTERVAL = 10000l;
@@ -30,7 +31,7 @@ public class NodeSettings {
 
     private static final String TRANSACTION_REVERT_REASON = "addTransactionRevertReason";
 
-    private List<Node> nodes;
+    private Map<String, Node> nodes;
 
     private String blockStrategy;
 
@@ -40,22 +41,27 @@ public class NodeSettings {
         blockStrategy = environment.getProperty(ATTRIBUTE_PREFIX + "." + BLOCK_STRATEGY_ATTRIBUTE);
     }
 
-    private void populateNodeSettings(Environment environment) {
-        nodes = new ArrayList<>();
+    public Node getNode(String nodeName) {
+        return nodes.get(nodeName);
+    }
 
+    private void populateNodeSettings(Environment environment) {
+        nodes = new HashMap <String, Node>();
         int index = 0;
 
         while (nodeExistsAtIndex(environment, index)) {
-            nodes.add(new Node(
-                    getNodeNameProperty(environment, index),
+            String nodeName = getNodeNameProperty(environment, index);
+            Node node = new Node(
+                    nodeName,
                     getNodeUrlProperty(environment, index),
                     getNodePollingIntervalProperty(environment, index),
                     getNodeUsernameProperty(environment, index),
                     getNodePasswordProperty(environment, index),
                     getNodeBlockStrategyProperty(environment, index),
                     getNodeTransactionRevertReasonProperty(environment, index)
-            ));
+            );
 
+            nodes.put(nodeName, node);
             index++;
         }
 
