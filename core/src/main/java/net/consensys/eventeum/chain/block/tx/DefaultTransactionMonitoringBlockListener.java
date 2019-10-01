@@ -6,7 +6,6 @@ import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteri
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
-import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.Block;
@@ -14,14 +13,10 @@ import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.service.AsyncTaskService;
-import org.springframework.core.env.Environment;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.web3j.utils.Numeric;
@@ -57,10 +52,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private Lock lock = new ReentrantLock();
 
-    private Environment environment;
-
-    //Keyed by node name
-    private Map<String, Node> nodes;
+    private NodeSettings nodeSettings;
 
     public DefaultTransactionMonitoringBlockListener(ChainServicesContainer chainServicesContainer,
                                                      BlockchainEventBroadcaster broadcaster,
@@ -68,13 +60,11 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                                                      EventConfirmationConfig confirmationConfig,
                                                      AsyncTaskService asyncService,
                                                      BlockCache blockCache,
-                                                     Environment environment
+                                                     NodeSettings nodeSettings
     ) {
         this.criteria = new ConcurrentHashMap<>();
 
         this.blockchainServices = new HashMap<>();
-
-        this.nodes = new HashMap<>();
 
         chainServicesContainer
                 .getNodeNames()
@@ -83,15 +73,12 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                             chainServicesContainer.getNodeServices(nodeName).getBlockchainService());
                 });
 
-        new NodeSettings(environment).getNodes().forEach(node -> {
-            nodes.put(node.getName(), node);
-        });
-
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
         this.confirmationConfig = confirmationConfig;
         this.asyncService = asyncService;
         this.blockCache = blockCache;
+        this.nodeSettings = nodeSettings;
     }
 
     @Override
@@ -238,8 +225,9 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         }
     }
 
+
     private String getRevertReason(TransactionDetails txDetails) {
-        Node node = nodes.get(txDetails.getNodeName());
+        Node node = nodeSettings.getNode(txDetails.getNodeName());
 
         if (!node.getAddTransactionRevertReason()) {
             return null;
