@@ -1,6 +1,5 @@
 package net.consensys.eventeum.chain.block.tx;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.config.EventConfirmationConfig;
