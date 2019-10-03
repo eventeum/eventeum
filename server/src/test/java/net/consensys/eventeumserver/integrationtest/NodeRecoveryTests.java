@@ -3,10 +3,14 @@ package net.consensys.eventeumserver.integrationtest;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -46,6 +50,37 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
 
         emitEventAndVerify(emitter, registeredFilter);
 
+    }
+
+    protected void doNodeFailureBeforeEventRegistrationRecoveryTest(Optional<Long> waitTimeAfterRestart) throws Exception {
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        stopParity();
+
+        boolean hasErrored = false;
+        try {
+            final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
+        } catch (HttpServerErrorException e) {
+            //Expected
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
+            hasErrored = true;
+        }
+
+        assertEquals(true, hasErrored);
+
+        startParity();
+
+        waitTimeAfterRestart
+                .ifPresent(waitTime -> {
+                    try {
+                        Thread.sleep(waitTime);
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
+
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
+        emitEventAndVerify(emitter, registeredFilter);
     }
 
     private void doParityRestartEventEmissionsAssertion(

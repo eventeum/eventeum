@@ -17,27 +17,27 @@ ethereum:
   nodes:
     - name: default
       url: ${ETHEREUM_NODE_URL:http://localhost:8545}
-      blockStrategy: POLL
+#      blockStrategy: POLL
   healthcheck:
     pollInterval: 2000
   blockStrategy: POLL
 
 #eventFilters:
-#  - id: RequestCreated
-#    contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
+#  - id: CryptoKittiesTransfer
+#    contractAddress: "0x06012c8cf97bead5deae237070f9587f8e7a266d"
 #    eventSpecification:
-#      eventName: RequestCreated
-#      indexedParameterDefinitions:
+#      eventName: Transfer
+#      nonIndexedParameterDefinitions:
 #        - position: 0
-#          type: BYTES32
+#          type: ADDRESS
 #        - position: 1
 #          type: ADDRESS
-#      nonIndexedParameterDefinitions:
 #        - position: 2
-#          type: BYTES32
+#          type: UINT256
+#
 #    correlationId:
 #      type: NON_INDEXED_PARAMETER
-#      index: 0
+#      index: 2
 
 #transactionFilters:
 #- nodeName: ${ETHEREUM_NETWORK:DefaultNetwork}

@@ -1,5 +1,6 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import junit.framework.TestCase;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
@@ -19,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -75,12 +77,22 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
 
         final String contractAddress = deployEventEmitterContract().getContractAddress();
 
-        //Not sure why there is always a value sending transaction first...maybe something to do with the genesis block?
-        waitForTransactionMessages(2);
+        waitForTransactionMessages(2, false);
 
-        assertEquals(2, getBroadcastTransactionMessages().size());
+        TransactionDetails txDetails = null;
 
-        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(1);
+        //Not sure why there is sometimes a value sending transaction first...maybe something to do with the genesis block?
+        if (getBroadcastTransactionMessages().size() == 1) {
+            txDetails = getBroadcastTransactionMessages().get(0);
+        } else if (getBroadcastTransactionMessages().size() == 2) {
+            txDetails = getBroadcastTransactionMessages().get(1);
+
+            //Check that the same tx hasn't been broadcast twice
+            assertNotEquals(getBroadcastTransactionMessages().get(0).getHash(), txDetails.getHash());
+        } else {
+            TestCase.fail("Incorrect number of transaction messages broadcast");
+        }
+
         assertNull(txDetails.getTo());
         assertEquals(Keys.toChecksumAddress(contractAddress), txDetails.getContractAddress());
     }

@@ -371,7 +371,15 @@ public class BaseIntegrationTest {
         waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages());
     }
 
-    protected <T> void waitForMessages(int expectedMessageCount, List<T> messages) {
+    protected void waitForTransactionMessages(int expectedTransactionMessages,  boolean failOnTimeout) {
+        waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages(), failOnTimeout);
+    }
+
+    protected <T> boolean waitForMessages(int expectedMessageCount, List<T> messages) {
+        return waitForMessages(expectedMessageCount, messages, true);
+    }
+
+    protected <T> boolean waitForMessages(int expectedMessageCount, List<T> messages, boolean failOnTimeout) {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -381,7 +389,7 @@ public class BaseIntegrationTest {
         final long startTime = System.currentTimeMillis();
         while(true) {
             if (messages.size() >= expectedMessageCount) {
-                break;
+                return true;
             }
 
             if (System.currentTimeMillis() > startTime + 20000) {
@@ -390,7 +398,11 @@ public class BaseIntegrationTest {
                 builder.append("Expected message count: " + expectedMessageCount);
                 builder.append(", received: " + messages.size());
 
-                TestCase.fail(builder.toString());
+                if (failOnTimeout) {
+                    TestCase.fail(builder.toString());
+                }
+
+                return false;
             }
 
             try {

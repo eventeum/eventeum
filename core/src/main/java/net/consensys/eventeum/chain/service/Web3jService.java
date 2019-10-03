@@ -116,6 +116,12 @@ public class Web3jService implements BlockchainService {
             }
         });
 
+        if (sub.isDisposed()) {
+            //There was an error subscribing
+            throw new BlockchainException(String.format(
+                    "Failed to subcribe for filter %s.  The subscription is disposed.", eventFilter.getId()));
+        }
+
         return new FilterSubscription(eventFilter, sub, startBlock);
     }
 
