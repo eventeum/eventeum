@@ -399,6 +399,7 @@ Eventeum can either be configured by:
 | BROADCASTER_HTTP CONTRACTEVENTSURL | | The http url for posting contract events (for HTTP broadcasting) |
 | BROADCASTER_HTTP BLOCKEVENTSURL | | The http url for posting block events (for HTTP broadcasting) |
 | BROADCASTER_BYTESTOASCII | false | If any bytes values within events should be converted to ascii (default is hex) |
+| BROADCASTER_ALLOW_BLOCK_NOTIFICATION | true | Boolean that indicates if want to receive block notifications or not. Set false to not receive that event. |
 | ZOOKEEPER_ADDRESS | localhost:2181 | The zookeeper address |
 | KAFKA_ADDRESSES | localhost:9092 | Comma seperated list of kafka addresses |
 | KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages |
