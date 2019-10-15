@@ -25,7 +25,7 @@ import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBr
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBroadcasterSettings;
 import net.consensys.eventeum.integration.broadcast.blockchain.KafkaBlockchainEventBroadcaster;
-import net.consensys.eventeum.integration.broadcast.blockchain.OnlyOnceBlockchainEventBroadcasterWrapper;
+import net.consensys.eventeum.integration.broadcast.blockchain.EventBroadcasterWrapper;
 import net.consensys.eventeum.integration.broadcast.blockchain.PulsarBlockChainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.RabbitBlockChainEventBroadcaster;
 
@@ -107,6 +107,6 @@ public class BlockchainEventBroadcasterConfiguration {
     }
 
     private BlockchainEventBroadcaster onlyOnceWrap(BlockchainEventBroadcaster toWrap) {
-        return new OnlyOnceBlockchainEventBroadcasterWrapper(onlyOnceCacheExpirationTime, toWrap);
+        return new EventBroadcasterWrapper(onlyOnceCacheExpirationTime, toWrap, allowBlockNotification);
     }
 }
