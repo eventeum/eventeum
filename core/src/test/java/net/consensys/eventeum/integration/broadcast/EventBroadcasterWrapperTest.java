@@ -26,7 +26,7 @@ public class EventBroadcasterWrapperTest {
         EventBroadcasterWrapper underTest = new EventBroadcasterWrapper(EXPIRATION_MILLISECONDS, blockchainEventBroadcaster, false);
         final BlockDetails block = new BlockDetails();
 
-        underTest.broadcastNewBlock(block);PulsarBlockChainEventBroadcaster
+        underTest.broadcastNewBlock(block);
 
         verify(blockchainEventBroadcaster, never()).broadcastNewBlock(block);
     }
