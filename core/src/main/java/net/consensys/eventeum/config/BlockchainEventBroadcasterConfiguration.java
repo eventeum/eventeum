@@ -41,13 +41,13 @@ public class BlockchainEventBroadcasterConfiguration {
 
     private static final String EXPIRATION_PROPERTY = "${broadcaster.cache.expirationMillis}";
     private static final String BROADCASTER_PROPERTY = "broadcaster.type";
-    private static final String BLOCK_NOTIFICATION = "${broadcaster.allowBlockNotification:true}";
+    private static final String ALLOW_BLOCK_NOTIFICATION = "${broadcaster.allowBlockNotification:true}";
 
     private Long onlyOnceCacheExpirationTime;
     private boolean allowBlockNotification;
 
     @Autowired
-    public BlockchainEventBroadcasterConfiguration(@Value(EXPIRATION_PROPERTY) Long onlyOnceCacheExpirationTime, @Value(BLOCK_NOTIFICATION) boolean allowBlockNotification) {
+    public BlockchainEventBroadcasterConfiguration(@Value(EXPIRATION_PROPERTY) Long onlyOnceCacheExpirationTime, @Value(ALLOW_BLOCK_NOTIFICATION) boolean allowBlockNotification) {
         this.onlyOnceCacheExpirationTime = onlyOnceCacheExpirationTime;
         this.allowBlockNotification = allowBlockNotification;
     }
