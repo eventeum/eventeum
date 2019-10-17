@@ -101,6 +101,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter);
 
         verifyContractEventFilterRegistration(filter,true, true);
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -110,6 +111,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter, false);
 
         verifyContractEventFilterRegistration(filter,true, false);
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -119,6 +121,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter, true);
 
         verifyContractEventFilterRegistration(filter,true, true);
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -131,6 +134,19 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter, true);
 
         assertTrue(!filter.getId().isEmpty());
+        assertEquals(1, underTest.listContractEventFilters().size());
+    }
+
+    @Test
+    public void testListContractEventFilterAlreadyRegistered() {
+        final ContractEventFilter filter1 = createEventFilter(null);
+        when(mockBlockchainService.registerEventListener(any(ContractEventFilter.class), any(ContractEventListener.class)))
+	   .thenReturn(new FilterSubscription(filter1, mock(Disposable.class)));
+
+        underTest.registerContractEventFilter(filter1, true);
+        underTest.registerContractEventFilter(filter1, true);
+
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -177,6 +193,7 @@ public class DefaultSubscriptionServiceTest {
         verify(sub1, times(1)).dispose();
         verify(mockRepo, times(1)).deleteById(FILTER_ID);
         verify(mockFilterBroadcaster, times(1)).broadcastEventFilterRemoved(filter);
+        assertEquals(0, underTest.listContractEventFilters().size());
 
         boolean exceptionThrown = false;
         //This will test that the filter has been deleted from memory
