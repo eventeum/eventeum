@@ -3,6 +3,8 @@ package net.consensys.eventeum.service;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.service.exception.NotFoundException;
 
+import java.util.List;
+
 /**
  * A service for manageing contract event subscriptions within the Eventeum instance.
  *
@@ -37,6 +39,13 @@ public interface SubscriptionService {
      * @return The registered contract event filter
      */
     ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast);
+
+    /**
+     * List all registered contract event filters.
+     *
+     * @return The list of registered contract event filters
+     */
+    List<ContractEventFilter> listContractEventFilters();
 
     /**
      * Unregisters a previously added contract event filter.
