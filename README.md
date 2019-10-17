@@ -217,6 +217,56 @@ eventFilters:
     -   **Code:** 200
         **Content:** `N/A`
 
+## Listing Registered Events
+
+### REST
+
+-   **URL:** `/api/rest/v1/event-filter`    
+-   **Method:** `GET`
+-   **Headers:**  
+
+| Key | Value |
+| -------- | -------- |
+| accept | application/json |
+
+-   **URL Params:** `N/A`
+
+-   **Response:** List of contract event filters:
+```json
+[{
+	"id": "event-identifier-1",
+	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
+	"eventSpecification": {
+		"eventName": "TestEvent",
+		"indexedParameterDefinitions": [
+		  {"position": 0, "type": "UINT256"},
+		  {"position": 1, "type": "ADDRESS"}],
+		"nonIndexedParameterDefinitions": [
+		  {"position": 2, "type": "BYTES32"},
+		  {"position": 3, "type": "STRING"}] },
+	"correlationIdStrategy": {
+		"type": "NON_INDEXED_PARAMETER",
+		"parameterIndex": 0 }
+},
+....
+{
+	"id": "event-identifier-N",
+	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
+	"eventSpecification": {
+		"eventName": "TestEvent",
+		"indexedParameterDefinitions": [
+		  {"position": 0, "type": "UINT256"},
+		  {"position": 1, "type": "ADDRESS"}],
+		"nonIndexedParameterDefinitions": [
+		  {"position": 2, "type": "BYTES32"},
+		  {"position": 3, "type": "STRING"}] },
+	"correlationIdStrategy": {
+		"type": "NON_INDEXED_PARAMETER",
+		"parameterIndex": 0 }
+}
+]
+```
+
 ## Registering a Transaction Monitor
 
 From version 0.6.2, eventeum supports monitoring and broadcasting transactions. The matching criteria can be:
