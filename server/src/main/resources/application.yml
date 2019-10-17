@@ -66,6 +66,7 @@ broadcaster:
       numBlocksToWait: 12
       numBlocksToWaitForMissingTx: 100
   multiInstance: false
+  enableBlockNotifications: true
 
 # For Kafka
 zookeeper:

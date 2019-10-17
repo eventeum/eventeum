@@ -25,7 +25,7 @@ import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBr
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBroadcasterSettings;
 import net.consensys.eventeum.integration.broadcast.blockchain.KafkaBlockchainEventBroadcaster;
-import net.consensys.eventeum.integration.broadcast.blockchain.OnlyOnceBlockchainEventBroadcasterWrapper;
+import net.consensys.eventeum.integration.broadcast.blockchain.EventBroadcasterWrapper;
 import net.consensys.eventeum.integration.broadcast.blockchain.PulsarBlockChainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.RabbitBlockChainEventBroadcaster;
 
@@ -41,12 +41,15 @@ public class BlockchainEventBroadcasterConfiguration {
 
     private static final String EXPIRATION_PROPERTY = "${broadcaster.cache.expirationMillis}";
     private static final String BROADCASTER_PROPERTY = "broadcaster.type";
+    private static final String ENABLE_BLOCK_NOTIFICATIONS = "${broadcaster.enableBlockNotifications:true}";
 
     private Long onlyOnceCacheExpirationTime;
+    private boolean enableBlockNotifications;
 
     @Autowired
-    public BlockchainEventBroadcasterConfiguration(@Value(EXPIRATION_PROPERTY) Long onlyOnceCacheExpirationTime) {
+    public BlockchainEventBroadcasterConfiguration(@Value(EXPIRATION_PROPERTY) Long onlyOnceCacheExpirationTime, @Value(ENABLE_BLOCK_NOTIFICATIONS) boolean enableBlockNotifications) {
         this.onlyOnceCacheExpirationTime = onlyOnceCacheExpirationTime;
+        this.enableBlockNotifications = enableBlockNotifications;
     }
 
     @Bean
@@ -107,6 +110,6 @@ public class BlockchainEventBroadcasterConfiguration {
     }
 
     private BlockchainEventBroadcaster onlyOnceWrap(BlockchainEventBroadcaster toWrap) {
-        return new OnlyOnceBlockchainEventBroadcasterWrapper(onlyOnceCacheExpirationTime, toWrap);
+        return new EventBroadcasterWrapper(onlyOnceCacheExpirationTime, toWrap, enableBlockNotifications);
     }
 }

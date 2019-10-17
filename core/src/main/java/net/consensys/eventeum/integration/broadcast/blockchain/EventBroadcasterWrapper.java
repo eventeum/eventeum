@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-public class OnlyOnceBlockchainEventBroadcasterWrapper implements BlockchainEventBroadcaster {
+public class EventBroadcasterWrapper implements BlockchainEventBroadcaster {
 
     private Cache<Integer, ContractEventDetails> contractEventCache;
 
@@ -32,16 +32,24 @@ public class OnlyOnceBlockchainEventBroadcasterWrapper implements BlockchainEven
 
     private BlockchainEventBroadcaster wrapped;
 
-    public OnlyOnceBlockchainEventBroadcasterWrapper(Long expirationTimeMillis,
-                                              BlockchainEventBroadcaster toWrap) {
+    private boolean enableBlockNotifications;
+
+    public EventBroadcasterWrapper(Long expirationTimeMillis,
+                                   BlockchainEventBroadcaster toWrap,
+                                   boolean enableBlockNotifications) {
         this.expirationTimeMillis = expirationTimeMillis;
         this.contractEventCache = createCache(ContractEventDetails.class);
         this.transactionCache = createCache(TransactionDetails.class);
         this.wrapped = toWrap;
+        this.enableBlockNotifications = enableBlockNotifications;
     }
 
     @Override
     public void broadcastNewBlock(BlockDetails block) {
+        if (!this.enableBlockNotifications) {
+            return;
+        }
+
         wrapped.broadcastNewBlock(block);
     }
 
