@@ -32,7 +32,7 @@ public class EventBroadcasterWrapperTest {
     }
 
     @Test
-    public void testAllowBlockNotification() {
+    public void testEnableBlockNotifications() {
         EventBroadcasterWrapper underTest = new EventBroadcasterWrapper(EXPIRATION_MILLISECONDS, blockchainEventBroadcaster, true);
         final BlockDetails block = new BlockDetails();
 

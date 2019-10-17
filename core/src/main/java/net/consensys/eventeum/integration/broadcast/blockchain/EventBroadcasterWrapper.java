@@ -32,21 +32,21 @@ public class EventBroadcasterWrapper implements BlockchainEventBroadcaster {
 
     private BlockchainEventBroadcaster wrapped;
 
-    private boolean allowBlockNotification;
+    private boolean enableBlockNotifications;
 
     public EventBroadcasterWrapper(Long expirationTimeMillis,
                                    BlockchainEventBroadcaster toWrap,
-                                   boolean allowBlockNotification) {
+                                   boolean enableBlockNotifications) {
         this.expirationTimeMillis = expirationTimeMillis;
         this.contractEventCache = createCache(ContractEventDetails.class);
         this.transactionCache = createCache(TransactionDetails.class);
         this.wrapped = toWrap;
-        this.allowBlockNotification = allowBlockNotification;
+        this.enableBlockNotifications = enableBlockNotifications;
     }
 
     @Override
     public void broadcastNewBlock(BlockDetails block) {
-        if (!this.allowBlockNotification) {
+        if (!this.enableBlockNotifications) {
             return;
         }
 
