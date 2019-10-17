@@ -141,7 +141,7 @@ public class DefaultSubscriptionServiceTest {
     public void testListContractEventFilterAlreadyRegistered() {
         final ContractEventFilter filter1 = createEventFilter(null);
         when(mockBlockchainService.registerEventListener(any(ContractEventFilter.class), any(ContractEventListener.class)))
-	   .thenReturn(new FilterSubscription(filter1, mock(Subscription.class)));
+	   .thenReturn(new FilterSubscription(filter1, mock(Disposable.class)));
 
         underTest.registerContractEventFilter(filter1, true);
         underTest.registerContractEventFilter(filter1, true);

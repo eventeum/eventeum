@@ -27,6 +27,8 @@ import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.BindMode;
@@ -214,6 +216,18 @@ public class BaseIntegrationTest {
 
         registeredFilters.put(filter.getId(), filter);
         return filter;
+    }
+
+    protected List<ContractEventFilter> listEventFilters() {
+	final ResponseEntity<List<ContractEventFilter>> response = restTemplate.exchange(
+		  restUrl + "/api/rest/v1/event-filter",
+		  HttpMethod.GET,
+		  null,
+		  new ParameterizedTypeReference<List<ContractEventFilter>>(){});
+
+	List<ContractEventFilter> contractEventFilters = response.getBody();
+
+	return contractEventFilters;
     }
 
     protected String monitorTransaction(TransactionMonitoringSpec monitorSpec) {
