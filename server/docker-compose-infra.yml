@@ -1,39 +1,6 @@
 version: '3'
 
 services:
-  eventeum:
-    image: eventeum/eventeum:latest
-    ports:
-    - "8060:8060"
-    depends_on:
-      - parity
-      - mongodb
-      - kafka
-    environment:
-      SPRING_DATA_MONGODB_HOST: mongodb
-      ETHEREUM_NODE_URL: http://eth-node:8545
-      ZOOKEEPER_ADDRESS: zookeeper:2181
-      KAFKA_ADDRESSES: kafka:19092
-    networks:
-      - default
-
-  parity:
-    build:
-      context: .
-      dockerfile: Dockerfile-ParityNode
-    ports:
-      - "8545:8545"
-      - "8180:8180"
-      - "8546:8546"
-    volumes:
-      - $HOME/parity/data:/root/.local/share/io.parity.ethereum
-      - $HOME/parity/log:/data/parity-logs
-    tty: true
-    networks:
-      default:
-        aliases:
-          - eth-node
-
   mongodb:
     image: mongo:latest
     ports:

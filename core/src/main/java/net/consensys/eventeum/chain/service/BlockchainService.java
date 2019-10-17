@@ -91,4 +91,6 @@ public interface BlockchainService {
      * @return true if the service is correctly connected to the ethereum node.
      */
     boolean isConnected();
+
+    String getRevertReason(String from, String to, BigInteger blockNumber, String input);
 }

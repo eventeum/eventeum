@@ -23,6 +23,8 @@ public class TransactionDetails {
     private String value;
     private String nodeName;
     private String contractAddress;
+    private String input;
+    private String revertReason;
 
     private TransactionStatus status;
 }

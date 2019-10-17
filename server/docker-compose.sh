@@ -13,17 +13,22 @@ sudo rm -rf $HOME/mongodb/data
 sudo rm -rf $HOME/parity/data:/root/
 sudo rm -rf $HOME/parity/log
 
-echo "Build"
-mvn clean install -f ../pom.xml $1
-[ $? -eq 0 ] || exit $?;
+composescript="docker-compose.yml"
 
+if [ "$1" = "rinkeby" ]; then
+   composescript="docker-compose-rinkeby.yml"
+   echo "Running in Rinkeby Infura mode..."
+elif [ "$1" = "infra" ]; then
+   composescript="docker-compose-infra.yml"
+   echo "Running in Infrastructure mode..."
+fi
 
-docker-compose build
+docker-compose -f "$composescript" build
 [ $? -eq 0 ] || exit $?;
 
 
 echo "Start"
-docker-compose up
+docker-compose -f "$composescript" up
 [ $? -eq 0 ] || exit $?;
 
-trap "docker-compose kill" INT
+trap "docker-compose -f "$composescript" kill" INT

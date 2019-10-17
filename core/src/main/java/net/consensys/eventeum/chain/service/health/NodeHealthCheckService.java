@@ -40,15 +40,19 @@ public class NodeHealthCheckService {
     @Scheduled(fixedDelayString = "${ethereum.healthcheck.pollInterval}")
     public void checkHealth() {
 
+        log.trace("Checking health");
+
         //Can take a few seconds to subscribe initially so if wait until after
         //first subscription to check health
         if (!isSubscribed() && !initiallySubscribed) {
+            log.debug("Not initially subscribed");
             return;
         }
 
         final NodeStatus statusAtStart = nodeStatus;
 
         if (isNodeConnected()) {
+            log.trace("Node connected");
             if (nodeStatus == NodeStatus.DOWN) {
                 log.info("Node {} has come back up.", blockchainService.getNodeName());
 
