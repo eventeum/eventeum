@@ -9,6 +9,7 @@ import java.util.List;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
@@ -40,13 +41,15 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Generated with web3j version 4.5.0.
  */
 public class EventEmitter extends Contract {
-    private static final String BINARY = "608060405234801561001057600080fd5b5061039e806100206000396000f3fe608060405234801561001057600080fd5b506004361061005e576000357c01000000000000000000000000000000000000000000000000000000009004806321584986146100635780635a73130f146100f0578063b2deda5214610131575b600080fd5b6100ee6004803603606081101561007957600080fd5b810190808035906020019092919080359060200190929190803590602001906401000000008111156100aa57600080fd5b8201836020820111156100bc57600080fd5b803590602001918460018302840111640100000000831117156100de57600080fd5b90919293919293905050506101be565b005b61012f6004803603602081101561010657600080fd5b8101908080356fffffffffffffffffffffffffffffffff1916906020019092919050505061025e565b005b6101bc6004803603606081101561014757600080fd5b8101908080359060200190929190803590602001909291908035906020019064010000000081111561017857600080fd5b82018360208201111561018a57600080fd5b803590602001918460018302840111640100000000831117156101ac57600080fd5b90919293919293905050506102d2565b005b3373ffffffffffffffffffffffffffffffffffffffff16847f26c16d5e1e9b37f9f69f6ac44adef332c80d1503ea39ae2abf256335886302ec8585856001604051808581526020018060200183600281111561021657fe5b60ff1681526020018281038252858582818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a350505050565b806fffffffffffffffffffffffffffffffff19167f2ece6db06b5a01973109c046552420c8ab4002ec19be630471727967655574d28260405180826fffffffffffffffffffffffffffffffff19166fffffffffffffffffffffffffffffffff1916815260200191505060405180910390a250565b3373ffffffffffffffffffffffffffffffffffffffff16847f79db4a66c74e0ab851510c0a340a3c925ba311aab3aab6b7dc74ae629c792ea98585856001604051808581526020018060200183600281111561032a57fe5b60ff1681526020018281038252858582818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a35050505056fea165627a7a72305820dcd452b8001f20377421ced830be152102601a0899d044f69eea623b0699bf0e0029";
+    private static final String BINARY = "608060405234801561001057600080fd5b506104cf806100206000396000f3fe608060405234801561001057600080fd5b5060043610610069576000357c010000000000000000000000000000000000000000000000000000000090048063215849861461006e5780635a73130f146100fb578063b2deda521461013c578063ef740eaf146101c9575b600080fd5b6100f96004803603606081101561008457600080fd5b810190808035906020019092919080359060200190929190803590602001906401000000008111156100b557600080fd5b8201836020820111156100c757600080fd5b803590602001918460018302840111640100000000831117156100e957600080fd5b9091929391929390505050610201565b005b61013a6004803603602081101561011157600080fd5b8101908080356fffffffffffffffffffffffffffffffff191690602001909291905050506102a1565b005b6101c76004803603606081101561015257600080fd5b8101908080359060200190929190803590602001909291908035906020019064010000000081111561018357600080fd5b82018360208201111561019557600080fd5b803590602001918460018302840111640100000000831117156101b757600080fd5b9091929391929390505050610315565b005b6101ff600480360360408110156101df57600080fd5b8101908080359060200190929190803590602001909291905050506103b5565b005b3373ffffffffffffffffffffffffffffffffffffffff16847f26c16d5e1e9b37f9f69f6ac44adef332c80d1503ea39ae2abf256335886302ec8585856001604051808581526020018060200183600281111561025957fe5b60ff1681526020018281038252858582818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a350505050565b806fffffffffffffffffffffffffffffffff19167f2ece6db06b5a01973109c046552420c8ab4002ec19be630471727967655574d28260405180826fffffffffffffffffffffffffffffffff19166fffffffffffffffffffffffffffffffff1916815260200191505060405180910390a250565b3373ffffffffffffffffffffffffffffffffffffffff16847f79db4a66c74e0ab851510c0a340a3c925ba311aab3aab6b7dc74ae629c792ea98585856001604051808581526020018060200183600281111561036d57fe5b60ff1681526020018281038252858582818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a350505050565b606060026040519080825280602002602001820160405280156103e75781602001602082028038833980820191505090505b509050828160008151811015156103fa57fe5b90602001906020020181815250508181600181518110151561041857fe5b90602001906020020181815250507fdf1b198ce1168e6f1aedbe0cd782068626bd67ff6fd75ef60a2f04d2f60a21c6816040518080602001828103825283818151815260200191508051906020019060200280838360005b8381101561048b578082015181840152602081019050610470565b505050509050019250505060405180910390a150505056fea165627a7a723058209b4eb296b415eb3ce5d0c7a2459483d1333afac91bcb34dfc13835cec8ad95a10029";
 
     public static final String FUNC_EMITEVENT = "emitEvent";
 
     public static final String FUNC_EMITEVENTBYTES16 = "emitEventBytes16";
 
     public static final String FUNC_EMITEVENTNOTORDERED = "emitEventNotOrdered";
+
+    public static final String FUNC_EMITEVENTARRAY = "emitEventArray";
 
     public static final Event DUMMYEVENTBYTES16_EVENT = new Event("DummyEventBytes16", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Bytes16>(true) {}, new TypeReference<Bytes16>() {}));
@@ -58,6 +61,10 @@ public class EventEmitter extends Contract {
 
     public static final Event DUMMYEVENTNOTORDERED_EVENT = new Event("DummyEventNotOrdered", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>(true) {}, new TypeReference<Uint256>() {}, new TypeReference<Address>(true) {}, new TypeReference<Utf8String>() {}, new TypeReference<Uint8>() {}));
+    ;
+
+    public static final Event DUMMYEVENTARRAY_EVENT = new Event("DummyEventArray", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Uint256>>() {}));
     ;
 
     @Deprecated
@@ -102,6 +109,15 @@ public class EventEmitter extends Contract {
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(value1), 
                 new org.web3j.abi.datatypes.generated.Uint256(value2), 
                 new org.web3j.abi.datatypes.Utf8String(value3)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> emitEventArray(BigInteger value1, BigInteger value2) {
+        final Function function = new Function(
+                FUNC_EMITEVENTARRAY, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(value1), 
+                new org.web3j.abi.datatypes.generated.Uint256(value2)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -217,6 +233,37 @@ public class EventEmitter extends Contract {
         return dummyEventNotOrderedEventFlowable(filter);
     }
 
+    public List<DummyEventArrayEventResponse> getDummyEventArrayEvents(TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(DUMMYEVENTARRAY_EVENT, transactionReceipt);
+        ArrayList<DummyEventArrayEventResponse> responses = new ArrayList<DummyEventArrayEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            DummyEventArrayEventResponse typedResponse = new DummyEventArrayEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse.uintArray = (List<BigInteger>) eventValues.getNonIndexedValues().get(0).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public Flowable<DummyEventArrayEventResponse> dummyEventArrayEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, DummyEventArrayEventResponse>() {
+            @Override
+            public DummyEventArrayEventResponse apply(Log log) {
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(DUMMYEVENTARRAY_EVENT, log);
+                DummyEventArrayEventResponse typedResponse = new DummyEventArrayEventResponse();
+                typedResponse.log = log;
+                typedResponse.uintArray = (List<BigInteger>) eventValues.getNonIndexedValues().get(0).getValue();
+                return typedResponse;
+            }
+        });
+    }
+
+    public Flowable<DummyEventArrayEventResponse> dummyEventArrayEventFlowable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(DUMMYEVENTARRAY_EVENT));
+        return dummyEventArrayEventFlowable(filter);
+    }
+
     @Deprecated
     public static EventEmitter load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         return new EventEmitter(contractAddress, web3j, credentials, gasPrice, gasLimit);
@@ -281,5 +328,9 @@ public class EventEmitter extends Contract {
         public String stringValue;
 
         public BigInteger enumValue;
+    }
+
+    public static class DummyEventArrayEventResponse extends BaseEventResponse {
+        public List<BigInteger> uintArray;
     }
 }

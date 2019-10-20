@@ -26,7 +26,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = StringParameter.class, name = "string"),
         @JsonSubTypes.Type(value = NumberParameter.class, name = "int256"),
         @JsonSubTypes.Type(value = NumberParameter.class, name = "uint8"),
-        @JsonSubTypes.Type(value = NumberParameter.class, name = "uint256")
+        @JsonSubTypes.Type(value = NumberParameter.class, name = "uint256"),
+        @JsonSubTypes.Type(value = ArrayParameter.class, name = "uint256-array")
 })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface EventParameter<T extends Serializable> extends Serializable{

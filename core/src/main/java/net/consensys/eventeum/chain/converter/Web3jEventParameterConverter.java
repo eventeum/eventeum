@@ -1,15 +1,18 @@
 package net.consensys.eventeum.chain.converter;
 
+import net.consensys.eventeum.dto.event.parameter.ArrayParameter;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import net.consensys.eventeum.dto.event.parameter.NumberParameter;
 import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import net.consensys.eventeum.settings.EventeumSettings;
 import org.springframework.stereotype.Component;
+import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,10 +53,25 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         final EventParameterConverter<Type> typeConverter = typeConverters.get(toConvert.getTypeAsString().toLowerCase());
 
         if (typeConverter == null) {
+            //Type might be an array, in which case the type will be the array type class
+            if (toConvert instanceof DynamicArray){
+                final DynamicArray<?> theArray = (DynamicArray<?>) toConvert;
+                return convertDynamicArray(theArray);
+            }
+
             throw new TypeConversionException("Unsupported type: " + toConvert.getTypeAsString());
         }
 
         return typeConverter.convert(toConvert);
+    }
+
+    private EventParameter<?> convertDynamicArray(DynamicArray<?> toConvert) {
+        final ArrayList<EventParameter<?>> convertedArray = new ArrayList<>();
+
+        toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
+
+        return new ArrayParameter(toConvert.getValue().get(0).getTypeAsString().toLowerCase(),
+                toConvert.getComponentType(), convertedArray);
     }
 
     private EventParameter convertBytesType(Type bytesType) {

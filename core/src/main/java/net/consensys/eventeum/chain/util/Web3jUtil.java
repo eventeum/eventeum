@@ -7,11 +7,8 @@ import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.Utils;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Bool;
+import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.*;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.Type;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,6 +32,7 @@ public class Web3jUtil {
         typeMappings.put(ParameterType.BYTES32, new TypeMapping(new TypeReference<Bytes32>() {}, Bytes32.class));
         typeMappings.put(ParameterType.BOOL, new TypeMapping(new TypeReference<Bool>() {}, Bool.class));
         typeMappings.put(ParameterType.STRING, new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
+        typeMappings.put(ParameterType.UINT256_ARRAY, new TypeMapping(new TypeReference<DynamicArray<Uint256>>() {}, DynamicArray.class));
     }
 
     public static List<TypeReference<?>> getTypeReferencesFromParameterDefinitions(
