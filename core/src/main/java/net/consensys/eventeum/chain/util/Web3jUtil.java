@@ -23,16 +23,79 @@ public class Web3jUtil {
     private static Map<ParameterType, TypeMapping> typeMappings = new HashMap<ParameterType, TypeMapping>();
 
     static {
-        //TODO need to add all the missing mappings
+        addUintMappings(8, 256);
+        addUintArrayMappings(8, 256);
+        addIntMappings(8, 256);
+        addIntArrayMappings(8, 256);
+        addBytesMappings(1, 32);
+        addBytesArrayMappings(1, 32);
         typeMappings.put(ParameterType.INT256, new TypeMapping(new TypeReference<Int256>() {}, Int256.class));
-        typeMappings.put(ParameterType.UINT8, new TypeMapping(new TypeReference<Uint8>() {}, Uint8.class));
-        typeMappings.put(ParameterType.UINT256, new TypeMapping(new TypeReference<Uint256>() {}, Uint256.class));
         typeMappings.put(ParameterType.ADDRESS, new TypeMapping(new TypeReference<Address>() {}, Address.class));
-        typeMappings.put(ParameterType.BYTES16, new TypeMapping(new TypeReference<Bytes16>() {}, Bytes16.class));
-        typeMappings.put(ParameterType.BYTES32, new TypeMapping(new TypeReference<Bytes32>() {}, Bytes32.class));
+        typeMappings.put(ParameterType.ADDRESS_ARRAY, new TypeMapping(
+                new TypeReference<DynamicArray<Address>>() {}, DynamicArray.class));
         typeMappings.put(ParameterType.BOOL, new TypeMapping(new TypeReference<Bool>() {}, Bool.class));
+        typeMappings.put(ParameterType.BOOL_ARRAY, new TypeMapping(
+                new TypeReference<DynamicArray<Bool>>() {}, DynamicArray.class));
         typeMappings.put(ParameterType.STRING, new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
-        typeMappings.put(ParameterType.UINT256_ARRAY, new TypeMapping(new TypeReference<DynamicArray<Uint256>>() {}, DynamicArray.class));
+        typeMappings.put(ParameterType.STRING_ARRAY,
+                new TypeMapping(new TypeReference<DynamicArray<Utf8String>>() {}, DynamicArray.class));
+    }
+
+    private static void addUintMappings(int interval, int max) {
+        addMappings(interval, max, "org.web3j.abi.datatypes.generated.Uint", "UINT");
+    }
+
+    private static void addUintArrayMappings(int interval, int max) {
+        addArrayMappings(interval, max, "uint");
+    }
+
+    private static void addIntMappings(int interval, int max) {
+        addMappings(interval, max, "org.web3j.abi.datatypes.generated.Int", "INT");
+    }
+
+    private static void addIntArrayMappings(int interval, int max) {
+        addArrayMappings(interval, max, "int");
+    }
+
+    private static void addBytesMappings(int interval, int max) {
+        addMappings(interval, max, "org.web3j.abi.datatypes.generated.Bytes", "BYTES");
+    }
+
+    private static void addBytesArrayMappings(int interval, int max) {
+        addArrayMappings(interval, max, "bytes");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void addMappings(int interval, int max, String classPrefix, String parameterTypePrefix) {
+        try {
+            for (int i = interval; i <= max; i = i + interval) {
+                final ParameterType type = ParameterType.valueOf(parameterTypePrefix + i);
+                final String className = classPrefix + i;
+                final Class<? extends Type> clazz = (Class<? extends Type>) Class.forName(className);
+
+                typeMappings.put(type, new TypeMapping(TypeReference.create(clazz), clazz));
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void addArrayMappings(int interval, int max, String parameterType) {
+        try {
+            for (int i = interval; i <= max; i = i + interval) {
+                final ParameterType type = ParameterType.valueOf(parameterType.toUpperCase() + i + "_ARRAY");
+
+                typeMappings.put(type, new TypeMapping(
+                        TypeReference.makeTypeReference(parameterType + i + "[]"), DynamicArray.class));
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static <T extends Type> TypeReference<T> createTypeReference(Class<T> clazz) {
+        return new TypeReference<T>() {};
     }
 
     public static List<TypeReference<?>> getTypeReferencesFromParameterDefinitions(

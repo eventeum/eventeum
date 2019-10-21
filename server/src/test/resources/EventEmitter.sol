@@ -20,12 +20,16 @@ contract EventEmitter {
     emit DummyEventBytes16(bytes16Value, bytes16Value);
   }
 
-  function emitEventArray(uint value1, uint value2) external {
-    uint256[] memory anArray = new uint256[](2);
-    anArray[0] = value1;
-    anArray[1] = value2;
+  function emitEventArray(uint value1, uint value2, bytes32 value3, bytes32 value4) external {
+    uint256[] memory uintArray = new uint256[](2);
+    uintArray[0] = value1;
+    uintArray[1] = value2;
 
-    emit DummyEventArray(anArray);
+    bytes32[] memory bytesArray = new bytes32[](2);
+    bytesArray[0] = value3;
+    bytesArray[1] = value4;
+
+    emit DummyEventArray(uintArray, bytesArray);
   }
 
   event DummyEventBytes16(bytes16 indexed indexedBytes16, bytes16 bytes16Value);
@@ -34,5 +38,5 @@ contract EventEmitter {
 
   event DummyEventNotOrdered(bytes32 indexed indexedBytes, uint uintValue, address indexed indexedAddress, string stringValue, TestEnum enumValue);
 
-  event DummyEventArray(uint256[] uintArray);
+  event DummyEventArray(uint256[] uintArray, bytes32[] bytesArray);
 }

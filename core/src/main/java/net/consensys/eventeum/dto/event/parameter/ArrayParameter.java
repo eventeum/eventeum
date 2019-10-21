@@ -1,5 +1,6 @@
 package net.consensys.eventeum.dto.event.parameter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 @NoArgsConstructor
 public class ArrayParameter<T extends EventParameter<?>> extends AbstractEventParameter<ArrayList<T>> {
 
+    @JsonIgnore
     private String stringRepresentation;
 
     public ArrayParameter(String entryType, Class<T> arrayParameterType, ArrayList<T> value) {

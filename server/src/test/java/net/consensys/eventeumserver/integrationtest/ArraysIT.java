@@ -10,6 +10,7 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.event.parameter.ArrayParameter;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import net.consensys.eventeum.dto.event.parameter.NumberParameter;
+import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,12 +30,19 @@ import static org.junit.Assert.*;
 @TestPropertySource(locations="classpath:application-test-db.properties")
 public class ArraysIT extends BaseKafkaIntegrationTest {
 
+    //"BytesValue" in hex
+    private static final String BYTES_VALUE_HEX = "0x427974657356616c756500000000000000000000000000000000000000000000";
+
+    //"BytesValue2" in hex
+    private static final String BYTES_VALUE2_HEX = "0x427974657356616c756532000000000000000000000000000000000000000000";
+
     @Test
-    public void testUint256Array() throws Exception {
+    public void testEventWithArrays() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventArrayFilter(emitter.getContractAddress());
-        emitter.emitEventArray(BigInteger.ONE, BigInteger.TEN).send();
+        emitter.emitEventArray(BigInteger.ONE, BigInteger.TEN,
+                stringToBytes("BytesValue"), stringToBytes("BytesValue2")).send();
 
         waitForContractEventMessages(1);
 
@@ -45,11 +53,18 @@ public class ArraysIT extends BaseKafkaIntegrationTest {
         assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(ContractEventStatus.UNCONFIRMED, eventDetails.getStatus());
 
-        final ArrayList<NumberParameter> eventArray =
+        final ArrayList<NumberParameter> uintArray =
                 (ArrayList<NumberParameter>) eventDetails.getNonIndexedParameters().get(0).getValue();
 
-        assertEquals(BigInteger.ONE, eventArray.get(0).getValue());
-        assertEquals(BigInteger.TEN, eventArray.get(1).getValue());
+        assertEquals(BigInteger.ONE, uintArray.get(0).getValue());
+        assertEquals(BigInteger.TEN, uintArray.get(1).getValue());
+
+        final ArrayList<StringParameter> bytesArray =
+                (ArrayList<StringParameter>) eventDetails.getNonIndexedParameters().get(1).getValue();
+
+        assertEquals(BYTES_VALUE_HEX, bytesArray.get(0).getValue());
+        assertEquals(BYTES_VALUE2_HEX, bytesArray.get(1).getValue());
+
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
     }
@@ -63,7 +78,9 @@ public class ArraysIT extends BaseKafkaIntegrationTest {
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.UINT256_ARRAY)));
+                Arrays.asList(
+                        new ParameterDefinition(0, ParameterType.UINT256_ARRAY),
+                        new ParameterDefinition(1, ParameterType.BYTES32_ARRAY)));
 
         eventSpec.setEventName("DummyEventArray");
 

@@ -31,16 +31,12 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
     public Web3jEventParameterConverter(EventeumSettings settings) {
         typeConverters.put("address",
                 (type) -> new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
-        typeConverters.put("uint8",
-                (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
-        typeConverters.put("uint256",
-                (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
         typeConverters.put("int256",
                 (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
-        typeConverters.put("bytes16",
-                (type) -> convertBytesType(type));
-        typeConverters.put("bytes32",
-                (type) -> convertBytesType(type));
+
+        registerNumberConverters("uint", 8, 256);
+        registerBytesConverters("bytes", 1, 32);
+
         typeConverters.put("string",
                 (type) -> new StringParameter(type.getTypeAsString(),
                         trim((String)type.getValue())));
@@ -63,6 +59,20 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         }
 
         return typeConverter.convert(toConvert);
+    }
+
+    private void registerNumberConverters(String prefix, int increment, int max) {
+        for (int i = increment; i <= max; i = i + increment) {
+            typeConverters.put(prefix + i,
+                    (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
+        }
+    }
+
+    private void registerBytesConverters(String prefix, int increment, int max) {
+        for (int i = increment; i <= max; i = i + increment) {
+            typeConverters.put(prefix + i,
+                    (type) -> convertBytesType(type));
+        }
     }
 
     private EventParameter<?> convertDynamicArray(DynamicArray<?> toConvert) {
