@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.filter.ParameterType;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.*;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
  */
 public class Web3jUtil {
 
-    private static Map<ParameterType, TypeMapping> typeMappings = new HashMap<ParameterType, TypeMapping>();
+    private static Map<String, TypeMapping> typeMappings = new HashMap<>();
 
     static {
         addUintMappings(8, 256);
@@ -29,15 +28,14 @@ public class Web3jUtil {
         addIntArrayMappings(8, 256);
         addBytesMappings(1, 32);
         addBytesArrayMappings(1, 32);
-        typeMappings.put(ParameterType.INT256, new TypeMapping(new TypeReference<Int256>() {}, Int256.class));
-        typeMappings.put(ParameterType.ADDRESS, new TypeMapping(new TypeReference<Address>() {}, Address.class));
-        typeMappings.put(ParameterType.ADDRESS_ARRAY, new TypeMapping(
+        typeMappings.put(ParameterDefinition.ADDRESS, new TypeMapping(new TypeReference<Address>() {}, Address.class));
+        typeMappings.put(ParameterDefinition.ADDRESS + "[]", new TypeMapping(
                 new TypeReference<DynamicArray<Address>>() {}, DynamicArray.class));
-        typeMappings.put(ParameterType.BOOL, new TypeMapping(new TypeReference<Bool>() {}, Bool.class));
-        typeMappings.put(ParameterType.BOOL_ARRAY, new TypeMapping(
+        typeMappings.put(ParameterDefinition.BOOL, new TypeMapping(new TypeReference<Bool>() {}, Bool.class));
+        typeMappings.put(ParameterDefinition.BOOL + "[]", new TypeMapping(
                 new TypeReference<DynamicArray<Bool>>() {}, DynamicArray.class));
-        typeMappings.put(ParameterType.STRING, new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
-        typeMappings.put(ParameterType.STRING_ARRAY,
+        typeMappings.put(ParameterDefinition.STRING, new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
+        typeMappings.put(ParameterDefinition.STRING + "[]",
                 new TypeMapping(new TypeReference<DynamicArray<Utf8String>>() {}, DynamicArray.class));
     }
 
@@ -69,7 +67,7 @@ public class Web3jUtil {
     private static void addMappings(int interval, int max, String classPrefix, String parameterTypePrefix) {
         try {
             for (int i = interval; i <= max; i = i + interval) {
-                final ParameterType type = ParameterType.valueOf(parameterTypePrefix + i);
+                final String type = parameterTypePrefix + i;
                 final String className = classPrefix + i;
                 final Class<? extends Type> clazz = (Class<? extends Type>) Class.forName(className);
 
@@ -84,7 +82,7 @@ public class Web3jUtil {
     private static void addArrayMappings(int interval, int max, String parameterType) {
         try {
             for (int i = interval; i <= max; i = i + interval) {
-                final ParameterType type = ParameterType.valueOf(parameterType.toUpperCase() + i + "_ARRAY");
+                final String type = parameterType.toUpperCase() + i + "[]";
 
                 typeMappings.put(type, new TypeMapping(
                         TypeReference.makeTypeReference(parameterType + i + "[]"), DynamicArray.class));
@@ -106,15 +104,15 @@ public class Web3jUtil {
 
         return parameterDefinitions
                 .stream()
-                .map(parameterDefinition -> getTypeReferenceFromParameterType(parameterDefinition.getType()))
+                .map(parameterDefinition -> getTypeReferenceFromEventeumParameterType(parameterDefinition.getType()))
                 .collect(Collectors.toList());
     }
 
-    public static TypeReference<?> getTypeReferenceFromParameterType(ParameterType parameterType) {
+    public static TypeReference<?> getTypeReferenceFromEventeumParameterType(String parameterType) {
         return typeMappings.get(parameterType).getTypeReference();
     }
 
-    public static Class<? extends Type> getClassForParameterType(ParameterType parameterType) {
+    public static Class<? extends Type> getClassForParameterType(String parameterType) {
         return typeMappings.get(parameterType).getClazz();
     }
 

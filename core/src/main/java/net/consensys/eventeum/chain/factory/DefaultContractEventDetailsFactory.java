@@ -100,7 +100,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
 
         return IntStream.range(0, encodedParameters.size())
                 .mapToObj(i -> FunctionReturnDecoder.decodeIndexedValue(encodedParameters.get(i),
-                        Web3jUtil.getTypeReferenceFromParameterType(definitions.get(i).getType())))
+                        Web3jUtil.getTypeReferenceFromEventeumParameterType(definitions.get(i).getType())))
                 .collect(Collectors.toList());
     }
 

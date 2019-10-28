@@ -5,7 +5,6 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.utils.JSON;
@@ -42,10 +41,10 @@ public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES16)));
+                Arrays.asList(new ParameterDefinition(0, "BYTES16")));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.BYTES16)));
+                Arrays.asList(new ParameterDefinition(1, "BYTES16")));
 
         eventSpec.setEventName(eventEmitter.DUMMYEVENTBYTES16_EVENT.getName());
 

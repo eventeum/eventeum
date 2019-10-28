@@ -7,7 +7,6 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.service.EventStoreService;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,8 +43,8 @@ public class DefaultEventBlockManagementServiceTest {
         EVENT_SPEC = new ContractEventSpecification();
         EVENT_SPEC.setEventName("AnEvent");
         EVENT_SPEC.setIndexedParameterDefinitions(Arrays.asList(
-                 new ParameterDefinition(0, ParameterType.ADDRESS),
-                 new ParameterDefinition(1, ParameterType.UINT256)));
+                 new ParameterDefinition(0, "ADDRESS"),
+                 new ParameterDefinition(1, "UINT256")));
 
         EVENT_FILTER = new ContractEventFilter();
         EVENT_FILTER.setNode(Constants.DEFAULT_NODE_NAME);
@@ -53,7 +52,7 @@ public class DefaultEventBlockManagementServiceTest {
         EVENT_FILTER.setContractAddress(CONTRACT_ADDRESS);
 
         EVENT_SPEC.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(2, ParameterType.BYTES32)));
+                Arrays.asList(new ParameterDefinition(2, "BYTES32")));
     }
 
     @Before

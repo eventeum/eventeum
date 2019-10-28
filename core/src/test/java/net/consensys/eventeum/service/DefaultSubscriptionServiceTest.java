@@ -10,7 +10,6 @@ import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
@@ -23,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Arrays;
 
@@ -65,11 +65,11 @@ public class DefaultSubscriptionServiceTest {
         eventSpec = new ContractEventSpecification();
         eventSpec.setEventName(EVENT_NAME);
 
-        eventSpec.setIndexedParameterDefinitions(Arrays.asList(new ParameterDefinition(0, ParameterType.UINT256)));
+        eventSpec.setIndexedParameterDefinitions(Arrays.asList(new ParameterDefinition(0, "UINT256")));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
-                        new ParameterDefinition(2, ParameterType.ADDRESS)));
+                Arrays.asList(new ParameterDefinition(1, "UINT256"),
+                        new ParameterDefinition(2, "ADDRESS")));
     }
 
     @Before

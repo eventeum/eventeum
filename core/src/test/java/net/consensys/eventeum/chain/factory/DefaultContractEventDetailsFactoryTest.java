@@ -8,7 +8,6 @@ import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,12 +60,12 @@ public class DefaultContractEventDetailsFactoryTest {
         eventSpec = new ContractEventSpecification();
         eventSpec.setEventName(EVENT_NAME);
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.UINT256)));
+                Arrays.asList(new ParameterDefinition(0, "UINT256")));
 
         eventSpec.setNonIndexedParameterDefinitions(Arrays.asList(
-                new ParameterDefinition(1, ParameterType.UINT256),
-                new ParameterDefinition(2, ParameterType.ADDRESS),
-                new ParameterDefinition(3, ParameterType.INT256)));
+                new ParameterDefinition(1, "UINT256"),
+                new ParameterDefinition(2, "ADDRESS"),
+                new ParameterDefinition(3, "INT256")));
     }
 
     @Before

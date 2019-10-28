@@ -12,7 +12,6 @@ import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
@@ -435,13 +434,13 @@ public class BaseIntegrationTest {
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES32),
-                              new ParameterDefinition(1, ParameterType.ADDRESS)));
+                Arrays.asList(new ParameterDefinition(0, "BYTES32"),
+                              new ParameterDefinition(1, "ADDRESS")));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(2, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING),
-                              new ParameterDefinition(4, ParameterType.UINT8)));
+                Arrays.asList(new ParameterDefinition(2, "UINT256"),
+                              new ParameterDefinition(3, "STRING"),
+                              new ParameterDefinition(4, "UINT8")));
 
         eventSpec.setEventName(DUMMY_EVENT_NAME);
 
@@ -456,13 +455,13 @@ public class BaseIntegrationTest {
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES32),
-                              new ParameterDefinition(2, ParameterType.ADDRESS)));
+                Arrays.asList(new ParameterDefinition(0, "BYTES32"),
+                              new ParameterDefinition(2, "ADDRESS")));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING),
-                              new ParameterDefinition(4, ParameterType.UINT8)));
+                Arrays.asList(new ParameterDefinition(1, "UINT256"),
+                              new ParameterDefinition(3, "STRING"),
+                              new ParameterDefinition(4, "UINT8")));
 
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
