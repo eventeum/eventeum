@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.*;
 import net.consensys.eventeum.service.exception.ValidationException;
+import org.springframework.data.annotation.PersistenceConstructor;
 
+import javax.persistence.Embeddable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +15,7 @@ import java.util.Map;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Embeddable
 @NoArgsConstructor
 @EqualsAndHashCode
 public class ParameterType {
@@ -40,6 +43,11 @@ public class ParameterType {
     @JsonValue
     @Getter
     private String type;
+
+    @PersistenceConstructor
+    public ParameterType(String type) {
+        setType(type);
+    }
 
     public void setType(String type) {
         validateType(type);
