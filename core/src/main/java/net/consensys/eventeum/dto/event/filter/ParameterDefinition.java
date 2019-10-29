@@ -18,7 +18,6 @@ public class ParameterDefinition implements Comparable<ParameterDefinition>, Ser
 
     private Integer position;
 
-    @Enumerated(EnumType.ORDINAL)
     private ParameterType type;
 
     @Override

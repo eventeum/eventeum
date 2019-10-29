@@ -7,8 +7,6 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
-import net.consensys.eventeum.dto.event.parameter.ArrayParameter;
-import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import net.consensys.eventeum.dto.event.parameter.NumberParameter;
 import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import org.junit.Test;
@@ -79,8 +77,8 @@ public class ArraysIT extends BaseKafkaIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(
-                        new ParameterDefinition(0, ParameterType.UINT256_ARRAY),
-                        new ParameterDefinition(1, ParameterType.BYTES32_ARRAY)));
+                        new ParameterDefinition(0, ParameterType.build("UINT256[]")),
+                        new ParameterDefinition(1, ParameterType.build("BYTES32[]"))));
 
         eventSpec.setEventName("DummyEventArray");
 

@@ -1,29 +1,18 @@
 package net.consensys.eventeumserver.integrationtest;
 
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
-import net.consensys.eventeum.integration.eventstore.EventStore;
-import net.consensys.eventeum.model.LatestBlock;
-import net.consensys.eventeum.utils.JSON;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.utils.Numeric;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
@@ -42,10 +31,10 @@ public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES16)));
+                Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES16"))));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.BYTES16)));
+                Arrays.asList(new ParameterDefinition(1, ParameterType.build("BYTES16"))));
 
         eventSpec.setEventName(eventEmitter.DUMMYEVENTBYTES16_EVENT.getName());
 
