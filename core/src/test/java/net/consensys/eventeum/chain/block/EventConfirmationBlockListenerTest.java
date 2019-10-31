@@ -81,6 +81,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdLogRemoved() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -89,6 +91,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdBlockHashChanged() {
         wireLog(true, EVENT_BLOCK_HASH + "changed", EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -97,6 +101,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdNoMatchingLog() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX.add(BigInteger.ONE));
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -115,6 +121,7 @@ public class EventConfirmationBlockListenerTest {
 
         underTest.onBlock(createBlockDetails(1005));
         underTest.onBlock(createBlockDetails(1103));
+
         expectNoBroadcast();
     }
 
@@ -124,6 +131,7 @@ public class EventConfirmationBlockListenerTest {
 
         underTest.onBlock(createBlockDetails(1005));
         underTest.onBlock(createBlockDetails(1106));
+
         expectInvalidation();
     }
 

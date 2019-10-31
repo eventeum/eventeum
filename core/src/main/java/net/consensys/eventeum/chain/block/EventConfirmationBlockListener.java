@@ -68,17 +68,17 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
             final Optional<Log> log = getCorrespondingLog(receipt);
 
             if (log.isPresent()) {
-                checkEventStatus(block.getNumber(), log.get());
+                checkEventStatus(block, log.get());
             } else {
                 processInvalidatedEvent(block);
             }
         });
     }
 
-    private void checkEventStatus(BigInteger currentBlockNumber, Log log) {
+    private void checkEventStatus(Block block, Log log) {
         if (isEventAnOrphan(log)) {
-            processInvalidatedEvent();
-        } else if (currentBlockNumber.compareTo(targetBlock) >= 0) {
+            processInvalidatedEvent(block);
+        } else if (block.getNumber().compareTo(targetBlock) >= 0) {
             LOG.debug("Target block reached for event: {}", contractEvent.getId());
             broadcastEventConfirmed();
             unregister();
@@ -134,9 +134,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
         if (currentNumBlocksToWaitBeforeInvalidating == null) {
             currentNumBlocksToWaitBeforeInvalidating = block.getNumber().add(numBlocksToWaitBeforeInvalidating);
         } else if (block.getNumber().compareTo(currentNumBlocksToWaitBeforeInvalidating) > 0) {
-            broadcastEventInvalidated();
-            isInvalidated.set(true);
-            unregister();
+            unRegisterEventListener();
         }
     }
 
@@ -144,7 +142,13 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
         if (missingTxBlockLimit == null) {
             missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
         } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
-            processInvalidatedEvent(block);
+            unRegisterEventListener();
         }
+    }
+
+    private void unRegisterEventListener() {
+        broadcastEventInvalidated();
+        isInvalidated.set(true);
+        unregister();
     }
 }

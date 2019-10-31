@@ -41,7 +41,7 @@ public class ConfirmationCheckInitialiserTest {
 
          when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
 
-         final EventConfirmationConfig config = new EventConfirmationConfig(BigInteger.TEN, BigInteger.valueOf(100));
+         final EventConfirmationConfig config = new EventConfirmationConfig(BigInteger.TEN, BigInteger.valueOf(100), BigInteger.valueOf(5));
 
          underTest = new ConfirmationCheckInitialiserForTest(mockChainServicesContainer,
                  mock(BlockchainEventBroadcaster.class), config);
