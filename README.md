@@ -401,7 +401,7 @@ Eventeum can either be configured by:
 | BROADCASTER_CACHE_EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
 | BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
 | BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
-| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITBEFOREINVALIDATING | 5 | Number of blocks to wait before considering a block as invalid. |
+| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITBEFOREINVALIDATING | 2 | Number of blocks to wait before considering a block as invalid. |
 | BROADCASTER_MULTIINSTANCE | false | If multiple instances of eventeum are to be deployed in your system, this should be set to true so that the eventeum communicates added/removed filters to other instances, via kafka. |
 | BROADCASTER_HTTP CONTRACTEVENTSURL | | The http url for posting contract events (for HTTP broadcasting) |
 | BROADCASTER_HTTP BLOCKEVENTSURL | | The http url for posting block events (for HTTP broadcasting) |
