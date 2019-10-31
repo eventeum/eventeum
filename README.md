@@ -393,14 +393,15 @@ Eventeum can either be configured by:
 | ETHEREUM_BLOCKSTRATEGY | POLL | The strategy for obtaining block events from an ethereum node (POLL or PUBSUB). It will be overwritten by the specific node configuration. |
 | ETHEREUM_NODE_URL | http://localhost:8545 | The default ethereum node url. |
 | ETHEREUM_NODE_BLOCKSTRATEGY | POLL | The strategy for obtaining block events for the ethereum node (POLL or PUBSUB).
-| ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
+| ETHEREUM_NODE_HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
 | ETHEREUM_NODE_ADD_TRANSACTION_REVERT_REASON | false | In case of a failing transaction it indicates if Eventeum should get the revert reason. Currently not working for Ganache and Parity.
 | POLLING_INTERVAL | 10000 | The polling interval used by Web3j to get events from the blockchain. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
 | BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
-| BROADCASTER_CACHE _EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
-| BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
-| BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
+| BROADCASTER_CACHE_EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
+| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
+| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
+| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITBEFOREINVALIDATING | 5 | Number of blocks to wait before considering a block as invalid. |
 | BROADCASTER_MULTIINSTANCE | false | If multiple instances of eventeum are to be deployed in your system, this should be set to true so that the eventeum communicates added/removed filters to other instances, via kafka. |
 | BROADCASTER_HTTP CONTRACTEVENTSURL | | The http url for posting contract events (for HTTP broadcasting) |
 | BROADCASTER_HTTP BLOCKEVENTSURL | | The http url for posting block events (for HTTP broadcasting) |
