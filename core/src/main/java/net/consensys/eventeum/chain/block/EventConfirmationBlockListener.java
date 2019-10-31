@@ -32,6 +32,8 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
 
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
+    private BigInteger numBlocksToWaitBeforeInvalidating;
+    private BigInteger currentNumBlocksToWaitBeforeInvalidating;
 
     public EventConfirmationBlockListener(ContractEventDetails contractEvent,
                                           BlockchainService blockchainService,
@@ -47,6 +49,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
         this.blocksToWaitForMissingTx = eventConfirmationConfig.getBlocksToWaitForMissingTx();
+        this.numBlocksToWaitBeforeInvalidating = eventConfirmationConfig.getNumBlocksToWaitBeforeInvalidating();
     }
 
     @Override
@@ -67,7 +70,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
             if (log.isPresent()) {
                 checkEventStatus(block.getNumber(), log.get());
             } else {
-                processInvalidatedEvent();
+                processInvalidatedEvent(block);
             }
         });
     }
@@ -80,12 +83,6 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
             broadcastEventConfirmed();
             unregister();
         }
-    }
-
-    private void processInvalidatedEvent() {
-        broadcastEventInvalidated();
-        isInvalidated.set(true);
-        unregister();
     }
 
     private boolean isEventAnOrphan(Log log) {
@@ -133,11 +130,21 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
                 .findFirst();
     }
 
+    private void processInvalidatedEvent(Block block) {
+        if (currentNumBlocksToWaitBeforeInvalidating == null) {
+            currentNumBlocksToWaitBeforeInvalidating = block.getNumber().add(numBlocksToWaitBeforeInvalidating);
+        } else if (block.getNumber().compareTo(currentNumBlocksToWaitBeforeInvalidating) > 0) {
+            broadcastEventInvalidated();
+            isInvalidated.set(true);
+            unregister();
+        }
+    }
+
     private void handleMissingTransaction(Block block) {
         if (missingTxBlockLimit == null) {
             missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
         } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
-            processInvalidatedEvent();
+            processInvalidatedEvent(block);
         }
     }
 }
