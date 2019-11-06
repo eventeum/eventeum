@@ -65,6 +65,7 @@ broadcaster:
     confirmation:
       numBlocksToWait: 12
       numBlocksToWaitForMissingTx: 100
+      numBlocksToWaitBeforeInvalidating: 2
   multiInstance: false
   enableBlockNotifications: true
 

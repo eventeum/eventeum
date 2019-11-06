@@ -24,6 +24,7 @@ public class EventConfirmationBlockListenerTest {
 
     private static final BigInteger BLOCKS_TO_WAIT = BigInteger.valueOf(10);
     private static final BigInteger BLOCKS_TO_WAIT_MISSING = BigInteger.valueOf(100);
+    private static final BigInteger BLOCKS_TO_WAIT_BEFORE_INVALIDATING = BigInteger.valueOf(1);
     private static final String EVENT_BLOCK_HASH =
             "0x368ce0ee3afdf1bd73d7e6912f899f31b14b9656e1a3164400ba4587df192c1d";
     private static final BigInteger EVENT_BLOCK_NUMBER = BigInteger.valueOf(1000);
@@ -62,7 +63,7 @@ public class EventConfirmationBlockListenerTest {
         when(mockBlockchainService.getTransactionReceipt(EVENT_TX_HASH)).thenReturn(mockTransactionReceipt);
 
         final EventConfirmationConfig eventConfirmationConfig =
-                new EventConfirmationConfig(BLOCKS_TO_WAIT, BLOCKS_TO_WAIT_MISSING);
+                new EventConfirmationConfig(BLOCKS_TO_WAIT, BLOCKS_TO_WAIT_MISSING, BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
 
         underTest = new EventConfirmationBlockListener(mockEventDetails,
                 mockBlockchainService, mockEventBroadcaster, eventConfirmationConfig, asyncTaskService);
@@ -80,6 +81,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdLogRemoved() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -88,6 +91,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdBlockHashChanged() {
         wireLog(true, EVENT_BLOCK_HASH + "changed", EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -96,6 +101,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdNoMatchingLog() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX.add(BigInteger.ONE));
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -114,6 +121,7 @@ public class EventConfirmationBlockListenerTest {
 
         underTest.onBlock(createBlockDetails(1005));
         underTest.onBlock(createBlockDetails(1103));
+
         expectNoBroadcast();
     }
 
@@ -123,6 +131,7 @@ public class EventConfirmationBlockListenerTest {
 
         underTest.onBlock(createBlockDetails(1005));
         underTest.onBlock(createBlockDetails(1106));
+
         expectInvalidation();
     }
 

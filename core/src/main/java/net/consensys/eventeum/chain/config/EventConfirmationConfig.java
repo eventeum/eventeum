@@ -22,11 +22,19 @@ public class EventConfirmationConfig {
     //before an event is considered invalidated
     private BigInteger blocksToWaitForMissingTx;
 
+    //The number of blocks to wait to consider an event invalid because the block
+    //was an invalid block.
+    private BigInteger numBlocksToWaitBeforeInvalidating;
+
     public EventConfirmationConfig(@Value("${broadcaster.event.confirmation.numBlocksToWait}")
                                            BigInteger blocksToWaitForConfirmation,
                                    @Value("${broadcaster.event.confirmation.numBlocksToWaitForMissingTx}")
-                                           BigInteger blocksToWaitForMissingTx) {
+                                           BigInteger blocksToWaitForMissingTx,
+                                   @Value("${broadcaster.event.confirmation.numBlocksToWaitBeforeInvalidating}")
+                                           BigInteger numBlocksToWaitBeforeInvalidating
+    ) {
         this.blocksToWaitForConfirmation = blocksToWaitForConfirmation;
         this.blocksToWaitForMissingTx = blocksToWaitForMissingTx;
+        this.numBlocksToWaitBeforeInvalidating = numBlocksToWaitBeforeInvalidating;
     }
 }

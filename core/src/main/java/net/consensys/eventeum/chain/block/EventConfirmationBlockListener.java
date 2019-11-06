@@ -32,6 +32,8 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
 
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
+    private BigInteger numBlocksToWaitBeforeInvalidating;
+    private BigInteger currentNumBlocksToWaitBeforeInvalidating;
 
     public EventConfirmationBlockListener(ContractEventDetails contractEvent,
                                           BlockchainService blockchainService,
@@ -47,6 +49,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
         this.blocksToWaitForMissingTx = eventConfirmationConfig.getBlocksToWaitForMissingTx();
+        this.numBlocksToWaitBeforeInvalidating = eventConfirmationConfig.getNumBlocksToWaitBeforeInvalidating();
     }
 
     @Override
@@ -65,27 +68,21 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
             final Optional<Log> log = getCorrespondingLog(receipt);
 
             if (log.isPresent()) {
-                checkEventStatus(block.getNumber(), log.get());
+                checkEventStatus(block, log.get());
             } else {
-                processInvalidatedEvent();
+                processInvalidatedEvent(block);
             }
         });
     }
 
-    private void checkEventStatus(BigInteger currentBlockNumber, Log log) {
+    private void checkEventStatus(Block block, Log log) {
         if (isEventAnOrphan(log)) {
-            processInvalidatedEvent();
-        } else if (currentBlockNumber.compareTo(targetBlock) >= 0) {
+            processInvalidatedEvent(block);
+        } else if (block.getNumber().compareTo(targetBlock) >= 0) {
             LOG.debug("Target block reached for event: {}", contractEvent.getId());
             broadcastEventConfirmed();
             unregister();
         }
-    }
-
-    private void processInvalidatedEvent() {
-        broadcastEventInvalidated();
-        isInvalidated.set(true);
-        unregister();
     }
 
     private boolean isEventAnOrphan(Log log) {
@@ -133,11 +130,25 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
                 .findFirst();
     }
 
+    private void processInvalidatedEvent(Block block) {
+        if (currentNumBlocksToWaitBeforeInvalidating == null) {
+            currentNumBlocksToWaitBeforeInvalidating = block.getNumber().add(numBlocksToWaitBeforeInvalidating);
+        } else if (block.getNumber().compareTo(currentNumBlocksToWaitBeforeInvalidating) > 0) {
+            unRegisterEventListener();
+        }
+    }
+
     private void handleMissingTransaction(Block block) {
         if (missingTxBlockLimit == null) {
             missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
         } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
-            processInvalidatedEvent();
+            unRegisterEventListener();
         }
+    }
+
+    private void unRegisterEventListener() {
+        broadcastEventInvalidated();
+        isInvalidated.set(true);
+        unregister();
     }
 }
