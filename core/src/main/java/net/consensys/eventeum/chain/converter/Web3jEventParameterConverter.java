@@ -31,12 +31,14 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
     public Web3jEventParameterConverter(EventeumSettings settings) {
         typeConverters.put("address",
                 (type) -> new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
-        typeConverters.put("int256",
-                (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
 
         registerNumberConverters("uint", 8, 256);
+        registerNumberConverters("int", 8, 256);
         registerBytesConverters("bytes", 1, 32);
 
+        typeConverters.put("byte", (type) -> convertBytesType(type));
+        typeConverters.put("bool", (type) -> new NumberParameter(type.getTypeAsString(),
+                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO));
         typeConverters.put("string",
                 (type) -> new StringParameter(type.getTypeAsString(),
                         trim((String)type.getValue())));

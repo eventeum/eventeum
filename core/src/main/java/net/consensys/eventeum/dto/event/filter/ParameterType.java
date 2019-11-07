@@ -24,6 +24,7 @@ public class ParameterType {
     public static final String UINT = "UINT";
     public static final String ADDRESS = "ADDRESS";
     public static final String BYTES = "BYTES";
+    public static final String BYTE = "BYTE";
     public static final String BOOL = "BOOL";
     public static final String STRING = "STRING";
 
@@ -36,6 +37,7 @@ public class ParameterType {
         SUPPORTED_TYPES.put(INT, new SupportedType(INT));
         SUPPORTED_TYPES.put(ADDRESS, new SupportedType(ADDRESS));
         SUPPORTED_TYPES.put(BYTES, new SupportedType(BYTES, 32, 1));
+        SUPPORTED_TYPES.put(BYTE, new SupportedType(BYTE));
         SUPPORTED_TYPES.put(BOOL, new SupportedType(BOOL));
         SUPPORTED_TYPES.put(STRING, new SupportedType(STRING));
     }

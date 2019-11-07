@@ -24,6 +24,7 @@ public class Web3jUtil {
     private static final String ADDRESS = "ADDRESS";
     private static final String BOOL = "BOOL";
     private static final String STRING = "STRING";
+    private static final String BYTE = "BYTE";
 
     static {
         addUintMappings(8, 256);
@@ -32,6 +33,9 @@ public class Web3jUtil {
         addIntArrayMappings(8, 256);
         addBytesMappings(1, 32);
         addBytesArrayMappings(1, 32);
+        typeMappings.put(ParameterType.build(BYTE), new TypeMapping(new TypeReference<Bytes>() {}, Bytes.class));
+        typeMappings.put(ParameterType.build(BYTE + "[]"), new TypeMapping(
+                new TypeReference<DynamicArray<Bytes>>() {}, DynamicArray.class));
         typeMappings.put(ParameterType.build(ADDRESS), new TypeMapping(new TypeReference<Address>() {}, Address.class));
         typeMappings.put(ParameterType.build(ADDRESS + "[]"), new TypeMapping(
                 new TypeReference<DynamicArray<Address>>() {}, DynamicArray.class));
