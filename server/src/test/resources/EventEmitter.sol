@@ -32,6 +32,14 @@ contract EventEmitter {
     emit DummyEventArray(uintArray, bytesArray);
   }
 
+  function emitEventAdditionalTypes(uint16 uint16Value, int64 int64Value, byte byteValue) external {
+    address[] memory addressArray = new address[](2);
+    addressArray[0] = msg.sender;
+    addressArray[1] = address(this);
+
+    emit DummyEventAdditionalTypes(uint16Value, int64Value, addressArray, byteValue, true);
+  }
+
   event DummyEventBytes16(bytes16 indexed indexedBytes16, bytes16 bytes16Value);
 
   event DummyEvent(bytes32 indexed indexedBytes, address indexed indexedAddress, uint uintValue, string stringValue, TestEnum enumValue);
@@ -39,4 +47,6 @@ contract EventEmitter {
   event DummyEventNotOrdered(bytes32 indexed indexedBytes, uint uintValue, address indexed indexedAddress, string stringValue, TestEnum enumValue);
 
   event DummyEventArray(uint256[] uintArray, bytes32[] bytesArray);
+
+  event DummyEventAdditionalTypes(uint16 indexed uint16Value, int64 indexed int64Value, address[] addressArray, byte byteValue, bool boolValue);
 }

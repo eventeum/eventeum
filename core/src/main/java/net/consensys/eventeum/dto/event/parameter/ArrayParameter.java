@@ -22,7 +22,7 @@ public class ArrayParameter<T extends EventParameter<?>> extends AbstractEventPa
     private String stringRepresentation;
 
     public ArrayParameter(String entryType, Class<T> arrayParameterType, ArrayList<T> value) {
-        super(entryType + "-array", value);
+        super(entryType + "[]", value);
 
         initStringRepresentation();
     }

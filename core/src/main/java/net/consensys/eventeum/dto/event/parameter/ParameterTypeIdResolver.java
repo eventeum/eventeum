@@ -29,11 +29,11 @@ public class ParameterTypeIdResolver extends TypeIdResolverBase {
     public JavaType typeFromId(DatabindContext context, String id) {
         Class<?> subType = null;
 
-        if (id.endsWith("-array")) {
+        if (id.endsWith("[]")) {
             subType = ArrayParameter.class;
-        } else if (id.startsWith("bytes") || id.equals("string") || id.equals("address")) {
+        } else if (id.startsWith("byte") || id.equals("string") || id.equals("address")) {
             subType = StringParameter.class;
-        } else if (id.startsWith("uint") || id.startsWith("int")) {
+        } else if (id.startsWith("uint") || id.startsWith("int") || id.startsWith("bool")) {
             subType = NumberParameter.class;
         }
         return context.constructSpecializedType(superType, subType);

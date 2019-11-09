@@ -5,9 +5,12 @@ import lombok.Data;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
+import net.consensys.eventeum.service.exception.ValidationException;
+import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.*;
+import org.web3j.abi.datatypes.generated.Bytes1;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,9 +36,9 @@ public class Web3jUtil {
         addIntArrayMappings(8, 256);
         addBytesMappings(1, 32);
         addBytesArrayMappings(1, 32);
-        typeMappings.put(ParameterType.build(BYTE), new TypeMapping(new TypeReference<Bytes>() {}, Bytes.class));
+        typeMappings.put(ParameterType.build(BYTE), new TypeMapping(new TypeReference<Bytes1>() {}, Bytes1.class));
         typeMappings.put(ParameterType.build(BYTE + "[]"), new TypeMapping(
-                new TypeReference<DynamicArray<Bytes>>() {}, DynamicArray.class));
+                new TypeReference<DynamicArray<Bytes1>>() {}, DynamicArray.class));
         typeMappings.put(ParameterType.build(ADDRESS), new TypeMapping(new TypeReference<Address>() {}, Address.class));
         typeMappings.put(ParameterType.build(ADDRESS + "[]"), new TypeMapping(
                 new TypeReference<DynamicArray<Address>>() {}, DynamicArray.class));
@@ -60,6 +63,10 @@ public class Web3jUtil {
     }
 
     public static TypeReference<?> getTypeReferenceFromParameterType(ParameterType parameterType) {
+        if (!typeMappings.containsKey(parameterType)) {
+            throw new ValidationException(String.format("Type %s not supported", parameterType.getType()));
+        }
+
         return typeMappings.get(parameterType).getTypeReference();
     }
 
@@ -74,8 +81,10 @@ public class Web3jUtil {
         addAllDefinitions(allParameterDefinitions, spec.getNonIndexedParameterDefinitions());
         Collections.sort(allParameterDefinitions);
 
-        return EventEncoder.encode(spec.getEventName(),
-                Utils.convert(getTypeReferencesFromParameterDefinitions(allParameterDefinitions)));
+        final Event event = new Event(spec.getEventName(),
+                getTypeReferencesFromParameterDefinitions(allParameterDefinitions));
+
+        return EventEncoder.encode(event);
     }
 
     private static void addUintMappings(int interval, int max) {
