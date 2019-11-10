@@ -9,6 +9,7 @@ import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
+import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -73,8 +74,8 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenReturn(blockNumber);
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
 
-        underTest = new Web3jService("test", mockWeb3j,
-                mockContractEventDetailsFactory, mockBlockManagement, mockBlockSubscriptionStrategy);
+        underTest = new Web3jService("test", mockWeb3j, mockContractEventDetailsFactory,
+                mockBlockManagement, mockBlockSubscriptionStrategy, new DummyAsyncTaskService());
     }
 
     @Test

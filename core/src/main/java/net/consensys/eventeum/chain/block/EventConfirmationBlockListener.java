@@ -55,7 +55,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
     @Override
     public void onBlock(Block block) {
         //Needs to be called asynchronously, otherwise websocket is blocked
-        asyncTaskService.execute(() -> {
+//        asyncTaskService.execute(() -> {
             final TransactionReceipt receipt = blockchainService.getTransactionReceipt(contractEvent.getTransactionHash());
 
             if (receipt == null) {
@@ -72,7 +72,7 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
             } else {
                 processInvalidatedEvent(block);
             }
-        });
+//        });
     }
 
     private void checkEventStatus(Block block, Log log) {

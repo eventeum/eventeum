@@ -28,7 +28,6 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private BigInteger targetBlock;
     private BigInteger blocksToWaitForMissingTx;
     private EventConfirmationConfig eventConfirmationConfig;
-    private AsyncTaskService asyncTaskService;
     private OnConfirmedCallback onConfirmedCallback;
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
@@ -38,14 +37,12 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
                                                 BlockchainService blockchainService,
                                                 BlockchainEventBroadcaster eventBroadcaster,
                                                 EventConfirmationConfig eventConfirmationConfig,
-                                                AsyncTaskService asyncTaskService,
                                                 List<TransactionStatus> statusesToFilter,
                                                 OnConfirmedCallback onConfirmedCallback) {
         super(blockchainService);
         this.transactionDetails = transactionDetails;
         this.blockchainService = blockchainService;
         this.eventBroadcaster = eventBroadcaster;
-        this.asyncTaskService = asyncTaskService;
         this.onConfirmedCallback = onConfirmedCallback;
         this.statusesToFilter = statusesToFilter;
 
@@ -56,19 +53,16 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
 
     @Override
     public void onBlock(Block block) {
-        //Needs to be called asynchronously, otherwise websocket is blocked
-        asyncTaskService.execute(() -> {
-            final TransactionReceipt receipt = blockchainService.getTransactionReceipt(transactionDetails.getHash());
+        final TransactionReceipt receipt = blockchainService.getTransactionReceipt(transactionDetails.getHash());
 
-            if (receipt == null) {
-                //Tx has disappeared...we've probably forked
-                //Tx should be included in block on new fork soon
-                handleMissingTransaction(block);
-                return;
-            }
+        if (receipt == null) {
+            //Tx has disappeared...we've probably forked
+            //Tx should be included in block on new fork soon
+            handleMissingTransaction(block);
+            return;
+        }
 
-            checkTransactionStatus(block.getNumber(), receipt);
-        });
+        checkTransactionStatus(block.getNumber(), receipt);
     }
 
     private void checkTransactionStatus(BigInteger currentBlockNumber, TransactionReceipt receipt) {

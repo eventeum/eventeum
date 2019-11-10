@@ -4,10 +4,9 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
-import net.consensys.eventeum.service.PooledAsyncTaskService;
+import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -83,12 +82,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         when(mockRequest.send()).thenReturn(mockEthBlock);
 
         underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME,
-                mockEventStoreService, new AsyncTaskService() {
-            @Override
-            public void execute(Runnable task) {
-                task.run();
-            }
-        });
+                mockEventStoreService, new DummyAsyncTaskService());
     }
 
     @Test

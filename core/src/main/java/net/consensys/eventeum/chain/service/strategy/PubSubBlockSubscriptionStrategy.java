@@ -18,12 +18,10 @@ import org.web3j.protocol.websocket.events.NewHead;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<NewHead> {
 
-    private Lock lock = new ReentrantLock();
+    private static final String PUB_SUB_EXECUTOR_NAME = "PUBSUB";
 
     private RetryTemplate retryTemplate;
 
@@ -33,7 +31,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
                                            String nodeName,
                                            EventStoreService eventStoreService,
                                            AsyncTaskService asyncService) {
-        super(web3j, nodeName, eventStoreService);
+        super(web3j, nodeName, eventStoreService, asyncService);
 
         this.asyncService = asyncService;
     }
@@ -58,7 +56,8 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
 
     private Disposable subscribeToNewHeads() {
         final Disposable disposable = web3j.newHeadsNotifications().subscribe(newHead -> {
-            asyncService.execute(() -> triggerListeners(newHead.getParams().getResult()));
+            //Need to execute this is a seperate thread to workaround websocket thread deadlock
+            asyncService.execute(PUB_SUB_EXECUTOR_NAME, () -> triggerListeners(newHead.getParams().getResult()));
         });
 
         if (disposable.isDisposed()) {
