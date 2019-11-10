@@ -43,8 +43,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private EventConfirmationConfig confirmationConfig;
 
-    private AsyncTaskService asyncService;
-
     private BlockCache blockCache;
 
     private RetryTemplate retryTemplate;
@@ -57,7 +55,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                                                      BlockchainEventBroadcaster broadcaster,
                                                      TransactionDetailsFactory transactionDetailsFactory,
                                                      EventConfirmationConfig confirmationConfig,
-                                                     AsyncTaskService asyncService,
                                                      BlockCache blockCache,
                                                      NodeSettings nodeSettings
     ) {
@@ -75,22 +72,19 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
         this.confirmationConfig = confirmationConfig;
-        this.asyncService = asyncService;
         this.blockCache = blockCache;
         this.nodeSettings = nodeSettings;
     }
 
     @Override
     public void onBlock(Block block) {
-        asyncService.execute(() -> {
-            lock.lock();
+        lock.lock();
 
-            try {
-                processBlock(block);
-            } finally {
-                lock.unlock();
-            }
-        });
+        try {
+            processBlock(block);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -159,7 +153,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                    blockchainService, broadcaster, confirmationConfig, asyncService,
+                    blockchainService, broadcaster, confirmationConfig,
                     matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 

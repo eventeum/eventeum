@@ -5,6 +5,7 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -14,8 +15,9 @@ import java.util.Optional;
 
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
-    public PollingBlockSubscriptionStrategy(Web3j web3j, String nodeName, EventStoreService eventStoreService) {
-        super(web3j, nodeName, eventStoreService);
+    public PollingBlockSubscriptionStrategy(
+            Web3j web3j, String nodeName, EventStoreService eventStoreService, AsyncTaskService asyncService) {
+        super(web3j, nodeName, eventStoreService, asyncService);
     }
 
     @Override

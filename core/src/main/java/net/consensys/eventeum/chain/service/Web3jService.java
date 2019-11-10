@@ -18,6 +18,7 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.model.FilterSubscription;
+import net.consensys.eventeum.service.AsyncTaskService;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -43,6 +44,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class Web3jService implements BlockchainService {
 
+    private static final String EVENT_EXECUTOR_NAME = "EVENT";
     @Getter
     private String nodeName;
 
@@ -51,7 +53,7 @@ public class Web3jService implements BlockchainService {
     private Web3j web3j;
     private ContractEventDetailsFactory eventDetailsFactory;
     private EventBlockManagementService blockManagement;
-    private Lock lock = new ReentrantLock();
+    private AsyncTaskService asyncTaskService;
 
     private BlockSubscriptionStrategy blockSubscriptionStrategy;
 
@@ -59,12 +61,14 @@ public class Web3jService implements BlockchainService {
                         Web3j web3j,
                         ContractEventDetailsFactory eventDetailsFactory,
                         EventBlockManagementService blockManagement,
-                        BlockSubscriptionStrategy blockSubscriptionStrategy) {
+                        BlockSubscriptionStrategy blockSubscriptionStrategy,
+                        AsyncTaskService asyncTaskService) {
         this.nodeName = nodeName;
         this.web3j = web3j;
         this.eventDetailsFactory = eventDetailsFactory;
         this.blockManagement = blockManagement;
         this.blockSubscriptionStrategy = blockSubscriptionStrategy;
+        this.asyncTaskService = asyncTaskService;
     }
 
     /**
@@ -105,15 +109,11 @@ public class Web3jService implements BlockchainService {
         final Flowable<Log> flowable = web3j.ethLogFlowable(ethFilter);
 
         final Disposable sub = flowable.subscribe(theLog -> {
-            lock.lock();
-
-            try {
+            asyncTaskService.execute(EVENT_EXECUTOR_NAME, () -> {
                 log.debug("Dispatching log: {}", theLog);
                 eventListener.onEvent(
                         eventDetailsFactory.createEventDetails(eventFilter, theLog));
-            } finally {
-                lock.unlock();
-            }
+            });
         });
 
         if (sub.isDisposed()) {

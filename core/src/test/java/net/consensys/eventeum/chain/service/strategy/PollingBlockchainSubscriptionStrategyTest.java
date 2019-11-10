@@ -58,7 +58,8 @@ public class PollingBlockchainSubscriptionStrategyTest {
         blockPublishProcessor = PublishProcessor.create();
         when(mockWeb3j.blockFlowable(true)).thenReturn(blockPublishProcessor);
 
-        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j, NODE_NAME, mockEventStoreService);
+        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j,
+                NODE_NAME, mockEventStoreService, new DummyAsyncTaskService());
     }
 
     @Test
