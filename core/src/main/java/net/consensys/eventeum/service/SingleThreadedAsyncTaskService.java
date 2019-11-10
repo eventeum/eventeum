@@ -1,5 +1,6 @@
 package net.consensys.eventeum.service;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -31,13 +32,14 @@ public class SingleThreadedAsyncTaskService implements AsyncTaskService {
 
     private ExecutorService getOrCreateExecutor(String executorName) {
         if (!executorServices.containsKey(executorName)) {
-            executorServices.put(executorName, buildExecutor());
+            executorServices.put(executorName, buildExecutor(executorName));
         }
 
         return executorServices.get(executorName);
     }
 
-    protected ExecutorService buildExecutor() {
-        return Executors.newSingleThreadExecutor();
+    protected ExecutorService buildExecutor(String executorName) {
+        return Executors.newSingleThreadExecutor(
+                new ThreadFactoryBuilder().setNameFormat(executorName + "-%d").build());
     }
 }
