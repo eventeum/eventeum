@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 /**
  * A parameter included within an event.
@@ -14,21 +14,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
         property = "type",
         visible = true)
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = StringParameter.class, name = "address"),
-        @JsonSubTypes.Type(value = StringParameter.class, name = "bytes16"),
-        @JsonSubTypes.Type(value = StringParameter.class, name = "bytes32"),
-        @JsonSubTypes.Type(value = StringParameter.class, name = "string"),
-        @JsonSubTypes.Type(value = NumberParameter.class, name = "int256"),
-        @JsonSubTypes.Type(value = NumberParameter.class, name = "uint8"),
-        @JsonSubTypes.Type(value = NumberParameter.class, name = "uint256")
-})
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonTypeIdResolver(ParameterTypeIdResolver.class)
 public interface EventParameter<T extends Serializable> extends Serializable{
     String getType();
 

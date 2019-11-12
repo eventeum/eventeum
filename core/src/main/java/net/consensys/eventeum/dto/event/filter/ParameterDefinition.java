@@ -3,6 +3,7 @@ package net.consensys.eventeum.dto.event.filter;
 import java.io.Serializable;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
@@ -18,7 +19,7 @@ public class ParameterDefinition implements Comparable<ParameterDefinition>, Ser
 
     private Integer position;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Embedded
     private ParameterType type;
 
     @Override
