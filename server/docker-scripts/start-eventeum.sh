@@ -3,7 +3,7 @@ command="java -Dcom.sun.management.jmxremote \
               -Dcom.sun.management.jmxremote.port=1234 \
               -Dcom.sun.management.jmxremote.ssl=false \
               -Dcom.sun.management.jmxremote.authenticate=false \
-              -javaagent:./jmx_prometheus_javaagent.jar=8080:jmx-config.yml \
+              -javaagent:./jmx_prometheus_javaagent.jar=${JMX_EXPORTER_PORT}:jmx-config.yml \
               -jar eventeum-server.jar"
 
 if [[ -z JVM_OPS ]]; then
