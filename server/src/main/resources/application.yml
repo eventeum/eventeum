@@ -14,6 +14,7 @@ logging:
   file: /logs/application.log
 
 ethereum:
+  syncFromLatest: false
   nodes:
     - name: default
       url: ${ETHEREUM_NODE_URL:http://localhost:8545}
