@@ -61,12 +61,12 @@ public class DefaultContractEventDetailsFactoryTest {
         eventSpec = new ContractEventSpecification();
         eventSpec.setEventName(EVENT_NAME);
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.UINT256)));
+                Arrays.asList(new ParameterDefinition(0, ParameterType.build("UINT256"))));
 
         eventSpec.setNonIndexedParameterDefinitions(Arrays.asList(
-                new ParameterDefinition(1, ParameterType.UINT256),
-                new ParameterDefinition(2, ParameterType.ADDRESS),
-                new ParameterDefinition(3, ParameterType.INT256)));
+                new ParameterDefinition(1, ParameterType.build("UINT256")),
+                new ParameterDefinition(2, ParameterType.build("ADDRESS")),
+                new ParameterDefinition(3, ParameterType.build("INT256"))));
     }
 
     @Before
@@ -158,7 +158,8 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     private DefaultContractEventDetailsFactory createFactory(BigInteger confirmations) {
-        final EventConfirmationConfig config = new EventConfirmationConfig(confirmations, BigInteger.valueOf(100));
+        final EventConfirmationConfig config = new EventConfirmationConfig(confirmations, BigInteger.valueOf(100), BigInteger.valueOf(5));
+
         return new DefaultContractEventDetailsFactory(mockParameterCoverter, config, NETWORK_NAME);
     }
 }

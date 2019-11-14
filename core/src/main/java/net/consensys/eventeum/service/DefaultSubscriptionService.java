@@ -105,6 +105,14 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
+    public List<ContractEventFilter> listContractEventFilters() {
+      return getFilterSubscriptions().stream().map((FilterSubscription f) -> f.getFilter()).collect(Collectors.toList());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void unregisterContractEventFilter(String filterId) throws NotFoundException {
         unregisterContractEventFilter(filterId, true);
     }
@@ -241,6 +249,10 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private FilterSubscription getFilterSubscription(String filterId) {
         return filterSubscriptions.get(filterId);
+    }
+
+    private List<FilterSubscription> getFilterSubscriptions() {
+        return new ArrayList(filterSubscriptions.values());
     }
 
     private void removeFilterSubscription(String filterId) {

@@ -7,6 +7,7 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -22,6 +23,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {
 
+    protected static final String BLOCK_EXECUTOR_NAME = "BLOCK";
+
     private Lock lock = new ReentrantLock();
 
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
@@ -29,11 +32,16 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected Web3j web3j;
     protected EventStoreService eventStoreService;
     protected String nodeName;
+    protected AsyncTaskService asyncService;
 
-    public AbstractBlockSubscriptionStrategy(Web3j web3j, String nodeName, EventStoreService eventStoreService) {
+    public AbstractBlockSubscriptionStrategy(Web3j web3j,
+                                             String nodeName,
+                                             EventStoreService eventStoreService,
+                                             AsyncTaskService asyncService) {
         this.web3j = web3j;
         this.nodeName = nodeName;
         this.eventStoreService = eventStoreService;
+        this.asyncService = asyncService;
     }
 
     @Override
@@ -67,12 +75,14 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     protected void triggerListeners(Block eventeumBlock) {
-        lock.lock();
-        try {
-            blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
-        } finally {
-            lock.unlock();
-        }
+        asyncService.execute(BLOCK_EXECUTOR_NAME, () -> {
+            lock.lock();
+            try {
+                blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
+            } finally {
+                lock.unlock();
+            }
+        });
     }
 
     protected void triggerListener(BlockListener listener, Block block) {

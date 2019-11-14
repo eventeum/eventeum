@@ -35,8 +35,6 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
 
     private EventConfirmationConfig confirmationConfig;
 
-    private AsyncTaskService asyncService;
-
     private TransactionMonitoringSpecRepository transactionMonitoringRepo;
 
     private TransactionMonitoringBlockListener monitoringBlockListener;
@@ -53,7 +51,6 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
                                                EventeumEventBroadcaster eventeumEventBroadcaster,
                                                TransactionDetailsFactory transactionDetailsFactory,
                                                EventConfirmationConfig confirmationConfig,
-                                               AsyncTaskService asyncService,
                                                TransactionMonitoringSpecRepository transactionMonitoringRepo,
                                                TransactionMonitoringBlockListener monitoringBlockListener,
                                                TransactionMatchingCriteriaFactory matchingCriteriaFactory,
@@ -63,7 +60,6 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
         this.confirmationConfig = confirmationConfig;
-        this.asyncService = asyncService;
         this.transactionMonitoringRepo = transactionMonitoringRepo;
         this.monitoringBlockListener = monitoringBlockListener;
         this.matchingCriteriaFactory = matchingCriteriaFactory;

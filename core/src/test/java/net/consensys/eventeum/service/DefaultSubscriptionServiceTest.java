@@ -65,11 +65,12 @@ public class DefaultSubscriptionServiceTest {
         eventSpec = new ContractEventSpecification();
         eventSpec.setEventName(EVENT_NAME);
 
-        eventSpec.setIndexedParameterDefinitions(Arrays.asList(new ParameterDefinition(0, ParameterType.UINT256)));
+        eventSpec.setIndexedParameterDefinitions(Arrays.asList(
+                new ParameterDefinition(0, ParameterType.build("UINT256"))));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
-                        new ParameterDefinition(2, ParameterType.ADDRESS)));
+                Arrays.asList(new ParameterDefinition(1, ParameterType.build("UINT256")),
+                        new ParameterDefinition(2, ParameterType.build("ADDRESS"))));
     }
 
     @Before
@@ -101,6 +102,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter);
 
         verifyContractEventFilterRegistration(filter,true, true);
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -110,6 +112,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter, false);
 
         verifyContractEventFilterRegistration(filter,true, false);
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -119,6 +122,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter, true);
 
         verifyContractEventFilterRegistration(filter,true, true);
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -131,6 +135,19 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter, true);
 
         assertTrue(!filter.getId().isEmpty());
+        assertEquals(1, underTest.listContractEventFilters().size());
+    }
+
+    @Test
+    public void testListContractEventFilterAlreadyRegistered() {
+        final ContractEventFilter filter1 = createEventFilter(null);
+        when(mockBlockchainService.registerEventListener(any(ContractEventFilter.class), any(ContractEventListener.class)))
+	   .thenReturn(new FilterSubscription(filter1, mock(Disposable.class)));
+
+        underTest.registerContractEventFilter(filter1, true);
+        underTest.registerContractEventFilter(filter1, true);
+
+        assertEquals(1, underTest.listContractEventFilters().size());
     }
 
     @Test
@@ -177,6 +194,7 @@ public class DefaultSubscriptionServiceTest {
         verify(sub1, times(1)).dispose();
         verify(mockRepo, times(1)).deleteById(FILTER_ID);
         verify(mockFilterBroadcaster, times(1)).broadcastEventFilterRemoved(filter);
+        assertEquals(0, underTest.listContractEventFilters().size());
 
         boolean exceptionThrown = false;
         //This will test that the filter has been deleted from memory
