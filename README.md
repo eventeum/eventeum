@@ -93,6 +93,16 @@ $ docker-compose -f docker-compose.yml up
 ## SQL Support
 Eventeum now supports a SQL database as well as the default MongoDB.  To use a SQL database (only SQL Server has currently been tested but others should be supported with the correct config), set the `database.type` property to `SQL` and ensure you have all required additional properties in your properties file. See `config-examples/application-template-sqlserver.yml` for a sample SQLServer configuration.
 
+### Upgrading to 0.8.0
+
+When upgrading Eventeum to **0.8.0**, changes in the schema are required. In order to perform the migration follow these steps:
+
+1. Stop all Evnteum instances
+2. Backup your database
+3. Apply the [tools/potgres-upgrade-to-v0.8.0.sql](tools/postgres-upgrade-to-v0.8.0.sql) sql script. Note that this script is written for Postgres, syntax may differ if using other database system.
+4. Restart Eventeum instances
+
+
 ## Configuring Nodes
 Listening for events from multiple different nodes is supported in Eventeum, and these nodes can be configured in the properties file.
 
