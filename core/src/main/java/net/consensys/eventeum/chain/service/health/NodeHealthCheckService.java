@@ -1,10 +1,17 @@
 package net.consensys.eventeum.chain.service.health;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.springframework.scheduling.annotation.Scheduled;
+
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A service that constantly polls an ethereum node (getClientVersion) in order to ensure that the node
@@ -25,21 +32,46 @@ public class NodeHealthCheckService {
     private ReconnectionStrategy reconnectionStrategy;
 
     private SubscriptionService subscriptionService;
-  
+
+
     private boolean initiallySubscribed = false;
+
+    private MeterRegistry meterRegistry;
+
+    private AtomicLong currentBlock;
+
+    private AtomicInteger syncing;
+
+    private SaveableEventStore dbEventStore;
+
+    private Integer syncingThreshold;
 
     public NodeHealthCheckService(BlockchainService blockchainService,
                                   ReconnectionStrategy reconnectionStrategy,
-                                  SubscriptionService subscriptionService) {
+                                  SubscriptionService subscriptionService,
+                                  MeterRegistry meterRegistry,
+                                  SaveableEventStore dbEventStore,
+                                  Integer syncingThreshold,
+                                  ScheduledThreadPoolExecutor taskScheduler,
+                                  Long healthCheckPollInterval
+    ) {
+        this.dbEventStore = dbEventStore;
         this.blockchainService = blockchainService;
         this.reconnectionStrategy = reconnectionStrategy;
         this.subscriptionService = subscriptionService;
+        this.syncingThreshold = syncingThreshold;
         nodeStatus = NodeStatus.SUBSCRIBED;
+        currentBlock = meterRegistry.gauge( blockchainService.getNodeName() +".currentBlock", Tags.of("chain",blockchainService
+                .getNodeName()),new
+                AtomicLong(0));
+        syncing = meterRegistry.gauge(blockchainService.getNodeName() +".syncing", Tags.of("chain",blockchainService
+                .getNodeName()),new
+                AtomicInteger(0));
+
+        taskScheduler.scheduleWithFixedDelay(() -> this.checkHealth() ,0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
     }
 
-    @Scheduled(fixedDelayString = "${ethereum.healthcheck.pollInterval}")
     public void checkHealth() {
-
         log.trace("Checking health");
 
         //Can take a few seconds to subscribe initially so if wait until after
@@ -81,9 +113,15 @@ public class NodeHealthCheckService {
 
     protected boolean isNodeConnected() {
         try {
-            blockchainService.getClientVersion();
+            currentBlock.set(blockchainService.getCurrentBlockNumber().longValue());
+            if(currentBlock.longValue()  <= syncingThreshold + dbEventStore.getLatestBlockForNode(blockchainService.getNodeName()).get().getNumber().longValue() ){
+                syncing.set(0);
+            }
+            else {
+                syncing.set(1);
+            }
         } catch(Throwable t) {
-            log.error("Get client version failed with exception on node " + blockchainService.getNodeName(), t);
+            log.error("Get latest block failed with exception on node " + blockchainService.getNodeName(), t);
 
             return false;
         }

@@ -1,25 +1,18 @@
 package net.consensys.eventeum.chain.config;
 
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-import javax.xml.bind.DatatypeConverter;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.config.factory.ContractEventDetailsFactoryFactoryBean;
-import net.consensys.eventeum.chain.converter.Web3jEventParameterConverter;
-import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.service.health.WebSocketHealthCheckService;
 import net.consensys.eventeum.chain.service.health.strategy.HttpReconnectionStrategy;
 import net.consensys.eventeum.chain.service.health.strategy.WebSocketResubscribeNodeFailureListener;
-import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.service.strategy.PollingBlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.service.strategy.PubSubBlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -32,6 +25,14 @@ import org.web3j.protocol.websocket.WebSocketClient;
 import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.utils.Async;
 
+import javax.xml.bind.DatatypeConverter;
+import java.net.ConnectException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 @AllArgsConstructor
 public class NodeBeanRegistrationStrategy {
 
@@ -43,7 +44,7 @@ public class NodeBeanRegistrationStrategy {
     private static final String NODE_SERVICES_BEAN_NAME =
             "%sNodeServices";
 
-    private static final String NODE_HEALTH_CHECM_BEAN_NAME =
+    private static final String NODE_HEALTH_CHECK_BEAN_NAME =
             "%sNodeHealthCheck";
 
     private static final String NODE_FAILURE_LISTENER_BEAN_NAME =
@@ -55,6 +56,7 @@ public class NodeBeanRegistrationStrategy {
     private static final String WEB_SOCKET_CLIENT_BEAN_NAME = "%sWebSocketClient";
 
     private NodeSettings nodeSettings;
+    private OkHttpClient globalOkHttpClient;
 
     public void register(Node node, BeanDefinitionRegistry registry) {
         registerContractEventDetailsFactoryBean(node, registry);
@@ -135,8 +137,14 @@ public class NodeBeanRegistrationStrategy {
 
         builder.addConstructorArgReference(blockchainServiceBeanName);
         builder.addConstructorArgReference(nodeFailureListenerBeanName);
+        builder.addConstructorArgReference("defaultSubscriptionService");
+        builder.addConstructorArgReference("prometheusMeterRegistry");
+        builder.addConstructorArgReference("dbEventStore");
+        builder.addConstructorArgValue(node.getSyncingThreshold());
+        builder.addConstructorArgReference("taskScheduler");
+        builder.addConstructorArgValue(node.getHealthcheckInterval());
 
-        final String beanName = String.format(NODE_HEALTH_CHECM_BEAN_NAME, node.getName());
+        final String beanName = String.format(NODE_HEALTH_CHECK_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
 
         return beanName;
@@ -200,7 +208,14 @@ public class NodeBeanRegistrationStrategy {
 
             web3jService = wsService;
         } else {
-            HttpService httpService = new HttpService(node.getUrl());
+
+            ConnectionPool pool = new ConnectionPool(node.getMaxIdleConnections(), node.getKeepAliveDuration(), TimeUnit.MILLISECONDS);
+            OkHttpClient client = globalOkHttpClient.newBuilder()
+                    .connectionPool(pool)
+                    .readTimeout(node.getReadTimeout(),TimeUnit.MILLISECONDS)
+                    .connectTimeout(node.getConnectionTimeout(),TimeUnit.MILLISECONDS)
+                    .build();
+            HttpService httpService = new HttpService(node.getUrl(),client,false);
             if (authHeaders != null) {
                 httpService.addHeaders(authHeaders);
             }

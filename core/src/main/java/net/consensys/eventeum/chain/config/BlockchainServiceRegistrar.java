@@ -2,6 +2,7 @@ package net.consensys.eventeum.chain.config;
 
 import lombok.Setter;
 import net.consensys.eventeum.chain.settings.NodeSettings;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -22,7 +23,8 @@ public class BlockchainServiceRegistrar implements ImportBeanDefinitionRegistrar
     }
 
     protected NodeBeanRegistrationStrategy getNodeBeanRegistratioStrategy(NodeSettings nodeSettings) {
-        return new NodeBeanRegistrationStrategy(nodeSettings);
+        return new NodeBeanRegistrationStrategy(nodeSettings, new OkHttpClient());
+
     }
 
     protected NodeSettings getNodeSettings() {

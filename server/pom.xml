@@ -15,6 +15,7 @@
     <properties>
         <java.version>1.8</java.version>
         <skipIntegrationTests>true</skipIntegrationTests>
+        <micrometer.version>1.1.0</micrometer.version>
     </properties>
 
     <dependencies>
@@ -35,6 +36,12 @@
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
             <version>2.2.0.RELEASE</version>
+        </dependency>
+        <!-- Micrometer Prometheus registry  -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version> ${micrometer.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

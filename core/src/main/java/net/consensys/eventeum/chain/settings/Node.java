@@ -15,4 +15,10 @@ public class Node {
     private String password;
     private String blockStrategy;
     private Boolean addTransactionRevertReason;
+    private Integer maxIdleConnections;
+    private Long keepAliveDuration;
+    private Long connectionTimeout;
+    private Long readTimeout;
+    private Integer syncingThreshold;
+    private Long healthcheckInterval;
 }
