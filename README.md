@@ -447,6 +447,7 @@ Eventeum can either be configured by:
 | ETHEREUM_NODE_BLOCKSTRATEGY | POLL | The strategy for obtaining block events for the ethereum node (POLL or PUBSUB).
 | ETHEREUM_NODE_HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
 | ETHEREUM_NODE_ADD_TRANSACTION_REVERT_REASON | false | In case of a failing transaction it indicates if Eventeum should get the revert reason. Currently not working for Ganache and Parity.
+| ETHEREUM_NODE_HEALTHCHECKINTERVAL | false |Health check poll interval per network in milliseconds
 | POLLING_INTERVAL | 10000 | The polling interval used by Web3j to get events from the blockchain. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
 | BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
@@ -472,12 +473,17 @@ Eventeum can either be configured by:
 | KAFKA_SECURITY_PROTOCOL | PLAINTEXT | Protocol used to communicate with Kafka brokers |
 | KAFKA_RETRIES | 10 | The number of times a Kafka consumer will try to publish a message before throwing an error |
 | KAFKA_RETRY_BACKOFF_MS | 500 | The duration between each retry |
+| KEEP_ALIVE_DURATION | 15000 | Rpc http idle threads keep alive timeout in ms |
+| MAX_IDLE_CONNECTIONS| 10 | The max number of HTTP rpc idle threads at the pool |
+| SYNCINC_THRESHOLD | 60 | Number of blocks of difference to consider that eventeum is "syncing" with a node
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
 | SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
 | RABBIT_ADDRESS | localhost:5672 | property spring.rabbitmq.host (The rabbitmq address) |
 | RABBIT_EXCHANGE | ThisIsAExchange | property rabbitmq.exchange |
 | RABBIT_ROUTING_KEY | thisIsRoutingKey | property rabbitmq.routingKeyPrefix |
 | DATABASE_TYPE | MONGO | The database to use.  Either MONGO or SQL. |
+| CONNECTION_TIMEOUT | 7000 | RPC, http connection timeout in millis |
+| READ_TIMEOUT | 35000 | RPC, http read timeout in millis |
 
 ### INFURA Support Configuration
 Connecting to an INFURA node is only supported if connecting via websockets (`wss://<...>` node url).  The blockstrategy must also be set to PUBSUB.
@@ -619,6 +625,23 @@ Eventeum offers a healthcheck url where you can ask for the status of the system
 Returning this information it is very easy to create alerts over the status of the system.
 
 The endpoint is: GET /monitoring/health
+
+## Metrics: Prometheus
+
+Eventeum includes a prometheus metrics export endpoint.
+
+It includes standard jvm, tomcat metrics enabled by spring-boot https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-prometheus https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-meter.
+
+Added to the standard metrics, custom metrics have been added:
+
+* eventeum_%Network%_syncing: 1 if node is syncing (latestBlock + syncingThreshols < currentBlock). 0 if not syncing
+* eventeum_%Network%_latestBlock: latest block read by Eventeum
+* eventeum_%Network%_currentBlock: Current node block
+
+All  metrics include application="Eventeum",environment="local" tags.
+
+The endpoint is: GET /monitoring/prometheus
+
 
 ## Known Caveats / Issues
 * In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.
