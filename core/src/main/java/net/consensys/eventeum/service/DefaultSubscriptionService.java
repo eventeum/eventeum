@@ -16,6 +16,7 @@ import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -85,6 +86,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
+    @Async
     public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
         populateIdIfMissing(filter);
 

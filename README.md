@@ -483,6 +483,11 @@ Eventeum can either be configured by:
 | ETHEREUM_NODE_HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
 | ETHEREUM_NODE_ADD_TRANSACTION_REVERT_REASON | false | In case of a failing transaction it indicates if Eventeum should get the revert reason. Currently not working for Ganache and Parity.
 | ETHEREUM_NODE_HEALTHCHECKINTERVAL | false |Health check poll interval per network in milliseconds
+| ETHEREUM_NODE_KEEP_ALIVE_DURATION | 15000 | Rpc http idle threads keep alive timeout in ms |
+| ETHEREUM_NODE_MAX_IDLE_CONNECTIONS| 10 | The max number of HTTP rpc idle threads at the pool |
+| ETHEREUM_NODE_SYNCINC_THRESHOLD | 60 | Number of blocks of difference to consider that eventeum is "syncing" with a node
+| ETHEREUM_NODE_CONNECTION_TIMEOUT | 7000 | RPC, http connection timeout in millis |
+| READ_TIMEOUT | 35000 | RPC, http read timeout in millis |
 | POLLING_INTERVAL | 10000 | The polling interval used by Web3j to get events from the blockchain. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
 | BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
