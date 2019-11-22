@@ -29,9 +29,4 @@ public class WebsocketsNodeRecoveryIT extends NodeRecoveryTests {
     public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
         doQuickSuccessionNodeFailuresRecoveryTest();
     }
-
-    @Test
-    public void nodeFailureBeforeEventRegistrationRecoveryTest() throws Exception {
-        doNodeFailureBeforeEventRegistrationRecoveryTest(Optional.of(Long.valueOf(2000)));
-    }
 }

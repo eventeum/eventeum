@@ -13,10 +13,12 @@ import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
 import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.AsyncTaskService;
 import org.web3j.protocol.Web3j;
@@ -32,9 +34,11 @@ import org.web3j.utils.Numeric;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * A BlockchainService implementating utilising the Web3j library.
@@ -206,6 +210,30 @@ public class Web3jService implements BlockchainService {
             throw new BlockchainException("Error when obtaining block with hash: " + blockHash, e);
         }
 
+    }
+
+    public List<ContractEventDetails> getEventsForFilter(ContractEventFilter filter, BigInteger blockNumber) {
+
+        try {
+            final ContractEventSpecification eventSpec = filter.getEventSpecification();
+
+            EthFilter ethFilter = new EthFilter(
+                    new DefaultBlockParameterNumber(blockNumber),
+                    new DefaultBlockParameterNumber(blockNumber), filter.getContractAddress());
+
+            if (filter.getEventSpecification() != null) {
+                ethFilter = ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
+            }
+
+            final EthLog ethLog = web3j.ethGetLogs(ethFilter).send();
+
+            return ethLog.getLogs()
+                    .stream()
+                    .map(log -> eventDetailsFactory.createEventDetails(filter, (Log) log))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new BlockchainException("Error when obtaining logs from block: " + blockNumber, e);
+        }
     }
 
     @Override

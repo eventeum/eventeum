@@ -52,37 +52,6 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
 
     }
 
-    protected void doNodeFailureBeforeEventRegistrationRecoveryTest(Optional<Long> waitTimeAfterRestart) throws Exception {
-        final EventEmitter emitter = deployEventEmitterContract();
-
-        stopParity();
-
-        boolean hasErrored = false;
-        try {
-            final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
-        } catch (HttpServerErrorException e) {
-            //Expected
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
-            hasErrored = true;
-        }
-
-        assertEquals(true, hasErrored);
-
-        startParity();
-
-        waitTimeAfterRestart
-                .ifPresent(waitTime -> {
-                    try {
-                        Thread.sleep(waitTime);
-                    } catch (Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
-
-        final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
-        emitEventAndVerify(emitter, registeredFilter);
-    }
-
     private void doParityRestartEventEmissionsAssertion(
             EventEmitter emitter, ContractEventFilter registeredFilter, long timeToRecovery) throws Exception {
         getBroadcastContractEvents().clear();

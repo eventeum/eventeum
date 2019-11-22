@@ -71,10 +71,6 @@ public class NodeHealthCheckService {
             log.error("Node {} is down!!", blockchainService.getNodeName());
             nodeStatus = NodeStatus.DOWN;
 
-            if (statusAtStart != NodeStatus.DOWN) {
-                subscriptionService.unsubscribeToAllSubscriptions(blockchainService.getNodeName());
-            }
-
             doReconnect();
         }
     }

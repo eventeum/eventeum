@@ -11,11 +11,14 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.request.EthFilter;
 
 import java.math.BigInteger;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.eq;
 
 public class BaseFromBlockIntegrationTest extends BaseKafkaIntegrationTest {
 
@@ -37,16 +40,14 @@ public class BaseFromBlockIntegrationTest extends BaseKafkaIntegrationTest {
 
 
     protected BigInteger getFromBlockNumberForLatestRegisteredFilter() {
-        ArgumentCaptor<EthFilter> captor = ArgumentCaptor.forClass(EthFilter.class);
+        ArgumentCaptor<DefaultBlockParameter> captor = ArgumentCaptor.forClass(DefaultBlockParameter.class);
 
-        Mockito.verify(web3j).ethLogFlowable(captor.capture());
+        Mockito.verify(web3j).replayPastAndFutureBlocksFlowable(captor.capture(), eq(true));
 
-        List<EthFilter> allInvocationArgs = captor.getAllValues();
-        EthFilter lastArg = allInvocationArgs.get(allInvocationArgs.size() - 1);
+        List<DefaultBlockParameter> allInvocationArgs = captor.getAllValues();
+        DefaultBlockParameterNumber lastArg = (DefaultBlockParameterNumber)
+                allInvocationArgs.get(allInvocationArgs.size() - 1);
 
-        final DefaultBlockParameterNumber blockParameterNumber =
-                (DefaultBlockParameterNumber) lastArg.getFromBlock();
-
-        return blockParameterNumber.getBlockNumber();
+        return lastArg.getBlockNumber();
     }
 }
