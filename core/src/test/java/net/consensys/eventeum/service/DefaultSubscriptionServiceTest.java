@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Arrays;
 
@@ -60,6 +61,8 @@ public class DefaultSubscriptionServiceTest {
     private ContractEventListener mockEventListener1;
     @Mock
     private ContractEventListener mockEventListener2;
+    @Mock
+    private RetryTemplate mockRetryTemplate;
 
     static {
         eventSpec = new ContractEventSpecification();
@@ -84,7 +87,7 @@ public class DefaultSubscriptionServiceTest {
         underTest = new DefaultSubscriptionService(mockChainServicesContainer,
                 mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),
                 Arrays.asList(mockBlockListener1, mockBlockListener2),
-                Arrays.asList(mockEventListener1, mockEventListener2));
+                Arrays.asList(mockEventListener1, mockEventListener2),mockRetryTemplate);
     }
 
     @Test

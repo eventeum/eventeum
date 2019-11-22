@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.settings;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainException;
@@ -53,6 +54,18 @@ public class NodeSettings {
 
     private static final String NODE_HEALTHCHECK_INTERVAL_ATTRIBUTE = "healthcheckInterval";
 
+    private static final String BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE = "numBlocksToWait";
+
+    private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWait";
+
+    private static final String BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTRIBUTE = "numBlocksToWaitBeforeInvalidating";
+
+    private static final String DEFAULT_BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTIBUTE = "broadcaster.event.confirmation.numBlocksToWaitBeforeInvalidating";
+
+    private static final String BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "numBlocksToWaitForMissingTx";
+
+    private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWaitForMissingTx";
+
     private HashMap<String, Node> nodes;
 
     private String blockStrategy;
@@ -86,7 +99,10 @@ public class NodeSettings {
                     getConnectionTimeoutProperty(environment,index),
                     getReadTimeoutProperty(environment,index),
                     getSyncingThresholdProperty(environment,index),
-                    getNodeHealthcheckIntervalProperty(environment, index)
+                    getNodeHealthcheckIntervalProperty(environment, index),
+                    getBlocksToWaitForConfirmationProperty(environment,index),
+                    getBlocksToWaitBeforeInvalidatingProperty(environment,index),
+                    getBlocksToWaitForMissingTxProperty(environment,index)
             );
 
             nodes.put(nodeName, node);
@@ -176,6 +192,42 @@ public class NodeSettings {
 
         return Integer.valueOf(syncingThreshold);
     }
+    private BigInteger getBlocksToWaitForConfirmationProperty(Environment environment, int index) {
+        String blocksToWaitForConfirmation =
+                getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE, index));
+
+        if (blocksToWaitForConfirmation == null) {
+            blocksToWaitForConfirmation =
+                    getProperty(environment,DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE);
+        }
+
+        return BigInteger.valueOf(Long.valueOf(blocksToWaitForConfirmation));
+    }
+
+    private BigInteger getBlocksToWaitBeforeInvalidatingProperty(Environment environment, int index) {
+        String blocksToWaitBeforeInvalidating =
+                getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTRIBUTE, index));
+
+        if (blocksToWaitBeforeInvalidating == null) {
+            blocksToWaitBeforeInvalidating =
+                    getProperty(environment, DEFAULT_BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTIBUTE);
+        }
+
+        return BigInteger.valueOf(Long.valueOf(blocksToWaitBeforeInvalidating));
+    }
+
+    private BigInteger getBlocksToWaitForMissingTxProperty(Environment environment, int index) {
+        String blocksToWaitForMissingTx =
+                getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE, index));
+
+        if (blocksToWaitForMissingTx == null) {
+            blocksToWaitForMissingTx =
+                    getProperty(environment, DEFAULT_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE);
+        }
+
+        return BigInteger.valueOf(Long.valueOf(blocksToWaitForMissingTx));
+    }
+
 
     private String getNodeUsernameProperty(Environment environment, int index) {
         return getProperty(environment, buildNodeAttribute(NODE_USERNAME_ATTRIBUTE, index));

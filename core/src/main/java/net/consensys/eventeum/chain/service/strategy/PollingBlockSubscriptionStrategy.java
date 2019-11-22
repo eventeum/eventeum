@@ -1,12 +1,18 @@
 package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -28,7 +34,7 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
         if (latestBlock.isPresent()) {
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
-            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true)
+            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true).retry()
                     .subscribe(block -> { triggerListeners(block); });
 
         } else {

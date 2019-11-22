@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.service.SubscriptionService;
 
@@ -42,6 +43,8 @@ public class NodeHealthCheckService {
 
     private AtomicInteger syncing;
 
+    private AtomicInteger nodeStatusGauge;
+
     private SaveableEventStore dbEventStore;
 
     private Integer syncingThreshold;
@@ -61,10 +64,13 @@ public class NodeHealthCheckService {
         this.subscriptionService = subscriptionService;
         this.syncingThreshold = syncingThreshold;
         nodeStatus = NodeStatus.SUBSCRIBED;
-        currentBlock = meterRegistry.gauge( blockchainService.getNodeName() +".currentBlock", Tags.of("chain",blockchainService
+        currentBlock = meterRegistry.gauge( "eventeum." + blockchainService.getNodeName() +".currentBlock", Tags.of("chain",blockchainService
                 .getNodeName()),new
                 AtomicLong(0));
-        syncing = meterRegistry.gauge(blockchainService.getNodeName() +".syncing", Tags.of("chain",blockchainService
+        nodeStatusGauge = meterRegistry.gauge( "eventeum." + blockchainService.getNodeName() +".status", Tags.of("chain",blockchainService
+                .getNodeName()),new
+                AtomicInteger(NodeStatus.SUBSCRIBED.ordinal()));
+        syncing = meterRegistry.gauge("eventeum." +blockchainService.getNodeName() +".syncing", Tags.of("chain",blockchainService
                 .getNodeName()),new
                 AtomicInteger(0));
 
@@ -109,6 +115,7 @@ public class NodeHealthCheckService {
 
             doReconnect();
         }
+        nodeStatusGauge.set(nodeStatus.ordinal());
     }
 
     protected boolean isNodeConnected() {

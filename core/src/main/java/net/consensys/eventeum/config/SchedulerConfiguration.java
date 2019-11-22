@@ -27,18 +27,18 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class SchedulerConfiguration implements SchedulingConfigurer {
 
 
-    private ScheduledExecutorService scheduledExecutorService;
+		private ScheduledExecutorService scheduledExecutorService;
 
 
-    @Override
-    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-        taskRegistrar.setScheduler(scheduledExecutorService);
-    }
+		@Override
+		public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+			taskRegistrar.setScheduler(scheduledExecutorService);
+		}
 
-    @Bean(destroyMethod="shutdown")
-    public Executor taskScheduler(NodeSettings nodeSettings) {
+		@Bean(destroyMethod="shutdown")
+		public Executor taskScheduler(NodeSettings nodeSettings) {
 
-        scheduledExecutorService = Executors.newScheduledThreadPool(nodeSettings.getNodes().size(), new CustomizableThreadFactory("eventeum-scheduler"));
-        return  scheduledExecutorService;
-    }
+			scheduledExecutorService = Executors.newScheduledThreadPool(nodeSettings.getNodes().size(), new CustomizableThreadFactory("eventeum-scheduler"));
+			return  scheduledExecutorService;
+		}
 }

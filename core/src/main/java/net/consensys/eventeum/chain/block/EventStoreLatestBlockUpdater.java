@@ -41,7 +41,7 @@ public class EventStoreLatestBlockUpdater implements BlockListener {
         this.blockDetailsFactory = blockDetailsFactory;
 
         chainServicesContainer.getNodeNames().forEach( node -> {
-            this.latestBlockMap.put(node, meterRegistry.gauge(node +".latestBlock", Tags.of("chain",node),new AtomicLong(0)));
+            this.latestBlockMap.put(node, meterRegistry.gauge("eventeum."+ node +".latestblock", Tags.of("chain",node),new AtomicLong(0)));
         });
 
 
@@ -51,5 +51,7 @@ public class EventStoreLatestBlockUpdater implements BlockListener {
     @Override
     public void onBlock(Block block) {
         saveableEventStore.save(new LatestBlock(blockDetailsFactory.createBlockDetails(block)));
+        latestBlockMap.get(block.getNodeName()).set(block.getNumber().longValue());
+
     }
 }

@@ -11,14 +11,14 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class PrometheusConfiguration {
 
-    @Bean
-    public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(Environment environment) {
-        return registry -> registry.config().commonTags("application", "Eventeum", "environment",environment.getActiveProfiles()[0]);
-    }
+	@Bean
+	public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(Environment environment) {
+		return registry -> registry.config().commonTags("application", "Eventeum", "environment",environment.getActiveProfiles()[0]);
+	}
 
-    @Bean
-    public PrometheusMeterRegistry.Config configurePrometheus(MeterRegistry meterRegistry) {
-        return meterRegistry.config().namingConvention(new CustomNamingConvention());
-    }
+	@Bean
+	public PrometheusMeterRegistry.Config configurePrometheus(MeterRegistry meterRegistry) {
+		return meterRegistry.config().namingConvention(new CustomNamingConvention());
+	}
 
 }

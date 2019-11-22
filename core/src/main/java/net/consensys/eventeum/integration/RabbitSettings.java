@@ -2,7 +2,7 @@ package net.consensys.eventeum.integration;
 
 import lombok.Data;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,13 +12,22 @@ import org.springframework.context.annotation.Configuration;
  * @author ioBuilders <tech@io.builders>
  */
 @Configuration
-@ConfigurationProperties(prefix = "rabbitmq")
 @Data
 public class RabbitSettings {
-
+    @Value("${rabbitmq.exchange}")
     private String exchange;
 
-    private String routingKeyPrefix;
+    @Value("${rabbitmq.blockNotification}")
+    private boolean blockNotification;
+
+    @Value("${rabbitmq.routingKey.contractEvents}")
+    private String contractEventsRoutingKey;
+
+    @Value("${rabbitmq.routingKey.blockEvents}")
+    private String blockEventsRoutingKey;
+
+    @Value("${rabbitmq.routingKey.transactionEvents}")
+    private String transactionEventsRoutingKey;
 
     @Bean
     Jackson2JsonMessageConverter producerJackson2MessageConverter() {

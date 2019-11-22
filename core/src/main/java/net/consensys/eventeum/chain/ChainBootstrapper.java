@@ -70,4 +70,3 @@ public class ChainBootstrapper implements InitializingBean {
         transactionMonitoringService.registerTransactionsToMonitor(spec, broadcast);
     }
 }
-

@@ -1,18 +1,15 @@
 package net.consensys.eventeum.chain.block.tx;
 
 import net.consensys.eventeum.chain.block.SelfUnregisteringBlockListener;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.service.AsyncTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -27,7 +24,6 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     private BlockchainEventBroadcaster eventBroadcaster;
     private BigInteger targetBlock;
     private BigInteger blocksToWaitForMissingTx;
-    private EventConfirmationConfig eventConfirmationConfig;
     private OnConfirmedCallback onConfirmedCallback;
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
@@ -36,7 +32,7 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
     public TransactionConfirmationBlockListener(TransactionDetails transactionDetails,
                                                 BlockchainService blockchainService,
                                                 BlockchainEventBroadcaster eventBroadcaster,
-                                                EventConfirmationConfig eventConfirmationConfig,
+                                                Node node,
                                                 List<TransactionStatus> statusesToFilter,
                                                 OnConfirmedCallback onConfirmedCallback) {
         super(blockchainService);
@@ -47,8 +43,8 @@ public class TransactionConfirmationBlockListener extends SelfUnregisteringBlock
         this.statusesToFilter = statusesToFilter;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
-        this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
-        this.blocksToWaitForMissingTx = eventConfirmationConfig.getBlocksToWaitForMissingTx();
+        this.targetBlock = currentBlock.add(node.getBlocksToWaitForConfirmation());
+        this.blocksToWaitForMissingTx = node.getBlocksToWaitForMissingTx();
     }
 
     @Override

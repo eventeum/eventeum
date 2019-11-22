@@ -69,6 +69,7 @@ public class NodeBeanRegistrationStrategy {
                 registerNodeFailureListener(node, blockchainServiceBeanName, web3jService, registry);
         registerNodeHealthCheckBean(node, blockchainServiceBeanName, web3jService, nodeFailureListenerBeanName, registry);
 
+
     }
 
     private String registerNodeServicesBean(Node node,
@@ -93,7 +94,7 @@ public class NodeBeanRegistrationStrategy {
                 ContractEventDetailsFactoryFactoryBean.class);
 
         builder.addPropertyReference("parameterConverter", "web3jEventParameterConverter")
-                .addPropertyReference("eventConfirmationConfig", "eventConfirmationConfig")
+                .addPropertyValue("node", node)
                 .addPropertyValue("nodeName", node.getName());
 
         final String beanName = String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName());
