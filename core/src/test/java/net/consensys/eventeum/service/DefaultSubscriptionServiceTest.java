@@ -61,7 +61,7 @@ public class DefaultSubscriptionServiceTest {
     private ContractEventListener mockEventListener1;
     @Mock
     private ContractEventListener mockEventListener2;
-    @Mock
+
     private RetryTemplate mockRetryTemplate;
 
     static {
@@ -83,6 +83,8 @@ public class DefaultSubscriptionServiceTest {
         when(mockChainServicesContainer.getNodeNames()).thenReturn(
                 Collections.singletonList(Constants.DEFAULT_NODE_NAME));
         when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
+
+        mockRetryTemplate = new RetryTemplate();
 
         underTest = new DefaultSubscriptionService(mockChainServicesContainer,
                 mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),

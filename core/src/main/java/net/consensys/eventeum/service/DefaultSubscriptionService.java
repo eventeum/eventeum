@@ -52,6 +52,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private ApplicationContext applicationContext;
 
+    private RetryTemplate retryTemplate;
+
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
                                       ContractEventFilterRepository eventFilterRepository,
@@ -66,6 +68,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
         this.eventFilterRepository = eventFilterRepository;
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.blockListeners = blockListeners;
+        this.retryTemplate = retryTemplate;
     }
 
 
@@ -88,26 +91,28 @@ public class DefaultSubscriptionService implements SubscriptionService {
     @Override
     @Async
     public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
-        populateIdIfMissing(filter);
+        return retryTemplate.execute((context) -> {
+            populateIdIfMissing(filter);
 
-        if (!isFilterRegistered(filter)) {
-            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
+            if (!isFilterRegistered(filter)) {
+                final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
 
-            if (filter.getStartBlock() == null && sub != null) {
-                filter.setStartBlock(sub.getStartBlock());
+                if (filter.getStartBlock() == null && sub != null) {
+                    filter.setStartBlock(sub.getStartBlock());
+                }
+
+                saveContractEventFilter(filter);
+
+                if (broadcast) {
+                    broadcastContractEventFilterAdded(filter);
+                }
+
+                return filter;
+            } else {
+                log.info("Already registered contract event filter with id: " + filter.getId());
+                return getFilterSubscription(filter.getId()).getFilter();
             }
-
-            saveContractEventFilter(filter);
-
-            if (broadcast) {
-                broadcastContractEventFilterAdded(filter);
-            }
-
-            return filter;
-        } else {
-            log.info("Already registered contract event filter with id: " + filter.getId());
-            return getFilterSubscription(filter.getId()).getFilter();
-        }
+        });
     }
 
     /**

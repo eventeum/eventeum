@@ -9,7 +9,7 @@ import org.springframework.retry.support.RetryTemplate;
 @Configuration
 public class EternalRetryTemplateConfiguration {
 
-    private static final  long  DEFAULT_BACKOFF_TIME = 3000l;
+    private static final  long  DEFAULT_BACKOFF_TIME = 500l;
 
     @Bean
     public RetryTemplate eternalRetryTemplate() {

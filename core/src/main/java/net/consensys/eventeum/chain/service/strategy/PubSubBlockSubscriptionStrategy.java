@@ -9,7 +9,7 @@ import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -44,7 +44,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
             //New heads can only start from latest block so we need to obtain missing blocks first
-            blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true)
+            blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true).retry()
                     .doOnComplete(() -> blockSubscription = subscribeToNewHeads())
                     .subscribe(ethBlock -> triggerListeners(convertToEventeumBlock(ethBlock)));
         } else {
@@ -93,8 +93,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
             fixedBackOffPolicy.setBackOffPeriod(500);
             retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
 
-            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-            retryPolicy.setMaxAttempts(10);
+            final AlwaysRetryPolicy retryPolicy = new AlwaysRetryPolicy();
             retryTemplate.setRetryPolicy(retryPolicy);
         }
 
