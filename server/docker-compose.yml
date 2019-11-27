@@ -5,6 +5,7 @@ services:
     image: eventeum/eventeum:latest
     ports:
     - "8060:8060"
+    - "8080:8080"
     depends_on:
       - parity
       - mongodb
