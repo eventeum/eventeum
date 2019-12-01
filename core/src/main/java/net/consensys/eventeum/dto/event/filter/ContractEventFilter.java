@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdStrategy;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
 import javax.persistence.Embedded;
@@ -24,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ContractEventFilter {
+public class ContractEventFilter implements Serializable{
 
     @Id
     private String id;

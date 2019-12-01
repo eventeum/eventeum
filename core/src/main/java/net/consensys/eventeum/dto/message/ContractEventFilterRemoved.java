@@ -1,10 +1,12 @@
 package net.consensys.eventeum.dto.message;
 
+import java.io.Serializable;
+
 import lombok.NoArgsConstructor;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
 @NoArgsConstructor
-public class ContractEventFilterRemoved extends AbstractMessage<ContractEventFilter> {
+public class ContractEventFilterRemoved extends AbstractMessage<ContractEventFilter> implements Serializable {
 
     public static final String TYPE = "EVENT_FILTER_REMOVED";
 
