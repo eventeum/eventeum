@@ -34,7 +34,7 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
         if (latestBlock.isPresent()) {
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
-            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true).retry()
+            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true)
                     .subscribe(block -> { triggerListeners(block); });
 
         } else {

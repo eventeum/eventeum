@@ -44,7 +44,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
             //New heads can only start from latest block so we need to obtain missing blocks first
-            blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true).retry()
+            blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true)
                     .doOnComplete(() -> blockSubscription = subscribeToNewHeads())
                     .subscribe(ethBlock -> triggerListeners(convertToEventeumBlock(ethBlock)));
         } else {
