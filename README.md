@@ -26,6 +26,14 @@ An Ethereum event listener that bridges your smart contract events and backend m
 * [RabbitMQ](https://www.rabbitmq.com/)
 * [Pulsar](https://pulsar.apache.org)
 
+
+At rabbit you can configure the following extra values
+
+* rabbitmq.blockNotification. true|false
+* rabbitmq.routingKey.contractEvents
+* rabbitmq.routingKey.blockEvents
+* rabbitmq.routingKey.transactionEvents
+
 ## Eventeum Tutorials
 - [Listening to Ethereum Events](https://kauri.io/article/90dc8d911f1c43008c7d0dfa20bde298/listening-to-ethereum-events-with-eventeum)
 - [Listening for Ethereum Transactions](https://kauri.io/article/3e31587c96a74d24b5cdd17952d983e9/v1/listening-for-ethereum-transactions-with-eventeum)
