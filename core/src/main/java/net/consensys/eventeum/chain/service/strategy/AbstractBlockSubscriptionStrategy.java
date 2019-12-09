@@ -9,6 +9,7 @@ import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import rx.Subscription;
@@ -24,8 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {
 
     protected static final String BLOCK_EXECUTOR_NAME = "BLOCK";
-
-    private Lock lock = new ReentrantLock();
 
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
     protected Disposable blockSubscription;
@@ -75,13 +74,8 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     protected void triggerListeners(Block eventeumBlock) {
-        asyncService.execute(BLOCK_EXECUTOR_NAME, () -> {
-            lock.lock();
-            try {
-                blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
-            } finally {
-                lock.unlock();
-            }
+        asyncService.execute(ExecutorNameFactory.build(BLOCK_EXECUTOR_NAME, eventeumBlock.getNodeName()), () -> {
+            blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
         });
     }
 

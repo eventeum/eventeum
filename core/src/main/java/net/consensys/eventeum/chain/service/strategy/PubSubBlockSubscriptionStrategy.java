@@ -8,6 +8,7 @@ import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -57,7 +58,8 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     private Disposable subscribeToNewHeads() {
         final Disposable disposable = web3j.newHeadsNotifications().subscribe(newHead -> {
             //Need to execute this is a seperate thread to workaround websocket thread deadlock
-            asyncService.execute(PUB_SUB_EXECUTOR_NAME, () -> triggerListeners(newHead.getParams().getResult()));
+            asyncService.execute(ExecutorNameFactory.build(PUB_SUB_EXECUTOR_NAME, nodeName),
+                    () -> triggerListeners(newHead.getParams().getResult()));
         });
 
         if (disposable.isDisposed()) {
