@@ -19,6 +19,7 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.AsyncTaskService;
+import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -109,7 +110,7 @@ public class Web3jService implements BlockchainService {
         final Flowable<Log> flowable = web3j.ethLogFlowable(ethFilter);
 
         final Disposable sub = flowable.subscribe(theLog -> {
-            asyncTaskService.execute(EVENT_EXECUTOR_NAME, () -> {
+            asyncTaskService.execute(ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, eventFilter.getNode()), () -> {
                 log.debug("Dispatching log: {}", theLog);
                 eventListener.onEvent(
                         eventDetailsFactory.createEventDetails(eventFilter, theLog));
