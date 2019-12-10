@@ -1,0 +1,10 @@
+apiVersion: skaffold/v1
+kind: Config
+build:
+  artifacts:
+    - image: adharaprojects/eventeum
+      context: server
+deploy:
+  kubectl:
+    manifests:
+      - config-examples/k8s-*

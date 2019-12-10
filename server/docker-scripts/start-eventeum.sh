@@ -1,5 +1,5 @@
 #!/bin/bash
-command="java -jar eventeum-server.jar"
+command="java ${JAVA_OPTS} -jar eventeum-server.jar"
 if [[ -z CONF ]]; then
   command="$command --spring.config.additional-location=$CONF"
 fi

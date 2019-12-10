@@ -30,3 +30,7 @@ hs_err_pid*
 .target
 .springBeans
 **/target
+
+# VS Code
+core/.factorypath
+

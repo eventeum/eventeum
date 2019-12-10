@@ -1,0 +1,124 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: eventeum
+  name: eventeum
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: eventeum
+  template:
+    metadata:
+      labels:
+        app: eventeum
+    spec:
+      containers:
+      - image: adharaprojects/eventeum
+        name: eventeum
+        ports:
+        - containerPort: 8060
+        env:
+          - name: JAVA_OPTS
+            value: "-Dhazelcast.config=/hazelcast.xml"
+        volumeMounts:
+        - name: config
+          mountPath: /application.yml
+          subPath: application.yml
+        - name: hazelcast-config
+          mountPath: /hazelcast.xml
+          subPath: hazelcast.xml
+      restartPolicy: Always
+      volumes:
+        - name: config
+          configMap:
+            name: eventeum
+        - name: hazelcast-config
+          configMap:
+            name: hazelcast-config
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: eventeum
+spec:
+  selector:
+    app: eventeum
+  ports:
+    - port: 8060
+      name: eventeum
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eventeum
+data:
+  application.yml: |
+    spring:
+      datasource:
+        driverClassName: org.postgresql.Driver
+        #url: jdbc:postgresql://localhost/postgres
+        url: jdbc:postgresql://host.docker.internal/eventeum_old
+        username: postgres
+        password: postgres
+      jpa:
+        show-sql: false
+        properties:
+          hibernate:
+            enable_lazy_load_no_trans: true
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+        #hibernate.ddl-auto: validate
+        hibernate.ddl-auto: create
+    eventStore:
+      type: DB
+    database:
+      type: SQL
+    ethereum:
+      nodes:
+        - name: default
+          url: ws://host.docker.internal:8545
+          blockStrategy: PUBSUB
+    broadcaster:
+      multiInstance: true
+      multiInstanceType: HazelCast
+      type: HTTP
+      http:
+        contractEventsUrl: http://host.docker.internal:8080/_internal/events
+        blockEventsUrl: http://host.docker.internal:8080/_internal/blocks # Use sidecar echoer
+      event:
+        confirmation:
+          numBlocksToWait: 0
+          numBlocksToWaitForMissingTx: 100
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hazelcast-config
+data:
+  hazelcast.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <hazelcast xmlns="http://www.hazelcast.com/schema/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.11.xsd">
+      <network>
+        <join>
+          <multicast enabled="false"/>
+          <kubernetes enabled="true"/>
+        </join>
+      </network>
+    </hazelcast>
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: default-cluster
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default

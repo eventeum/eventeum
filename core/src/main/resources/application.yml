@@ -68,6 +68,7 @@ broadcaster:
       numBlocksToWaitForMissingTx: 100
       numBlocksToWaitBeforeInvalidating: 2
   multiInstance: false
+  multiInstanceType: Kafka
   bytesToAscii: false
 
 # For Kafka

@@ -10,7 +10,7 @@ import org.springframework.core.annotation.Order;
 class OnKafkaRequiredCondition extends OnMultiExpressionCondition {
 
     private static final String KAFKA_REQUIRED_EXPRESSION =
-            "'${broadcaster.multiInstance}' == 'true' || '${broadcaster.type}' == 'KAFKA'";
+            "'${broadcaster.multiInstance}:${broadcaster.multiInstanceType}' == 'true:Kafka' || '${broadcaster.type}' == 'KAFKA'";
 
     private static final String KAFKA_NOT_REQUIRED_EXPRESSION =
             "'${broadcaster.multiInstance}' == 'false' && '${broadcaster.type}' != 'KAFKA'";
