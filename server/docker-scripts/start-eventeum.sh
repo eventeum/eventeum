@@ -1,16 +1,16 @@
-#!/bin/bash
-command="java -Dcom.sun.management.jmxremote \
-              -Dcom.sun.management.jmxremote.port=1234 \
-              -Dcom.sun.management.jmxremote.ssl=false \
-              -Dcom.sun.management.jmxremote.authenticate=false \
-              -javaagent:./jmx_prometheus_javaagent.jar=${JMX_EXPORTER_PORT}:jmx-config.yml \
-              -jar eventeum-server.jar"
+#! /bin/bash
 
-if [[ -z JVM_OPS ]]; then
-  command="$command $JVM_OPS"
+command="java -jar eventeum-server.jar"
+
+if [[ -n ${JMX_EXPORTER_ENABLED} ]]; then
+  command="$command -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=1234 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -javaagent:./jmx_prometheus_javaagent.jar=${JMX_EXPORTER_PORT}:jmx-config.yml"
 fi
 
-if [[ -z CONF ]]; then
+if [[ -n "${JVM_OPTS}" ]]; then
+  command="$command $JVM_OPTS"
+fi
+
+if [[ -n "${CONF}"  ]]; then
   command="$command --spring.config.additional-location=$CONF"
 fi
 
