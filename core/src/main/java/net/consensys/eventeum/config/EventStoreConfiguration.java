@@ -1,10 +1,12 @@
 package net.consensys.eventeum.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.EventStoreLatestBlockUpdater;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.contract.EventStoreContractEventUpdater;
 import net.consensys.eventeum.chain.factory.BlockDetailsFactory;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
@@ -28,66 +30,66 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Order(0)
 public class EventStoreConfiguration {
 
-     @Configuration
-     @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:MONGO'")
-     @ConditionalOnMissingBean(EventStoreFactory.class)
-     public static class MongoEventStoreConfiguration {
+	@Configuration
+	@ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:MONGO'")
+	@ConditionalOnMissingBean(EventStoreFactory.class)
+	public static class MongoEventStoreConfiguration {
 
-         @Bean
-         public SaveableEventStore dbEventStore(
-                 ContractEventDetailsRepository contractEventRepository,
-                 LatestBlockRepository latestBlockRepository,
-                 MongoTemplate mongoTemplate) {
-             return new MongoEventStore(contractEventRepository, latestBlockRepository, mongoTemplate);
-         }
+		@Bean
+		public SaveableEventStore dbEventStore(
+				ContractEventDetailsRepository contractEventRepository,
+				LatestBlockRepository latestBlockRepository,
+				MongoTemplate mongoTemplate) {
+			return new MongoEventStore(contractEventRepository, latestBlockRepository, mongoTemplate);
+		}
 
-         @Bean
-         public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
-             return new EventStoreContractEventUpdater(eventStore);
-         }
+		@Bean
+		public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
+			return new EventStoreContractEventUpdater(eventStore);
+		}
 
-         @Bean
-         public BlockListener eventStoreLatestBlockUpdater(
-                 SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory) {
-             return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory);
-         }
-     }
+		@Bean
+		public BlockListener eventStoreLatestBlockUpdater(
+				SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory, MeterRegistry meterRegistry, ChainServicesContainer chainServicesContainer) {
+			return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory, meterRegistry, chainServicesContainer);
+		}
+	}
 
-    @Configuration
-    @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:SQL'")
-    @ConditionalOnMissingBean(EventStoreFactory.class)
-    public static class SqlEventStoreConfiguration {
+	@Configuration
+	@ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:SQL'")
+	@ConditionalOnMissingBean(EventStoreFactory.class)
+	public static class SqlEventStoreConfiguration {
 
-        @Bean
-        public SaveableEventStore dbEventStore(
-                ContractEventDetailsRepository contractEventRepository,
-                LatestBlockRepository latestBlockRepository,
-                JdbcTemplate jdbcTemplate) {
-            return new SqlEventStore(contractEventRepository, latestBlockRepository, jdbcTemplate);
-        }
+		@Bean
+		public SaveableEventStore dbEventStore(
+				ContractEventDetailsRepository contractEventRepository,
+				LatestBlockRepository latestBlockRepository,
+				JdbcTemplate jdbcTemplate) {
+			return new SqlEventStore(contractEventRepository, latestBlockRepository, jdbcTemplate);
+		}
 
-        @Bean
-        public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
-            return new EventStoreContractEventUpdater(eventStore);
-        }
+		@Bean
+		public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
+			return new EventStoreContractEventUpdater(eventStore);
+		}
 
-        @Bean
-        public BlockListener eventStoreLatestBlockUpdater(
-                SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory) {
-            return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory);
-        }
-    }
+		@Bean
+		public BlockListener eventStoreLatestBlockUpdater(
+				SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory, MeterRegistry meterRegistry, ChainServicesContainer chainServiceContainer ) {
+			return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory,meterRegistry,chainServiceContainer);
+		}
+	}
 
-    @Configuration
-    @ConditionalOnProperty(name = "eventStore.type", havingValue = "REST")
-    @ConditionalOnMissingBean(EventStoreFactory.class)
-    public static class RESTEventStoreConfiguration {
+	@Configuration
+	@ConditionalOnProperty(name = "eventStore.type", havingValue = "REST")
+	@ConditionalOnMissingBean(EventStoreFactory.class)
+	public static class RESTEventStoreConfiguration {
 
-        @Bean
-        public EventStore RESTEventStore(EventStoreClient client) {
-            return new RESTEventStore(client);
-        }
-    }
+		@Bean
+		public EventStore RESTEventStore(EventStoreClient client) {
+			return new RESTEventStore(client);
+		}
+	}
 
 
 

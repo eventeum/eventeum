@@ -2,14 +2,11 @@ package net.consensys.eventeum.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.tx.TransactionMonitoringBlockListener;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.block.tx.criteria.factory.TransactionMatchingCriteriaFactory;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
@@ -19,7 +16,8 @@ import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -32,8 +30,6 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
     private EventeumEventBroadcaster eventeumEventBroadcaster;
 
     private TransactionDetailsFactory transactionDetailsFactory;
-
-    private EventConfirmationConfig confirmationConfig;
 
     private TransactionMonitoringSpecRepository transactionMonitoringRepo;
 
@@ -50,7 +46,6 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
                                                BlockchainEventBroadcaster broadcaster,
                                                EventeumEventBroadcaster eventeumEventBroadcaster,
                                                TransactionDetailsFactory transactionDetailsFactory,
-                                               EventConfirmationConfig confirmationConfig,
                                                TransactionMonitoringSpecRepository transactionMonitoringRepo,
                                                TransactionMonitoringBlockListener monitoringBlockListener,
                                                TransactionMatchingCriteriaFactory matchingCriteriaFactory,
@@ -59,7 +54,6 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
         this.broadcaster = broadcaster;
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
-        this.confirmationConfig = confirmationConfig;
         this.transactionMonitoringRepo = transactionMonitoringRepo;
         this.monitoringBlockListener = monitoringBlockListener;
         this.matchingCriteriaFactory = matchingCriteriaFactory;

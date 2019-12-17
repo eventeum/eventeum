@@ -15,9 +15,11 @@ logging:
 
 ethereum:
   nodes:
-    - name: default
-      url: ${ETHEREUM_NODE_URL:http://localhost:8545}
-#      blockStrategy: POLL
+  - name: default
+    url: ${ETHEREUM_NODE_URL:http://localhost:8545}
+    blockStrategy: POLL
+    syncingThreshold: 100
+    healthcheckInterval: 3000
   healthcheck:
     pollInterval: 2000
   blockStrategy: POLL
@@ -89,14 +91,24 @@ spring:
     host: ${RABBIT_ADDRESS:localhost}
 
 rabbitmq:
-  exchange: ThisIsAExchange
-  routingKeyPrefix: thisIsRoutingKey
+  exchange: ${RABBIT_EXCHANGE:ThisIsAExchange}
+  routingKeyPrefix: ${RABBIT_ROUTING:thisIsRoutingKey}
 
 management:
   endpoints:
     web.base-path: /monitoring
     enabled-by-default: false
+    web.exposure.include: "*"
   endpoint:
     health:
       enabled: true
       show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+

@@ -12,6 +12,11 @@
         <version>0.7.1-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <micrometer.version>1.1.0</micrometer.version>
+        <java.version>1.8</java.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>net.consensys</groupId>
@@ -95,6 +100,22 @@
             <artifactId>guava</artifactId>
             <version>23.4-jre</version>
         </dependency>
+        <!-- Micormeter core dependecy  -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version> ${micrometer.version}</version>
+        </dependency>
+        <!-- Micrometer Prometheus registry  -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version> ${micrometer.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -120,9 +141,4 @@
         </dependency>
 
     </dependencies>
-
-    <properties>
-        <java.version>1.8</java.version>
-    </properties>
-
 </project>

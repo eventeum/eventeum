@@ -10,7 +10,7 @@ import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -95,8 +95,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
             fixedBackOffPolicy.setBackOffPeriod(500);
             retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
 
-            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-            retryPolicy.setMaxAttempts(10);
+            final AlwaysRetryPolicy retryPolicy = new AlwaysRetryPolicy();
             retryTemplate.setRetryPolicy(retryPolicy);
         }
 
