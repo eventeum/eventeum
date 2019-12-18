@@ -1,27 +1,26 @@
-# Java Maven CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-java/ for more details
-#
 version: 2
+
+dockerhub_login: &dockerhub_login
+  run:
+    name: Login to dockerhub
+    command: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
 executorType: machine
 jobs:
   build-and-test:
     docker:
-      - image: circleci/openjdk:8u171-jdk
+      - image: circleci/openjdk:13.0.1-jdk-buster 
     working_directory: ~/repo
     environment:
       # Customize the JVM maximum heap limit
       MAVEN_OPTS: -Xmx3200m
     steps:
       - checkout
-
-      # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}
+            - dependencies-{{ checksum "pom.xml" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
+            - dependencies-
       - run:
           name: maven install
           command: mvn clean install -DskipTests
@@ -31,7 +30,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: v1-dependencies-{{ checksum "pom.xml" }}
+          key: dependencies-{{ checksum "pom.xml" }}
 
       - run:
           name: integration tests
@@ -48,10 +47,11 @@ jobs:
       - store_artifacts:
           path: ~/junit
 
-  release-docker-image:
+  release-master:
     machine: true
     steps:
       - checkout
+      - *dockerhub_login
       - run:
           name: maven install
           command: mvn clean install -DskipTests
@@ -59,10 +59,11 @@ jobs:
           name: Release docker image
           command: chmod +x .scripts/build-docker-image.sh && ./.scripts/build-docker-image.sh latest
 
-  release-docker-image-snapshot:
+  release-snapshot:
     machine: true
     steps:
       - checkout
+      - *dockerhub_login
       - run:
           name: maven install
           command: mvn clean install -DskipTests
@@ -70,42 +71,60 @@ jobs:
           name: Release docker image
           command: chmod +x .scripts/build-docker-image.sh && ./.scripts/build-docker-image.sh snapshot
 
-  publish:
-    docker:
-      - image: circleci/openjdk:8u171-jdk
-    working_directory: ~/repo
-    environment:
-      # Customize the JVM maximum heap limit
-      MAVEN_OPTS: -Xmx3200m
+  release-tag:
+    machine: true
     steps:
       - checkout
+      - *dockerhub_login
       - run:
-          name: Publish
-          command: mvn -s ./.circleci/.circleci.settings.xml deploy
+          name: maven install
+          command: mvn clean install -DskipTests
+      - run:
+          name: Release docker image
+          command: chmod +x .scripts/build-docker-image.sh && ./.scripts/build-docker-image.sh tag
 
 workflows:
   version: 2
-  build-and-publish:
+  build:
     jobs:
-      - build-and-test
-      - publish:
+      - build-and-test:
+          context: adhara-global
+          filters:
+            branches:
+              only:
+                - master-adhara
+                - development-adhara
+            tags:
+              only:
+                - /.*/
+      - release-snapshot:
+          context: adhara-global
           requires:
             - build-and-test
           filters:
             branches:
               only:
-                - master
-                - development
-      - release-docker-image-snapshot:
-          requires:
-            - build-and-test
-          filters:
-            branches:
+                - development-adhara
+            tags:
               only:
-                - development
-      - release-docker-image:
+                - /.*/
+      - release-master:
+          context: adhara-global
           requires:
             - build-and-test
           filters:
             branches:
-              only: master
+              only: master-adhara
+            tags:
+              only:
+                - /.*/
+      - release-tag:
+          context: adhara-global
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^[0-9]+(\.[0-9]+){2}(-.+|[^-.]*)$/
+
