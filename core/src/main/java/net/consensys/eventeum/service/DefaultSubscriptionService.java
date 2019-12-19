@@ -142,11 +142,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void resubscribeToAllSubscriptions() {
+    public void resubscribeToAllSubscriptions(String nodeName) {
         final List<ContractEventFilter> currentFilters = filterSubscriptions
                 .values()
                 .stream()
                 .map(filterSubscription -> filterSubscription.getFilter())
+                .filter(filter -> filter.getNode().equals(nodeName))
                 .collect(Collectors.toList());
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();
