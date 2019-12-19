@@ -1,6 +1,5 @@
 package net.consensys.eventeum.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.EventStoreLatestBlockUpdater;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
@@ -17,6 +16,7 @@ import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRe
 import net.consensys.eventeum.integration.eventstore.rest.RESTEventStore;
 import net.consensys.eventeum.integration.eventstore.rest.client.EventStoreClient;
 
+import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -49,9 +49,11 @@ public class EventStoreConfiguration {
 		}
 
 		@Bean
-		public BlockListener eventStoreLatestBlockUpdater(
-				SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory, MeterRegistry meterRegistry, ChainServicesContainer chainServicesContainer) {
-			return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory, meterRegistry, chainServicesContainer);
+		public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore,
+														  BlockDetailsFactory blockDetailsFactory,
+														  EventeumValueMonitor valueMonitor,
+														  ChainServicesContainer chainServicesContainer) {
+			return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory, valueMonitor, chainServicesContainer);
 		}
 	}
 
@@ -74,9 +76,11 @@ public class EventStoreConfiguration {
 		}
 
 		@Bean
-		public BlockListener eventStoreLatestBlockUpdater(
-				SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory, MeterRegistry meterRegistry, ChainServicesContainer chainServiceContainer ) {
-			return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory,meterRegistry,chainServiceContainer);
+		public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore,
+														  BlockDetailsFactory blockDetailsFactory,
+														  EventeumValueMonitor valueMonitor,
+														  ChainServicesContainer chainServiceContainer ) {
+			return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory, valueMonitor,chainServiceContainer);
 		}
 	}
 

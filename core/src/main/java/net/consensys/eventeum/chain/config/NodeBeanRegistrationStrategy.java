@@ -139,8 +139,8 @@ public class NodeBeanRegistrationStrategy {
         builder.addConstructorArgReference(blockchainServiceBeanName);
         builder.addConstructorArgReference(nodeFailureListenerBeanName);
         builder.addConstructorArgReference("defaultSubscriptionService");
-        builder.addConstructorArgReference("prometheusMeterRegistry");
-        builder.addConstructorArgReference("dbEventStore");
+        builder.addConstructorArgReference("eventeumValueMonitor");
+        builder.addConstructorArgReference("defaultEventStoreService");
         builder.addConstructorArgValue(node.getSyncingThreshold());
         builder.addConstructorArgReference("taskScheduler");
         builder.addConstructorArgValue(node.getHealthcheckInterval());

@@ -3,6 +3,7 @@ package net.consensys.eventeum.integration;
 import lombok.Data;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @Data
+@ConditionalOnProperty(name="broadcaster.type", havingValue="RABBIT")
 public class RabbitSettings {
     @Value("${rabbitmq.exchange}")
     private String exchange;

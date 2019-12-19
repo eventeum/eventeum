@@ -1,12 +1,14 @@
 package net.consensys.eventeum.chain.service;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.monitoring.EventeumValueMonitor;
+import net.consensys.eventeum.monitoring.MicrometerValueMonitor;
+import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,10 +38,9 @@ public class NodeHealthCheckServiceTest {
 
     private SubscriptionService mockSubscriptionService;
 
+    private EventeumValueMonitor mockEventeumValueMonitor;
 
-    private MeterRegistry mockMeterRegistry;
-
-    private SaveableEventStore mockSaveableEventStore;
+    private EventStoreService mockEventStoreService;
 
     private ScheduledThreadPoolExecutor  mockTaskScheduler;
 
@@ -51,11 +52,11 @@ public class NodeHealthCheckServiceTest {
         mockReconnectionStrategy = mock(ReconnectionStrategy.class);
         mockSubscriptionService = mock(SubscriptionService.class);
 
-        mockSaveableEventStore = mock(SaveableEventStore.class);
+        mockEventStoreService = mock(EventStoreService.class);
         LatestBlock latestBlock = new LatestBlock();
         latestBlock.setNumber(BLOCK_NUMBER);
-        when(mockSaveableEventStore.getLatestBlockForNode(any())).thenReturn(Optional.of(latestBlock));
-        mockMeterRegistry = new SimpleMeterRegistry();
+        when(mockEventStoreService.getLatestBlock(any())).thenReturn(Optional.of(latestBlock));
+        mockEventeumValueMonitor = new MicrometerValueMonitor(new SimpleMeterRegistry());
         mockTaskScheduler = mock(ScheduledThreadPoolExecutor.class);
 
         underTest = createUnderTest();
@@ -242,8 +243,8 @@ public class NodeHealthCheckServiceTest {
                         mockBlockchainService,
                         mockReconnectionStrategy,
                         mockSubscriptionService,
-                        mockMeterRegistry,
-                        mockSaveableEventStore,
+                        mockEventeumValueMonitor,
+                        mockEventStoreService,
                         SYNCING_THRESHOLD,
                         mockTaskScheduler,
                         HEALTH_CHECK_INTERVAL

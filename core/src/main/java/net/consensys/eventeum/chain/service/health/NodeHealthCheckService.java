@@ -1,14 +1,14 @@
 package net.consensys.eventeum.chain.service.health;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
-import net.consensys.eventeum.chain.settings.Node;
-import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
+import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.monitoring.EventeumValueMonitor;
+import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
 
+import java.math.BigInteger;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,10 +34,7 @@ public class NodeHealthCheckService {
 
     private SubscriptionService subscriptionService;
 
-
     private boolean initiallySubscribed = false;
-
-    private MeterRegistry meterRegistry;
 
     private AtomicLong currentBlock;
 
@@ -45,33 +42,30 @@ public class NodeHealthCheckService {
 
     private AtomicInteger nodeStatusGauge;
 
-    private SaveableEventStore dbEventStore;
+    private EventStoreService eventStoreService;
 
     private Integer syncingThreshold;
 
     public NodeHealthCheckService(BlockchainService blockchainService,
                                   ReconnectionStrategy reconnectionStrategy,
                                   SubscriptionService subscriptionService,
-                                  MeterRegistry meterRegistry,
-                                  SaveableEventStore dbEventStore,
+                                  EventeumValueMonitor valueMonitor,
+                                  EventStoreService eventStoreService,
                                   Integer syncingThreshold,
                                   ScheduledThreadPoolExecutor taskScheduler,
-                                  Long healthCheckPollInterval
-    ) {
-        this.dbEventStore = dbEventStore;
+                                  Long healthCheckPollInterval) {
+        this.eventStoreService = eventStoreService;
         this.blockchainService = blockchainService;
         this.reconnectionStrategy = reconnectionStrategy;
         this.subscriptionService = subscriptionService;
         this.syncingThreshold = syncingThreshold;
         nodeStatus = NodeStatus.SUBSCRIBED;
-        currentBlock = meterRegistry.gauge( "eventeum." + blockchainService.getNodeName() +".currentBlock", Tags.of("chain",blockchainService
-                .getNodeName()),new
+
+        currentBlock = valueMonitor.monitor( "currentBlock", blockchainService.getNodeName(), new
                 AtomicLong(0));
-        nodeStatusGauge = meterRegistry.gauge( "eventeum." + blockchainService.getNodeName() +".status", Tags.of("chain",blockchainService
-                .getNodeName()),new
+        nodeStatusGauge = valueMonitor.monitor( "status", blockchainService.getNodeName(), new
                 AtomicInteger(NodeStatus.SUBSCRIBED.ordinal()));
-        syncing = meterRegistry.gauge("eventeum." +blockchainService.getNodeName() +".syncing", Tags.of("chain",blockchainService
-                .getNodeName()),new
+        syncing = valueMonitor.monitor("syncing", blockchainService.getNodeName(), new
                 AtomicInteger(0));
 
         taskScheduler.scheduleWithFixedDelay(() -> this.checkHealth() ,0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
@@ -121,7 +115,8 @@ public class NodeHealthCheckService {
     protected boolean isNodeConnected() {
         try {
             currentBlock.set(blockchainService.getCurrentBlockNumber().longValue());
-            if(currentBlock.longValue()  <= syncingThreshold + dbEventStore.getLatestBlockForNode(blockchainService.getNodeName()).get().getNumber().longValue() ){
+
+            if(currentBlock.longValue()  <= syncingThreshold + getLatestBlockForNode().getNumber().longValue() ){
                 syncing.set(0);
             }
             else {
@@ -153,6 +148,15 @@ public class NodeHealthCheckService {
         reconnectionStrategy.resubscribe();
 
         nodeStatus = isSubscribed() ? NodeStatus.SUBSCRIBED : NodeStatus.CONNECTED;
+    }
+
+    private LatestBlock getLatestBlockForNode() {
+        return eventStoreService.getLatestBlock(
+                blockchainService.getNodeName()).orElseGet(() -> {
+                    final LatestBlock latestBlock = new LatestBlock();
+                    latestBlock.setNumber(BigInteger.ZERO);
+                    return latestBlock;
+                });
     }
 
     private enum NodeStatus {

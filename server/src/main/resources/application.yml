@@ -104,11 +104,11 @@ management:
       enabled: true
       show-details: always
     metrics:
-      enabled: true
+      enabled: false
     prometheus:
-      enabled: true
+      enabled: false
   metrics:
     export:
       prometheus:
-        enabled: true
+        enabled: false
 

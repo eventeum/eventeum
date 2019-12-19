@@ -77,10 +77,10 @@ public class ChainBootstrapperTest {
 
         doBootstrap();
 
-        verify(mockSubscriptionService, times(1)).registerContractEventFilter(mockConfiguredFilters.get(0), true);
-        verify(mockSubscriptionService, times(1)).registerContractEventFilter(mockConfiguredFilters.get(1), true);
-        verify(mockSubscriptionService, times(1)).registerContractEventFilter(mockFilterFactoryFilters.get(0), true);
-        verify(mockSubscriptionService, times(1)).registerContractEventFilter(mockFilterFactoryFilters.get(1), true);
+        verify(mockSubscriptionService, times(1)).registerContractEventFilterWithRetries(mockConfiguredFilters.get(0), true);
+        verify(mockSubscriptionService, times(1)).registerContractEventFilterWithRetries(mockConfiguredFilters.get(1), true);
+        verify(mockSubscriptionService, times(1)).registerContractEventFilterWithRetries(mockFilterFactoryFilters.get(0), true);
+        verify(mockSubscriptionService, times(1)).registerContractEventFilterWithRetries(mockFilterFactoryFilters.get(1), true);
     }
 
     @Test

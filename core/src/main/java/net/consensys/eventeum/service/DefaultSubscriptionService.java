@@ -14,6 +14,7 @@ import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -61,7 +62,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
                                       List<ContractEventListener> contractEventListeners,
-                                      RetryTemplate retryTemplate) {
+                                      @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
         this.contractEventListeners = contractEventListeners;
         this.chainServices = chainServices;
         this.asyncTaskService = asyncTaskService;
@@ -81,8 +82,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter) {
-        return registerContractEventFilter(filter, true);
+    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
+        return doRegisterContractEventFilter(filter, broadcast);
     }
 
     /**
@@ -90,29 +91,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
      */
     @Override
     @Async
-    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
-        return retryTemplate.execute((context) -> {
-            populateIdIfMissing(filter);
-
-            if (!isFilterRegistered(filter)) {
-                final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
-
-                if (filter.getStartBlock() == null && sub != null) {
-                    filter.setStartBlock(sub.getStartBlock());
-                }
-
-                saveContractEventFilter(filter);
-
-                if (broadcast) {
-                    broadcastContractEventFilterAdded(filter);
-                }
-
-                return filter;
-            } else {
-                log.info("Already registered contract event filter with id: " + filter.getId());
-                return getFilterSubscription(filter.getId()).getFilter();
-            }
-        });
+    public ContractEventFilter registerContractEventFilterWithRetries(ContractEventFilter filter, boolean broadcast) {
+        return retryTemplate.execute((context) -> doRegisterContractEventFilter(filter, broadcast));
     }
 
     /**
@@ -198,6 +178,29 @@ public class DefaultSubscriptionService implements SubscriptionService {
         } catch (Throwable t) {
             log.info("Unable to unregister filter...this is probably because the " +
                     "node has restarted or we're in websocket mode");
+        }
+    }
+
+    private ContractEventFilter doRegisterContractEventFilter(ContractEventFilter filter, boolean broadcast) {
+        populateIdIfMissing(filter);
+
+        if (!isFilterRegistered(filter)) {
+            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
+
+            if (filter.getStartBlock() == null && sub != null) {
+                filter.setStartBlock(sub.getStartBlock());
+            }
+
+            saveContractEventFilter(filter);
+
+            if (broadcast) {
+                broadcastContractEventFilterAdded(filter);
+            }
+
+            return filter;
+        } else {
+            log.info("Already registered contract event filter with id: " + filter.getId());
+            return getFilterSubscription(filter.getId()).getFilter();
         }
     }
 

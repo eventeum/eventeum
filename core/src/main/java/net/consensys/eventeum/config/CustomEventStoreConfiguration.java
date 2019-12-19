@@ -1,6 +1,5 @@
 package net.consensys.eventeum.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.EventStoreLatestBlockUpdater;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
@@ -9,6 +8,7 @@ import net.consensys.eventeum.chain.factory.BlockDetailsFactory;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
+import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +30,10 @@ public class CustomEventStoreConfiguration {
     }
 
     @Bean
-    public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore, BlockDetailsFactory blockDetailsFactory, MeterRegistry meterRegistry, ChainServicesContainer chainServicesContainer) {
-        return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory,  meterRegistry, chainServicesContainer);
+    public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore,
+                                                      BlockDetailsFactory blockDetailsFactory,
+                                                      EventeumValueMonitor valueMonitor,
+                                                      ChainServicesContainer chainServicesContainer) {
+        return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory,  valueMonitor, chainServicesContainer);
     }
 }

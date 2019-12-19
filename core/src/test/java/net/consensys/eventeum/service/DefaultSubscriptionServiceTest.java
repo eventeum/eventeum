@@ -104,7 +104,7 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testRegisterNewContractEventFilter() {
         final ContractEventFilter filter = createEventFilter();
-        underTest.registerContractEventFilter(filter);
+        underTest.registerContractEventFilter(filter, true);
 
         verifyContractEventFilterRegistration(filter,true, true);
         assertEquals(1, underTest.listContractEventFilters().size());

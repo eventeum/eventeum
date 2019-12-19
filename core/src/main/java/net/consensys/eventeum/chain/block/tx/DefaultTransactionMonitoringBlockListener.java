@@ -54,8 +54,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                                                      BlockchainEventBroadcaster broadcaster,
                                                      TransactionDetailsFactory transactionDetailsFactory,
                                                      BlockCache blockCache,
-                                                     NodeSettings nodeSettings
-    ) {
+                                                     NodeSettings nodeSettings) {
         this.criteria = new ConcurrentHashMap<>();
 
         this.blockchainServices = new HashMap<>();
@@ -201,7 +200,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     }
 
     private boolean shouldWaitBeforeConfirmation(Node node) {
-        return node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
+        return !node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
     }
 
     private BlockchainService getBlockchainService(String nodeName) {
