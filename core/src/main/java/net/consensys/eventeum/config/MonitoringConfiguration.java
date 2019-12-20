@@ -13,29 +13,29 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class MonitoringConfiguration {
 
-    @ConditionalOnProperty("management.endpoint.prometheus")
     public class PrometheusConfiguration {
 
         @Bean
+        @ConditionalOnProperty(name="management.endpoint.metrics.enabled", havingValue = "true")
         public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(Environment environment) {
             return registry -> registry.config().commonTags("application", "Eventeum", "environment",environment.getActiveProfiles()[0]);
         }
 
         @Bean
+        @ConditionalOnProperty(name="management.endpoint.metrics.enabled", havingValue = "true")
+        public EventeumValueMonitor eventeumValueMonitor(MeterRegistry meterRegistry) {
+            return new MicrometerValueMonitor(meterRegistry);
+        }
+
+        @Bean
+        @ConditionalOnProperty(name="management.endpoint.prometheus.enabled", havingValue = "true")
         public PrometheusMeterRegistry.Config configurePrometheus(MeterRegistry meterRegistry) {
             return meterRegistry.config().namingConvention(new CustomNamingConvention());
         }
 
-        @Bean
-        //Second value exists so we can guarantee that this gets called after configurePrometheus
-        public EventeumValueMonitor eventeumValueMonitor(
-                MeterRegistry meterRegistry, PrometheusMeterRegistry.Config config) {
-            return new MicrometerValueMonitor(meterRegistry);
-        }
-
     }
 
-    @ConditionalOnProperty(value = "management.endpoint.prometheus", matchIfMissing = true)
+    @ConditionalOnProperty(value = "management.endpoint.metrics.enabled", havingValue="false", matchIfMissing = true)
     public class DoNothingMonitoringConfiguration {
 
         @Bean

@@ -11,6 +11,7 @@ import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
+import net.consensys.eventeum.utils.JSON;
 import net.consensys.eventeumserver.integrationtest.utils.RestartingSpringRunner;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -69,7 +70,12 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         List<BlockDetails> broadcastBlocks = getBroadcastBlockMessages();
 
+        System.out.println("BROADCAST BLOCKS BEFORE: " + JSON.stringify(getBroadcastBlockMessages()));
+
         final BigInteger lastBlockNumber = broadcastBlocks.get(broadcastBlocks.size() - 1).getNumber();
+
+        //Ensure latest block has been updated in eventeum
+        waitForBroadcast();
 
         getBroadcastBlockMessages().clear();
 
@@ -83,7 +89,9 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         triggerBlocks(2);
 
-        waitForBlockMessages(6);
+        waitForBlockMessages(7);
+
+        System.out.println("BROADCAST BLOCKS AFTER: " + JSON.stringify(getBroadcastBlockMessages()));
 
         //Eventeum will rebroadcast the last seen block after restart in case block
         //wasn't fully processed
