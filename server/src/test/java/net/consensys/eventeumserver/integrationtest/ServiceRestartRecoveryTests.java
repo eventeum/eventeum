@@ -1,5 +1,6 @@
 package net.consensys.eventeumserver.integrationtest;
 
+import com.mongodb.MongoClient;
 import junit.framework.TestCase;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -23,6 +24,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Hash;
+import wiremock.org.apache.commons.collections4.IterableUtils;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -49,6 +51,8 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         mongoContainer.waitingFor(Wait.forListeningPort());
         mongoContainer.withFixedExposedPort(MONGO_PORT, MONGO_PORT);
         mongoContainer.start();
+
+        waitForMongoDBToStart(30000);
     }
 
     @AfterClass
@@ -170,5 +174,33 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
+    }
+
+    private static void waitForMongoDBToStart(long timeToWait) {
+        final long startTime = System.currentTimeMillis();
+
+        while (true) {
+            if (System.currentTimeMillis() > startTime + timeToWait) {
+                throw new IllegalStateException("MongoDB failed to start...");
+            }
+
+            try {
+                //Check mongo is up
+                final MongoClient mongo = new MongoClient();
+                final List<String> databaseNames = IterableUtils.toList(mongo.listDatabaseNames());
+
+                if (databaseNames.size() > 0) {
+                    break;
+                }
+            } catch (Throwable t) {
+                //If an error occurs, mongoDB is not yet up
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();;
+            }
+        }
     }
 }
