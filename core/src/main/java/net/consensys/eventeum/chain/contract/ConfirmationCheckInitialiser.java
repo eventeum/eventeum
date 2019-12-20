@@ -31,7 +31,6 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
 
     private ChainServicesContainer chainServicesContainer;
     private BlockchainEventBroadcaster eventBroadcaster;
-    private AsyncTaskService asyncTaskService;
     private NodeSettings nodeSettings;
 
     @Override
@@ -56,8 +55,8 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
     }
 
     protected BlockListener createEventConfirmationBlockListener(ContractEventDetails eventDetails,Node node) {
-        return new EventConfirmationBlockListener(eventDetails, getBlockchainService(eventDetails),
-                eventBroadcaster, node, asyncTaskService);
+        return new EventConfirmationBlockListener(eventDetails,
+                getBlockchainService(eventDetails), eventBroadcaster, node);
     }
 
     private BlockchainService getBlockchainService(ContractEventDetails eventDetails) {

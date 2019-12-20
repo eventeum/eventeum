@@ -36,7 +36,6 @@ public class EventConfirmationBlockListenerTest {
     private BlockchainService mockBlockchainService;
     private BlockchainEventBroadcaster mockEventBroadcaster;
     private TransactionReceipt mockTransactionReceipt;
-    private AsyncTaskService asyncTaskService = new DummyAsyncTaskService();
     private Log mockLog;
 
     @Before
@@ -67,7 +66,7 @@ public class EventConfirmationBlockListenerTest {
         node.setBlocksToWaitBeforeInvalidating(BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
 
         underTest = new EventConfirmationBlockListener(mockEventDetails,
-                mockBlockchainService, mockEventBroadcaster, node, asyncTaskService);
+                mockBlockchainService, mockEventBroadcaster, node);
     }
 
     @Test

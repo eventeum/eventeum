@@ -26,7 +26,6 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
     private BigInteger targetBlock;
     private BigInteger blocksToWaitForMissingTx;
     private BigInteger blocksToWait;
-    private AsyncTaskService asyncTaskService;
 
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
@@ -36,13 +35,11 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
     public EventConfirmationBlockListener(ContractEventDetails contractEvent,
                                           BlockchainService blockchainService,
                                           BlockchainEventBroadcaster eventBroadcaster,
-                                          Node node,
-                                          AsyncTaskService asyncTaskService) {
+                                          Node node) {
         super(blockchainService);
         this.contractEvent = contractEvent;
         this.blockchainService = blockchainService;
         this.eventBroadcaster = eventBroadcaster;
-        this.asyncTaskService = asyncTaskService;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         this.blocksToWait = node.getBlocksToWaitForConfirmation();
@@ -53,8 +50,6 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
 
     @Override
     public void onBlock(Block block) {
-        //Needs to be called asynchronously, otherwise websocket is blocked
-//        asyncTaskService.execute(() -> {
             final TransactionReceipt receipt = blockchainService.getTransactionReceipt(contractEvent.getTransactionHash());
 
             if (receipt == null) {
@@ -71,7 +66,6 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
             } else {
                 processInvalidatedEvent(block);
             }
-//        });
     }
 
     private void checkEventStatus(Block block, Log log) {

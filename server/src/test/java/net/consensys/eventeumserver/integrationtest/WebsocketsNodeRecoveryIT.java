@@ -32,6 +32,6 @@ public class WebsocketsNodeRecoveryIT extends NodeRecoveryTests {
 
     @Test
     public void nodeFailureBeforeEventRegistrationRecoveryTest() throws Exception {
-        doNodeFailureBeforeEventRegistrationRecoveryTest(Optional.of(Long.valueOf(2000)));
+        doNodeFailureBeforeEventRegistrationRecoveryTest(Optional.of(Long.valueOf(5000)));
     }
 }

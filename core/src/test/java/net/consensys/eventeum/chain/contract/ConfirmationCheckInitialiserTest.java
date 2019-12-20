@@ -96,7 +96,7 @@ public class ConfirmationCheckInitialiserTest {
          public ConfirmationCheckInitialiserForTest(ChainServicesContainer chainServicesContainer,
                                                     BlockchainEventBroadcaster eventBroadcaster,
                                                     NodeSettings node) {
-             super(chainServicesContainer, eventBroadcaster, asyncTaskService,node);
+             super(chainServicesContainer, eventBroadcaster, node);
          }
 
          @Override
