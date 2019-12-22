@@ -133,6 +133,39 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
     }
 
+    public void doBroadcastConfirmedEventAfter12BlocksWhenDownTest() throws Exception {
+
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
+
+        restartEventeum(() -> {
+            try {
+                try {
+                    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+                    waitForBroadcast();
+
+                    triggerBlocks(12);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                TestCase.fail("Unable to emit event");
+            }
+        });
+
+        waitForContractEventMessages(2);
+
+        assertEquals(2, getBroadcastContractEvents().size());
+
+        verifyDummyEventDetails(registeredFilter,
+                getBroadcastContractEvents().get(0), ContractEventStatus.UNCONFIRMED);
+
+        verifyDummyEventDetails(registeredFilter,
+                getBroadcastContractEvents().get(1), ContractEventStatus.CONFIRMED);
+    }
+
     protected void doBroadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
 
         triggerBlocks(1);

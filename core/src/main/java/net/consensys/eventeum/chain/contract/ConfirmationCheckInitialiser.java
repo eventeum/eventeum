@@ -6,6 +6,7 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.block.EventConfirmationBlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -36,21 +37,19 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
     @Override
     public void onEvent(ContractEventDetails eventDetails) {
         if (eventDetails.getStatus() == ContractEventStatus.UNCONFIRMED) {
-            log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
 
             final BlockchainService blockchainService = getBlockchainService(eventDetails);
-            final Node node = nodeSettings.getNode(blockchainService.getNodeName());
-            BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
-            BigInteger waitBlocks = node.getBlocksToWaitForConfirmation();
+            final Node node = nodeSettings.getNode(eventDetails.getNodeName());
 
-            if (currentBlock.compareTo(eventDetails.getBlockNumber().add(waitBlocks)) >= 0) {
+            if (shouldInstantlyConfirm(eventDetails)) {
                 eventDetails.setStatus(ContractEventStatus.CONFIRMED);
                 eventBroadcaster.broadcastContractEvent(eventDetails);
 
                 return;
             }
 
-            blockchainService.addBlockListener(createEventConfirmationBlockListener(eventDetails,node));
+            log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
+            blockchainService.addBlockListener(createEventConfirmationBlockListener(eventDetails, node));
         }
     }
 
@@ -62,5 +61,22 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
     private BlockchainService getBlockchainService(ContractEventDetails eventDetails) {
         return chainServicesContainer.getNodeServices(
                 eventDetails.getNodeName()).getBlockchainService();
+    }
+
+    private boolean shouldInstantlyConfirm(ContractEventDetails eventDetails) {
+        final BlockchainService blockchainService = getBlockchainService(eventDetails);
+        final Node node = nodeSettings.getNode(blockchainService.getNodeName());
+        BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
+        BigInteger waitBlocks = node.getBlocksToWaitForConfirmation();
+
+        return currentBlock.compareTo(eventDetails.getBlockNumber().add(waitBlocks)) >= 0
+            && isTransactionStillInBlock(
+                    eventDetails.getTransactionHash(), eventDetails.getBlockHash(), blockchainService);
+    }
+
+    private boolean isTransactionStillInBlock(String txHash, String blockHash, BlockchainService blockchainService) {
+        final TransactionReceipt receipt = blockchainService.getTransactionReceipt(txHash);
+
+        return receipt != null && receipt.getBlockHash().equals(blockHash);
     }
 }
