@@ -4,6 +4,7 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
+import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.constant.Constants;
@@ -20,6 +21,9 @@ import java.math.BigInteger;
 import static org.mockito.Mockito.*;
 
 public class ConfirmationCheckInitialiserTest {
+
+     private static final String TX_HASH = "0x05ba7cdf9f35579c9e2332804a3a98bf2231572e8bfe57b3e31ed0240ae7f582";
+     private static final String BLOCK_HASH = "0xb9f2b107229b1f49547a7d0d446d018adef30b83ae8a69738c2f38375b28f4dc";
 
      private ConfirmationCheckInitialiser underTest;
 
@@ -76,6 +80,11 @@ public class ConfirmationCheckInitialiserTest {
     public void testOnEventWithAExpiredBlockEvent() {
         ContractEventDetails event = createContractEventDetails(ContractEventStatus.UNCONFIRMED);
         when(event.getBlockNumber()).thenReturn(BigInteger.valueOf(1));
+
+        final TransactionReceipt mockTxReceipt = mock(TransactionReceipt.class);
+        when(mockTxReceipt.getBlockHash()).thenReturn(BLOCK_HASH);
+
+        when(mockBlockchainService.getTransactionReceipt(TX_HASH)).thenReturn(mockTxReceipt);
         underTest.onEvent(event);
 
         verify(mockBlockchainService, times(0)).addBlockListener(mockBlockListener);
@@ -87,6 +96,8 @@ public class ConfirmationCheckInitialiserTest {
          when(eventDetails.getStatus()).thenReturn(status);
          when(eventDetails.getNodeName()).thenReturn(Constants.DEFAULT_NODE_NAME);
          when(eventDetails.getBlockNumber()).thenReturn(BigInteger.valueOf(0));
+         when(eventDetails.getBlockHash()).thenReturn(BLOCK_HASH);
+         when(eventDetails.getTransactionHash()).thenReturn(TX_HASH);
 
          return eventDetails;
      }
