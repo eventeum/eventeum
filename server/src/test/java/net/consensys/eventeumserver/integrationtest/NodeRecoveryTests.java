@@ -3,17 +3,21 @@ package net.consensys.eventeumserver.integrationtest;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.utils.JSON;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
+import wiremock.org.apache.commons.collections4.IterableUtils;
+import wiremock.org.apache.commons.collections4.IteratorUtils;
 
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
 
@@ -29,6 +33,8 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
+
+        Thread.sleep(1000);
 
         doParityRestartEventEmissionsAssertion(emitter, registeredFilter, 4000);
         doParityRestartEventEmissionsAssertion(emitter, registeredFilter, 6000);

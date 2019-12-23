@@ -3,22 +3,28 @@ package net.consensys.eventeum.service;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -45,22 +51,28 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private Map<String, FilterSubscription> filterSubscriptions = new ConcurrentHashMap<>();
 
+    private ApplicationContext applicationContext;
+
+    private RetryTemplate retryTemplate;
+
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
                                       ContractEventFilterRepository eventFilterRepository,
                                       EventeumEventBroadcaster eventeumEventBroadcaster,
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
-                                      List<ContractEventListener> contractEventListeners) {
+                                      List<ContractEventListener> contractEventListeners,
+                                      @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
         this.contractEventListeners = contractEventListeners;
         this.chainServices = chainServices;
         this.asyncTaskService = asyncTaskService;
         this.eventFilterRepository = eventFilterRepository;
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.blockListeners = blockListeners;
+        this.retryTemplate = retryTemplate;
     }
 
-    @Override
+
     public void init() {
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
@@ -70,35 +82,17 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter) {
-        return registerContractEventFilter(filter, true);
+    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
+        return doRegisterContractEventFilter(filter, broadcast);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
-        populateIdIfMissing(filter);
-
-        if (!isFilterRegistered(filter)) {
-            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
-
-            if (filter.getStartBlock() == null && sub != null) {
-                filter.setStartBlock(sub.getStartBlock());
-            }
-
-            saveContractEventFilter(filter);
-
-            if (broadcast) {
-                broadcastContractEventFilterAdded(filter);
-            }
-
-            return filter;
-        } else {
-            log.info("Already registered contract event filter with id: " + filter.getId());
-            return getFilterSubscription(filter.getId()).getFilter();
-        }
+    @Async
+    public ContractEventFilter registerContractEventFilterWithRetries(ContractEventFilter filter, boolean broadcast) {
+        return retryTemplate.execute((context) -> doRegisterContractEventFilter(filter, broadcast));
     }
 
     /**
@@ -187,6 +181,29 @@ public class DefaultSubscriptionService implements SubscriptionService {
         }
     }
 
+    private ContractEventFilter doRegisterContractEventFilter(ContractEventFilter filter, boolean broadcast) {
+        populateIdIfMissing(filter);
+
+        if (!isFilterRegistered(filter)) {
+            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
+
+            if (filter.getStartBlock() == null && sub != null) {
+                filter.setStartBlock(sub.getStartBlock());
+            }
+
+            saveContractEventFilter(filter);
+
+            if (broadcast) {
+                broadcastContractEventFilterAdded(filter);
+            }
+
+            return filter;
+        } else {
+            log.info("Already registered contract event filter with id: " + filter.getId());
+            return getFilterSubscription(filter.getId()).getFilter();
+        }
+    }
+
     private void subscribeToNewBlockEvents(
             BlockchainService blockchainService, List<BlockListener> blockListeners) {
         blockListeners.forEach(listener -> blockchainService.addBlockListener(listener));
@@ -200,7 +217,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
         final NodeServices nodeServices = chainServices.getNodeServices(filter.getNode());
 
         if (nodeServices == null) {
-            log.warn("No node configured with name {}, not registering filter", filter.getNode());
+            log.warn("No node configure" +
+                    "d with name {}, not registering filter", filter.getNode());
             return null;
         }
 

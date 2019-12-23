@@ -1,7 +1,8 @@
 package net.consensys.eventeum.chain.factory;
 
 import java.util.Collections;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
+import net.consensys.eventeum.chain.converter.EventParameterConverter;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -24,14 +25,14 @@ import java.util.stream.IntStream;
 public class DefaultContractEventDetailsFactory implements ContractEventDetailsFactory {
 
     private EventParameterConverter<Type> parameterConverter;
-    private EventConfirmationConfig eventConfirmationConfig;
+    private Node node;
     private String networkName;
 
     public DefaultContractEventDetailsFactory(EventParameterConverter<Type> parameterConverter,
-                                       EventConfirmationConfig eventConfirmationConfig,
-                                       String networkName) {
+                                              Node node,
+                                              String networkName) {
         this.parameterConverter = parameterConverter;
-        this.eventConfirmationConfig = eventConfirmationConfig;
+        this.node = node;
         this.networkName = networkName;
     }
 
@@ -58,7 +59,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
 
         if (log.isRemoved()) {
             eventDetails.setStatus(ContractEventStatus.INVALIDATED);
-        } else if (eventConfirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO)) {
+        } else if (node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO)) {
             //Set to confirmed straight away if set to zero confirmations
             eventDetails.setStatus(ContractEventStatus.CONFIRMED);
         } else {

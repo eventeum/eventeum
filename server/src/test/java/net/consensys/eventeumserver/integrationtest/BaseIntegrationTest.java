@@ -47,7 +47,7 @@ import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Numeric;
-import scala.math.BigInt;
+import wiremock.org.apache.commons.collections4.IterableUtils;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -407,13 +407,8 @@ public class BaseIntegrationTest {
             }
 
             if (System.currentTimeMillis() > startTime + 20000) {
-                final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
-                builder.append("\n");
-                builder.append("Expected message count: " + expectedMessageCount);
-                builder.append(", received: " + messages.size());
-
                 if (failOnTimeout) {
-                    TestCase.fail(builder.toString());
+                    TestCase.fail(generateFailureMessage(expectedMessageCount, messages));
                 }
 
                 return false;
@@ -517,6 +512,23 @@ public class BaseIntegrationTest {
 
     protected static void stopParity() {
         parityContainer.stop();
+    }
+
+    private <T> String generateFailureMessage(int expectedMessageCount, List<T> messages) {
+        final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
+        builder.append("\n");
+        builder.append("Expected message count: " + expectedMessageCount);
+        builder.append(", received: " + messages.size());
+        builder.append("\n\n");
+        builder.append("Registered filters:");
+        builder.append("\n\n");
+        builder.append(JSON.stringify(IterableUtils.toList(getFilterRepo().findAll())));
+        builder.append("\n\n");
+        builder.append("ContractEventDetails entries:");
+        builder.append("\n\n");
+        builder.append(JSON.stringify(IterableUtils.toList(eventDetailsRepository.findAll())));
+
+        return builder.toString();
     }
 
     private void initRestTemplate() {
