@@ -135,14 +135,23 @@ public class Web3jService implements BlockchainService {
      * {inheritDoc}
      */
     @Override
-    public void reconnect() {
-        log.info("Reconnecting...");
+    public void disconnect() {
+        log.info("Unsubscribing from block events");
         try {
             blockSubscriptionStrategy.unsubscribe();
         } catch (FilterException e) {
             log.warn("Unable to unregister block subscription.  " +
                     "This is probably because the node has restarted or we're in websocket mode");
         }
+    }
+
+    /**
+     * {inheritDoc}
+     */
+    @Override
+    public void reconnect() {
+        log.info("Reconnecting...");
+        disconnect();
         connect();
     }
 
