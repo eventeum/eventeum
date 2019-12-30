@@ -75,13 +75,6 @@ public class NodeHealthCheckService {
         try {
             log.trace("Checking health");
 
-            //Can take a few seconds to subscribe initially so if wait until after
-            //first subscription to check health
-            if (!isSubscribed() && !initiallySubscribed) {
-                log.debug("Not initially subscribed");
-                return;
-            }
-
             final NodeStatus statusAtStart = nodeStatus;
 
             if (isNodeConnected()) {
@@ -91,13 +84,6 @@ public class NodeHealthCheckService {
 
                     //We've come back up
                     doResubscribe();
-                } else {
-                    if (statusAtStart != NodeStatus.SUBSCRIBED || !isSubscribed()) {
-                        log.info("Node {} not subscribed", blockchainService.getNodeName());
-                        doResubscribe();
-                    } else {
-                        initiallySubscribed = true;
-                    }
                 }
 
             } else {
@@ -138,7 +124,8 @@ public class NodeHealthCheckService {
     }
 
     protected boolean isSubscribed() {
-        return blockchainService.isConnected();
+        return blockchainService.isConnected() &&
+                subscriptionService.isFullySubscribed(blockchainService.getNodeName());
     }
 
     private void doReconnect() {
@@ -153,7 +140,7 @@ public class NodeHealthCheckService {
     private void doResubscribe() {
         reconnectionStrategy.resubscribe();
 
-        nodeStatus = isSubscribed() ? NodeStatus.SUBSCRIBED : NodeStatus.CONNECTED;
+        nodeStatus = isSubscribed() ? NodeStatus.CONNECTED : NodeStatus.DOWN;
     }
 
     private LatestBlock getLatestBlockForNode() {

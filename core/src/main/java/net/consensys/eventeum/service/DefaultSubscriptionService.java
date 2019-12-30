@@ -163,7 +163,18 @@ public class DefaultSubscriptionService implements SubscriptionService {
             }
         });
     }
-  
+
+    @Override
+    public boolean isFullySubscribed(String nodeName) {
+        return !filterSubscriptions
+                .values()
+                .stream()
+                .filter(filterSubscription -> filterSubscription.getFilter().getNode().equals(nodeName))
+                .filter(filterSubscription -> filterSubscription.getSubscription().isDisposed())
+                .findFirst()
+                .isPresent();
+    }
+
     @PreDestroy
     private void unregisterAllContractEventFilters() {
         filterSubscriptions.values().forEach(filterSub -> {
