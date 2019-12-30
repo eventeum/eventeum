@@ -73,4 +73,12 @@ public interface SubscriptionService {
      * Unsubscribe all active listeners
      */
     void unsubscribeToAllSubscriptions(String nodeName);
+
+    /**
+     * Returns true if all subscriptions for node are active (not disposed)
+     *
+     * @param nodeName The node name
+     * @return true if all subscriptions for node are active (not disposed)
+     */
+    boolean isFullySubscribed(String nodeName);
 }

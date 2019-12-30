@@ -26,6 +26,8 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
 
+        Thread.sleep(1000);
+
         doParityRestartEventEmissionsAssertion(emitter, registeredFilter, 4000);
     }
 
@@ -47,6 +49,8 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
+
+        Thread.sleep(1000);
 
         final int numRestarts = 20;
 

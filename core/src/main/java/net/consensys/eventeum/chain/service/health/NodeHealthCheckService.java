@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A service that constantly polls an ethereum node (getClientVersion) in order to ensure that the node
+ * A service that constantly polls an ethereum node (getCurrentBlockNumber) in order to ensure that the node
  * is currently running.  If a failure is detected, each configured NodeFailureListener is invoked.
  * This is also the case when it is detected that a node has recovered after failure.
  *
@@ -72,44 +72,36 @@ public class NodeHealthCheckService {
     }
 
     public void checkHealth() {
-        log.trace("Checking health");
+        try {
+            log.trace("Checking health");
 
-        //Can take a few seconds to subscribe initially so if wait until after
-        //first subscription to check health
-        if (!isSubscribed() && !initiallySubscribed) {
-            log.debug("Not initially subscribed");
-            return;
-        }
+            final NodeStatus statusAtStart = nodeStatus;
 
-        final NodeStatus statusAtStart = nodeStatus;
+            if (isNodeConnected()) {
+                log.trace("Node connected");
+                if (nodeStatus == NodeStatus.DOWN) {
+                    log.info("Node {} has come back up.", blockchainService.getNodeName());
 
-        if (isNodeConnected()) {
-            log.trace("Node connected");
-            if (nodeStatus == NodeStatus.DOWN) {
-                log.info("Node {} has come back up.", blockchainService.getNodeName());
-
-                //We've come back up
-                doResubscribe();
-            } else {
-                if (statusAtStart != NodeStatus.SUBSCRIBED || !isSubscribed()) {
-                    log.info("Node {} not subscribed", blockchainService.getNodeName());
+                    //We've come back up
                     doResubscribe();
-                } else {
-                    initiallySubscribed = true;
                 }
+
+            } else {
+                log.error("Node {} is down!!", blockchainService.getNodeName());
+                nodeStatus = NodeStatus.DOWN;
+
+                if (statusAtStart != NodeStatus.DOWN) {
+                    subscriptionService.unsubscribeToAllSubscriptions(blockchainService.getNodeName());
+                    blockchainService.disconnect();
+                }
+
+                doReconnect();
             }
 
-        } else {
-            log.error("Node {} is down!!", blockchainService.getNodeName());
-            nodeStatus = NodeStatus.DOWN;
-
-            if (statusAtStart != NodeStatus.DOWN) {
-                subscriptionService.unsubscribeToAllSubscriptions(blockchainService.getNodeName());
-            }
-
-            doReconnect();
+            nodeStatusGauge.set(nodeStatus.ordinal());
+        } catch (Throwable t) {
+            log.error("An error occured during the check health / recovery process...Will retry at next poll", t);
         }
-        nodeStatusGauge.set(nodeStatus.ordinal());
     }
 
     protected boolean isNodeConnected() {
@@ -132,7 +124,8 @@ public class NodeHealthCheckService {
     }
 
     protected boolean isSubscribed() {
-        return blockchainService.isConnected();
+        return blockchainService.isConnected() &&
+                subscriptionService.isFullySubscribed(blockchainService.getNodeName());
     }
 
     private void doReconnect() {
@@ -147,7 +140,7 @@ public class NodeHealthCheckService {
     private void doResubscribe() {
         reconnectionStrategy.resubscribe();
 
-        nodeStatus = isSubscribed() ? NodeStatus.SUBSCRIBED : NodeStatus.CONNECTED;
+        nodeStatus = isSubscribed() ? NodeStatus.CONNECTED : NodeStatus.DOWN;
     }
 
     private LatestBlock getLatestBlockForNode() {
