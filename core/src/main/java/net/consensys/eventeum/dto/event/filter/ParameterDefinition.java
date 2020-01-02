@@ -22,6 +22,8 @@ public class ParameterDefinition implements Comparable<ParameterDefinition>, Ser
     @Embedded
     private ParameterType type;
 
+    private String name;
+
     @Override
     public int compareTo(ParameterDefinition o) {
         return this.position.compareTo(o.getPosition());

@@ -128,9 +128,9 @@ public class RabbitBlockchainEventBroadcasterTest {
         contractEvent.setAddress("0xf0a6c84894ed7312a75ff0e621cde2f8a1c62d6f");
         contractEvent.setEventSpecificationSignature("somesig");
         contractEvent.setIndexedParameters(Arrays.asList
-                (new StringParameter("bytes32", "1234"), new NumberParameter("uint256", BigInteger.valueOf(123))));
+                (new StringParameter("bytes32", "1234", ""), new NumberParameter("uint256", BigInteger.valueOf(123), "")));
         contractEvent.setNonIndexedParameters(Arrays.asList
-                (new StringParameter("string", "5678"), new NumberParameter("uint256", BigInteger.valueOf(456))));
+                (new StringParameter("string", "5678", ""), new NumberParameter("uint256", BigInteger.valueOf(456), "")));
 
         return contractEvent;
     }
