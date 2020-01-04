@@ -67,7 +67,7 @@ public interface SubscriptionService {
     /**
      * Resubscribe to all currently active event filters.
      */
-    void resubscribeToAllSubscriptions();
+    void resubscribeToAllSubscriptions(String nodeName);
 
     /**
      * Unsubscribe all active listeners
