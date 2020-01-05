@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class NodeSettings {
 
     private static final Long DEFAULT_POLLING_INTERVAL = 10000l;
+
     private static final Long DEFAULT_HEALTHCHECK_POLLING_INTERVAL = 10000l;
 
     private static final Long DEFAULT_KEEP_ALIVE_DURATION = 10000l;
@@ -23,6 +24,12 @@ public class NodeSettings {
     private static final Integer DEFAULT_SYNCING_THRESHOLD = 60;
 
     private static final Long DEFAULT_READ_TIMEOUT = 60000l;
+
+    private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_MISSING_TX = "200";
+
+    private static final String DEFAULT_BLOCKS_TO_WAIT_BEFORE_INVALIDATING = "2";
+
+    private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION = "12";
 
     private static final String ATTRIBUTE_PREFIX = "ethereum";
 
@@ -56,15 +63,15 @@ public class NodeSettings {
 
     private static final String BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE = "numBlocksToWait";
 
-    private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWait";
+    private static final String GLOBAL_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWait";
 
     private static final String BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTRIBUTE = "numBlocksToWaitBeforeInvalidating";
 
-    private static final String DEFAULT_BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTIBUTE = "broadcaster.event.confirmation.numBlocksToWaitBeforeInvalidating";
+    private static final String GLOBAL_BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTIBUTE = "broadcaster.event.confirmation.numBlocksToWaitBeforeInvalidating";
 
     private static final String BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "numBlocksToWaitForMissingTx";
 
-    private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWaitForMissingTx";
+    private static final String GLOBAL_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWaitForMissingTx";
 
     private HashMap<String, Node> nodes;
 
@@ -197,8 +204,8 @@ public class NodeSettings {
                 getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE, index));
 
         if (blocksToWaitForConfirmation == null) {
-            blocksToWaitForConfirmation =
-                    getProperty(environment,DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE);
+            blocksToWaitForConfirmation = getProperty(environment,
+                    GLOBAL_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE, DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION);
         }
 
         return BigInteger.valueOf(Long.valueOf(blocksToWaitForConfirmation));
@@ -209,8 +216,8 @@ public class NodeSettings {
                 getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTRIBUTE, index));
 
         if (blocksToWaitBeforeInvalidating == null) {
-            blocksToWaitBeforeInvalidating =
-                    getProperty(environment, DEFAULT_BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTIBUTE);
+            blocksToWaitBeforeInvalidating = getProperty(environment,
+                    GLOBAL_BLOCKS_TO_WAIT_BEFORE_INVALIDATING_ATTIBUTE, DEFAULT_BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
         }
 
         return BigInteger.valueOf(Long.valueOf(blocksToWaitBeforeInvalidating));
@@ -221,8 +228,8 @@ public class NodeSettings {
                 getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE, index));
 
         if (blocksToWaitForMissingTx == null) {
-            blocksToWaitForMissingTx =
-                    getProperty(environment, DEFAULT_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE);
+            blocksToWaitForMissingTx = getProperty(environment,
+                    GLOBAL_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE, DEFAULT_BLOCKS_TO_WAIT_FOR_MISSING_TX);
         }
 
         return BigInteger.valueOf(Long.valueOf(blocksToWaitForMissingTx));
@@ -264,6 +271,10 @@ public class NodeSettings {
 
     private String getProperty(Environment environment, String property) {
         return environment.getProperty(property);
+    }
+
+    private String getProperty(Environment environment, String property, String defaultValue) {
+        return environment.getProperty(property, defaultValue);
     }
 
     private String buildNodeAttribute(String attribute, int index) {
