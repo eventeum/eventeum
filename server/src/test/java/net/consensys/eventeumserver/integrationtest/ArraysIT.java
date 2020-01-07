@@ -77,8 +77,8 @@ public class ArraysIT extends BaseKafkaIntegrationTest {
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(
-                        new ParameterDefinition(0, ParameterType.build("UINT256[]")),
-                        new ParameterDefinition(1, ParameterType.build("BYTES32[]"))));
+                        new ParameterDefinition(0, ParameterType.build("UINT256[]"),""),
+                        new ParameterDefinition(1, ParameterType.build("BYTES32[]"),"")));
 
         eventSpec.setEventName("DummyEventArray");
 

@@ -39,10 +39,10 @@ public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES16"))));
+                Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES16"),"")));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.build("BYTES16"))));
+                Arrays.asList(new ParameterDefinition(1, ParameterType.build("BYTES16"),"")));
 
         eventSpec.setEventName(eventEmitter.DUMMYEVENTBYTES16_EVENT.getName());
 
@@ -108,16 +108,16 @@ public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
 
         eventSpec.setIndexedParameterDefinitions(
                 Arrays.asList(
-                        new ParameterDefinition(0, ParameterType.build("UINT16")),
-                        new ParameterDefinition(1, ParameterType.build("INT64"))
+                        new ParameterDefinition(0, ParameterType.build("UINT16"),""),
+                        new ParameterDefinition(1, ParameterType.build("INT64"),"")
 
                 )
         );
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(
-                        new ParameterDefinition(2, ParameterType.build("ADDRESS[]")),
-                        new ParameterDefinition(3, ParameterType.build("BYTE")),
-                        new ParameterDefinition(4, ParameterType.build("BOOL"))
+                        new ParameterDefinition(2, ParameterType.build("ADDRESS[]"),""),
+                        new ParameterDefinition(3, ParameterType.build("BYTE"),""),
+                        new ParameterDefinition(4, ParameterType.build("BOOL"),"")
                 )
         );
 

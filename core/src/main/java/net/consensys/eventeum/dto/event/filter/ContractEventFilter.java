@@ -35,7 +35,7 @@ public class ContractEventFilter {
 
     @Embedded
     private ContractEventSpecification eventSpecification;
-    
+
     @Embedded
     private CorrelationIdStrategy correlationIdStrategy;
 

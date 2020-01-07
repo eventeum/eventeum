@@ -31,7 +31,7 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
 
     public Web3jEventParameterConverter(EventeumSettings settings) {
         typeConverters.put("address",
-                (type) -> new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
+                (type) -> new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString()), ""));
 
         registerNumberConverters("uint", 8, 256);
         registerNumberConverters("int", 8, 256);
@@ -39,10 +39,10 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
 
         typeConverters.put("byte", (type) -> convertBytesType(type));
         typeConverters.put("bool", (type) -> new NumberParameter(type.getTypeAsString(),
-                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO));
+                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO, ""));
         typeConverters.put("string",
                 (type) -> new StringParameter(type.getTypeAsString(),
-                        trim((String)type.getValue())));
+                        trim((String) type.getValue()), ""));
 
         this.settings = settings;
     }
@@ -53,7 +53,7 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
 
         if (typeConverter == null) {
             //Type might be an array, in which case the type will be the array type class
-            if (toConvert instanceof DynamicArray){
+            if (toConvert instanceof DynamicArray) {
                 final DynamicArray<?> theArray = (DynamicArray<?>) toConvert;
                 return convertDynamicArray(theArray);
             }
@@ -67,7 +67,7 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
     private void registerNumberConverters(String prefix, int increment, int max) {
         for (int i = increment; i <= max; i = i + increment) {
             typeConverters.put(prefix + i,
-                    (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
+                    (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue(), ""));
         }
     }
 
@@ -84,17 +84,17 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
 
         return new ArrayParameter(toConvert.getValue().get(0).getTypeAsString().toLowerCase(),
-                toConvert.getComponentType(), convertedArray);
+                toConvert.getComponentType(), convertedArray, "");
     }
 
     private EventParameter convertBytesType(Type bytesType) {
         if (settings.isBytesToAscii()) {
             return new StringParameter(
-                    bytesType.getTypeAsString(), trim(new String((byte[]) bytesType.getValue())));
+                    bytesType.getTypeAsString(), trim(new String((byte[]) bytesType.getValue())), "");
         }
 
         return new StringParameter(
-                bytesType.getTypeAsString(), trim(Numeric.toHexString((byte[]) bytesType.getValue())));
+                bytesType.getTypeAsString(), trim(Numeric.toHexString((byte[]) bytesType.getValue())), "");
     }
 
     private String trim(String toTrim) {

@@ -17,8 +17,8 @@ import javax.persistence.Embeddable;
 @NoArgsConstructor
 public class NumberParameter extends AbstractEventParameter<BigInteger> {
 
-    public NumberParameter(String type, BigInteger value) {
-        super(type, value);
+    public NumberParameter(String type, BigInteger value, String name) {
+        super(type, value, name);
     }
 
     @Override

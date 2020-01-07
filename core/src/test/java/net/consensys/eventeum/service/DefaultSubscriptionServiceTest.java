@@ -69,11 +69,11 @@ public class DefaultSubscriptionServiceTest {
         eventSpec.setEventName(EVENT_NAME);
 
         eventSpec.setIndexedParameterDefinitions(Arrays.asList(
-                new ParameterDefinition(0, ParameterType.build("UINT256"))));
+                new ParameterDefinition(0, ParameterType.build("UINT256"), "")));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.build("UINT256")),
-                        new ParameterDefinition(2, ParameterType.build("ADDRESS"))));
+                Arrays.asList(new ParameterDefinition(1, ParameterType.build("UINT256"), ""),
+                        new ParameterDefinition(2, ParameterType.build("ADDRESS"), "")));
     }
 
     @Before

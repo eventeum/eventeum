@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StringParameter extends AbstractEventParameter<String> {
 
-    public StringParameter(String type, String value) {
-        super(type, value);
+    public StringParameter(String type, String value, String name) {
+        super(type, value, name);
     }
 
     @Override
