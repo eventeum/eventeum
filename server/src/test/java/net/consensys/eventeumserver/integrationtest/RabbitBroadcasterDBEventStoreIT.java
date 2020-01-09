@@ -43,19 +43,34 @@ public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
     }
 
     @RabbitListener(bindings = @QueueBinding(
-            key = "thisIsRoutingKey.*",
-            value = @Queue("ThisIsAEventsQueue"),
+            key = "contractEvents.*",
+            value = @Queue("contractEvents"),
             exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)
     ))
-    public void onEvent(EventeumMessage message) {
+    public void onContractEvent(EventeumMessage message) {
         if(message.getDetails() instanceof ContractEventDetails){
             onContractEventMessageReceived((ContractEventDetails) message.getDetails());
-        } else if(message.getDetails() instanceof BlockDetails){
-            onBlockMessageReceived((BlockDetails) message.getDetails());
         } else if(message.getDetails() instanceof TransactionDetails){
             onTransactionMessageReceived((TransactionDetails) message.getDetails());
         }
+    }
 
+    @RabbitListener(bindings = @QueueBinding(
+            key = "transactionEvents.*",
+            value = @Queue("transactionEvents"),
+            exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)
+    ))
+    public void onTransactionEvent(EventeumMessage message) {
+        onTransactionMessageReceived((TransactionDetails) message.getDetails());
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+            key = "blockEvents",
+            value = @Queue("blockEvents"),
+            exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)
+    ))
+    public void onBlockEvent(EventeumMessage message) {
+        onBlockMessageReceived((BlockDetails) message.getDetails());
     }
 
     @TestConfiguration

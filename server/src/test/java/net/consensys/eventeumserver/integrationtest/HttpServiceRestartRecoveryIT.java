@@ -27,6 +27,11 @@ public class HttpServiceRestartRecoveryIT extends ServiceRestartRecoveryTests {
     }
 
     @Test
+    public void broadcastConfirmedEventAfter12BlocksWhenDownTest() throws Exception {
+        doBroadcastConfirmedEventAfter12BlocksWhenDownTest();
+    }
+
+    @Test
     public void broadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
         doBroadcastTransactionUnconfirmedAfterFailureTest();
     }

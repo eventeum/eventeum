@@ -27,7 +27,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcaster {
 
     private static final Logger LOG = LoggerFactory.getLogger(RabbitBlockChainEventBroadcaster.class);
-    private static final String BLOCKEVENT_ROUTING_KEY_SUFIX = "NewBlock";
 
     private RabbitTemplate rabbitTemplate;
     private RabbitSettings rabbitSettings;
@@ -41,27 +40,27 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
     public void broadcastNewBlock(BlockDetails block) {
         final EventeumMessage<BlockDetails> message = createBlockEventMessage(block);
         rabbitTemplate.convertAndSend(this.rabbitSettings.getExchange(),
-                String.format("%s.%s", this.rabbitSettings.getRoutingKeyPrefix(), BLOCKEVENT_ROUTING_KEY_SUFIX),
+                String.format("%s", this.rabbitSettings.getBlockEventsRoutingKey()),
                 message);
 
-        LOG.info(String.format("New block sent: [%s] to exchange [%s] with routing key [%s.%s]",
+        LOG.info(String.format("New block sent: [%s] to exchange [%s] with routing key [%s]",
                 JSON.stringify(message),
                 this.rabbitSettings.getExchange(),
-                this.rabbitSettings.getRoutingKeyPrefix(),
-                BLOCKEVENT_ROUTING_KEY_SUFIX));
+                this.rabbitSettings.getBlockEventsRoutingKey())
+        );
     }
 
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
         final EventeumMessage<ContractEventDetails> message = createContractEventMessage(eventDetails);
         rabbitTemplate.convertAndSend(this.rabbitSettings.getExchange(),
-                String.format("%s.%s", this.rabbitSettings.getRoutingKeyPrefix(), eventDetails.getFilterId()),
+                String.format("%s.%s", this.rabbitSettings.getContractEventsRoutingKey(), eventDetails.getFilterId()),
                 message);
 
         LOG.info(String.format("New contract event sent: [%s] to exchange [%s] with routing key [%s.%s]",
                 JSON.stringify(message),
                 this.rabbitSettings.getExchange(),
-                this.rabbitSettings.getRoutingKeyPrefix(),
+                this.rabbitSettings.getContractEventsRoutingKey(),
                 eventDetails.getFilterId()));
     }
 
@@ -69,14 +68,16 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
     public void broadcastTransaction(TransactionDetails transactionDetails) {
         final EventeumMessage<TransactionDetails> message = createTransactionEventMessage(transactionDetails);
         rabbitTemplate.convertAndSend(this.rabbitSettings.getExchange(),
-                String.format("%s.%s", this.rabbitSettings.getRoutingKeyPrefix(), transactionDetails.getHash()),
+                String.format("%s.%s", this.rabbitSettings.getTransactionEventsRoutingKey(), transactionDetails.getHash()),
                 message);
 
         LOG.info(String.format("New transaction event sent: [%s] to exchange [%s] with routing key [%s.%s]",
                 JSON.stringify(message),
                 this.rabbitSettings.getExchange(),
-                this.rabbitSettings.getRoutingKeyPrefix(),
-                transactionDetails.getHash()));
+                this.rabbitSettings.getTransactionEventsRoutingKey(),
+                transactionDetails.getHash()
+                )
+        );
     }
 
     protected EventeumMessage<BlockDetails> createBlockEventMessage(BlockDetails blockDetails) {

@@ -2,7 +2,6 @@ package net.consensys.eventeum.chain.block.tx;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
 import net.consensys.eventeum.chain.service.BlockchainService;
@@ -15,13 +14,15 @@ import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
@@ -41,8 +42,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private TransactionDetailsFactory transactionDetailsFactory;
 
-    private EventConfirmationConfig confirmationConfig;
-
     private BlockCache blockCache;
 
     private RetryTemplate retryTemplate;
@@ -54,10 +53,8 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     public DefaultTransactionMonitoringBlockListener(ChainServicesContainer chainServicesContainer,
                                                      BlockchainEventBroadcaster broadcaster,
                                                      TransactionDetailsFactory transactionDetailsFactory,
-                                                     EventConfirmationConfig confirmationConfig,
                                                      BlockCache blockCache,
-                                                     NodeSettings nodeSettings
-    ) {
+                                                     NodeSettings nodeSettings) {
         this.criteria = new ConcurrentHashMap<>();
 
         this.blockchainServices = new HashMap<>();
@@ -71,7 +68,6 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
-        this.confirmationConfig = confirmationConfig;
         this.blockCache = blockCache;
         this.nodeSettings = nodeSettings;
     }
@@ -145,15 +141,16 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private void onTransactionMatched(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
 
+        final Node node = nodeSettings.getNode(txDetails.getNodeName());
         final BlockchainService blockchainService = getBlockchainService(txDetails.getNodeName());
 
         final boolean isSuccess = isSuccessTransaction(txDetails);
 
-        if (isSuccess && shouldWaitBeforeConfirmation()) {
+        if (isSuccess && shouldWaitBeforeConfirmation(node)) {
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                    blockchainService, broadcaster, confirmationConfig,
+                    blockchainService, broadcaster,node,
                     matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 
@@ -202,8 +199,8 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         return true;
     }
 
-    private boolean shouldWaitBeforeConfirmation() {
-        return !confirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
+    private boolean shouldWaitBeforeConfirmation(Node node) {
+        return !node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
     }
 
     private BlockchainService getBlockchainService(String nodeName) {

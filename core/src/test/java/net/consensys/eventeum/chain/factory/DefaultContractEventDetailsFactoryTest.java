@@ -1,7 +1,7 @@
 package net.consensys.eventeum.chain.factory;
 
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Keys;
+import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -158,8 +159,11 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     private DefaultContractEventDetailsFactory createFactory(BigInteger confirmations) {
-        final EventConfirmationConfig config = new EventConfirmationConfig(confirmations, BigInteger.valueOf(100), BigInteger.valueOf(5));
-
-        return new DefaultContractEventDetailsFactory(mockParameterCoverter, config, NETWORK_NAME);
+        Node node =
+                new Node();
+        node.setBlocksToWaitForConfirmation(confirmations);
+        node.setBlocksToWaitForMissingTx(BigInteger.valueOf(100));
+        node.setBlocksToWaitBeforeInvalidating(BigInteger.valueOf(5));
+        return new DefaultContractEventDetailsFactory(mockParameterCoverter, node, NETWORK_NAME);
     }
 }

@@ -1,22 +1,21 @@
 package net.consensys.eventeum.chain.service;
 
 import io.reactivex.Flowable;
-import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
+import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
-import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
-import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
-import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
@@ -28,14 +27,11 @@ import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
-import org.web3j.utils.Numeric;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A BlockchainService implementating utilising the Web3j library.
@@ -139,14 +135,23 @@ public class Web3jService implements BlockchainService {
      * {inheritDoc}
      */
     @Override
-    public void reconnect() {
-        log.info("Reconnecting...");
+    public void disconnect() {
+        log.info("Unsubscribing from block events");
         try {
             blockSubscriptionStrategy.unsubscribe();
         } catch (FilterException e) {
             log.warn("Unable to unregister block subscription.  " +
                     "This is probably because the node has restarted or we're in websocket mode");
         }
+    }
+
+    /**
+     * {inheritDoc}
+     */
+    @Override
+    public void reconnect() {
+        log.info("Reconnecting...");
+        disconnect();
         connect();
     }
 
