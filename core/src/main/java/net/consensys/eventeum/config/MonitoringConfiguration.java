@@ -18,7 +18,7 @@ public class MonitoringConfiguration {
         @Bean
         @ConditionalOnProperty(name="management.endpoint.metrics.enabled", havingValue = "true")
         public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(Environment environment) {
-            return registry -> registry.config().commonTags("application", "Eventeum", "environment",environment.getActiveProfiles()[0]);
+            return registry -> registry.config().commonTags("application", "Eventeum", "environment", getProfileName(environment));
         }
 
         @Bean
@@ -31,6 +31,14 @@ public class MonitoringConfiguration {
         @ConditionalOnProperty(name="management.endpoint.prometheus.enabled", havingValue = "true")
         public PrometheusMeterRegistry.Config configurePrometheus(MeterRegistry meterRegistry) {
             return meterRegistry.config().namingConvention(new CustomNamingConvention());
+        }
+
+        private String getProfileName(Environment environment) {
+            if (environment.getActiveProfiles() == null || environment.getActiveProfiles().length == 0) {
+                return "Default";
+            }
+
+            return environment.getActiveProfiles()[0];
         }
 
     }
