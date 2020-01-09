@@ -2,20 +2,19 @@ package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.message.ContractEvent;
-import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.BlockDetails;
+import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.TransactionDetails;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * {@inheritDoc}
- *
+ * <p>
  * This broadcaster also ensures that the same message is only sent once
  * (by storing sent events in a short lives cache and not sending events if a cache match is found).
- *
+ * <p>
  * The cache expiration time can be configured with the broadcaster.cache.expirationMillis property.
  *
  * @author Craig Williams <craig.williams@consensys.net>

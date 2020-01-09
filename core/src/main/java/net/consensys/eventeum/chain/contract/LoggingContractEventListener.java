@@ -1,6 +1,6 @@
 package net.consensys.eventeum.chain.contract;
 
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.ContractEventDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Component
-public class LoggingContractEventListener implements ContractEventListener{
+public class LoggingContractEventListener implements ContractEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingContractEventListener.class);
 

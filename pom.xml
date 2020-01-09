@@ -46,6 +46,10 @@
             <id>bintray-consensys-kauri</id>
             <url>https://consensys.bintray.com/kauri</url>
         </repository>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>

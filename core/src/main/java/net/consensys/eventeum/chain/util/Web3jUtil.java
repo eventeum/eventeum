@@ -8,7 +8,6 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.service.exception.ValidationException;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Bytes1;
 
@@ -36,18 +35,26 @@ public class Web3jUtil {
         addIntArrayMappings(8, 256);
         addBytesMappings(1, 32);
         addBytesArrayMappings(1, 32);
-        typeMappings.put(ParameterType.build(BYTE), new TypeMapping(new TypeReference<Bytes1>() {}, Bytes1.class));
+        typeMappings.put(ParameterType.build(BYTE), new TypeMapping(new TypeReference<Bytes1>() {
+        }, Bytes1.class));
         typeMappings.put(ParameterType.build(BYTE + "[]"), new TypeMapping(
-                new TypeReference<DynamicArray<Bytes1>>() {}, DynamicArray.class));
-        typeMappings.put(ParameterType.build(ADDRESS), new TypeMapping(new TypeReference<Address>() {}, Address.class));
+                new TypeReference<DynamicArray<Bytes1>>() {
+                }, DynamicArray.class));
+        typeMappings.put(ParameterType.build(ADDRESS), new TypeMapping(new TypeReference<Address>() {
+        }, Address.class));
         typeMappings.put(ParameterType.build(ADDRESS + "[]"), new TypeMapping(
-                new TypeReference<DynamicArray<Address>>() {}, DynamicArray.class));
-        typeMappings.put(ParameterType.build(BOOL), new TypeMapping(new TypeReference<Bool>() {}, Bool.class));
+                new TypeReference<DynamicArray<Address>>() {
+                }, DynamicArray.class));
+        typeMappings.put(ParameterType.build(BOOL), new TypeMapping(new TypeReference<Bool>() {
+        }, Bool.class));
         typeMappings.put(ParameterType.build(BOOL + "[]"), new TypeMapping(
-                new TypeReference<DynamicArray<Bool>>() {}, DynamicArray.class));
-        typeMappings.put(ParameterType.build(STRING), new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
+                new TypeReference<DynamicArray<Bool>>() {
+                }, DynamicArray.class));
+        typeMappings.put(ParameterType.build(STRING), new TypeMapping(new TypeReference<Utf8String>() {
+        }, Utf8String.class));
         typeMappings.put(ParameterType.build(STRING + "[]"),
-                new TypeMapping(new TypeReference<DynamicArray<Utf8String>>() {}, DynamicArray.class));
+                new TypeMapping(new TypeReference<DynamicArray<Utf8String>>() {
+                }, DynamicArray.class));
     }
 
     public static List<TypeReference<?>> getTypeReferencesFromParameterDefinitions(
@@ -141,7 +148,8 @@ public class Web3jUtil {
     }
 
     private static <T extends Type> TypeReference<T> createTypeReference(Class<T> clazz) {
-        return new TypeReference<T>() {};
+        return new TypeReference<T>() {
+        };
     }
 
     @Data

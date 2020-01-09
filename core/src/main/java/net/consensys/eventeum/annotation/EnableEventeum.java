@@ -1,7 +1,7 @@
 package net.consensys.eventeum.annotation;
 
-import net.consensys.eventeum.config.*;
-import org.hibernate.dialect.Database;
+import net.consensys.eventeum.config.BaseConfiguration;
+import net.consensys.eventeum.config.DatabaseConfiguration;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;

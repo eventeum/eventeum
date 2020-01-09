@@ -3,12 +3,11 @@ package net.consensys.eventeum.endpoint;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
-import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.SubscriptionService;
+import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.List;
 
 /**
@@ -27,7 +26,7 @@ public class ContractEventFilterEndpoint {
      * Adds an event filter with the specification described in the ContractEventFilter.
      *
      * @param eventFilter the event filter to add
-     * @param response the http response
+     * @param response    the http response
      */
     @RequestMapping(method = RequestMethod.POST)
     public AddEventFilterResponse addEventFilter(@RequestBody ContractEventFilter eventFilter,
@@ -46,8 +45,8 @@ public class ContractEventFilterEndpoint {
      */
     @RequestMapping(method = RequestMethod.GET)
     public List<ContractEventFilter> listEventFilters(HttpServletResponse response) {
-	List<ContractEventFilter> registeredFilters = filterService.listContractEventFilters();
-	response.setStatus(HttpServletResponse.SC_OK);
+        List<ContractEventFilter> registeredFilters = filterService.listContractEventFilters();
+        response.setStatus(HttpServletResponse.SC_OK);
 
         return registeredFilters;
     }
@@ -58,14 +57,14 @@ public class ContractEventFilterEndpoint {
      * @param filterId the filterId to delete
      * @param response the http response
      */
-    @RequestMapping(value="/{filterId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{filterId}", method = RequestMethod.DELETE)
     public void removeEventFilter(@PathVariable String filterId,
-                               HttpServletResponse response) {
+                                  HttpServletResponse response) {
 
         try {
             filterService.unregisterContractEventFilter(filterId, true);
             response.setStatus(HttpServletResponse.SC_OK);
-        } catch(NotFoundException e) {
+        } catch (NotFoundException e) {
             //Rethrow endpoint exception with response information
             throw new FilterNotFoundEndpointException();
         }

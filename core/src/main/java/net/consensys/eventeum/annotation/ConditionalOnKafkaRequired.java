@@ -6,10 +6,9 @@ import java.lang.annotation.*;
 
 /**
  * Configuration annotation for a conditional element that depends on kafka being required
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Documented
 @Conditional(OnKafkaRequiredCondition.class)
 public @interface ConditionalOnKafkaRequired {

@@ -6,18 +6,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
-import net.consensys.eventeum.dto.transaction.TransactionStatus;
-
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-
+import net.consensys.eventeum.TransactionStatus;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

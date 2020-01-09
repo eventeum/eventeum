@@ -1,7 +1,7 @@
 package net.consensys.eventeum.chain.block.tx.criteria;
 
-import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import net.consensys.eventeum.dto.transaction.TransactionStatus;
+import net.consensys.eventeum.TransactionDetails;
+import net.consensys.eventeum.TransactionStatus;
 
 import java.util.List;
 

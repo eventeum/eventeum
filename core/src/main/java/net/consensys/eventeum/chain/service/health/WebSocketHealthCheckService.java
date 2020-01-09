@@ -30,7 +30,7 @@ public class WebSocketHealthCheckService extends NodeHealthCheckService {
                 valueMonitor, eventStoreService, syncingThreshold, taskScheduler, healthCheckPollInterval);
 
         if (web3jService instanceof EventeumWebSocketService) {
-            this.webSocketClient = ((EventeumWebSocketService)web3jService).getWebSocketClient();
+            this.webSocketClient = ((EventeumWebSocketService) web3jService).getWebSocketClient();
         } else {
             throw new BlockchainException(
                     "Non web socket service passed to WebSocketHealthCheckService");

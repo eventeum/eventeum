@@ -1,11 +1,12 @@
 package net.consensys.eventeum.chain.settings;
 
-import java.math.BigInteger;
-import java.util.HashMap;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.math.BigInteger;
+import java.util.HashMap;
 
 @Data
 @Component
@@ -81,7 +82,7 @@ public class NodeSettings {
     }
 
     private void populateNodeSettings(Environment environment) {
-        nodes = new HashMap <String, Node>();
+        nodes = new HashMap<String, Node>();
         int index = 0;
 
         while (nodeExistsAtIndex(environment, index)) {
@@ -96,13 +97,13 @@ public class NodeSettings {
                     getNodeTransactionRevertReasonProperty(environment, index),
                     getMaxIdleConnectionsProperty(environment, index),
                     getKeepAliveDurationProperty(environment, index),
-                    getConnectionTimeoutProperty(environment,index),
-                    getReadTimeoutProperty(environment,index),
-                    getSyncingThresholdProperty(environment,index),
+                    getConnectionTimeoutProperty(environment, index),
+                    getReadTimeoutProperty(environment, index),
+                    getSyncingThresholdProperty(environment, index),
                     getNodeHealthcheckIntervalProperty(environment, index),
-                    getBlocksToWaitForConfirmationProperty(environment,index),
-                    getBlocksToWaitBeforeInvalidatingProperty(environment,index),
-                    getBlocksToWaitForMissingTxProperty(environment,index)
+                    getBlocksToWaitForConfirmationProperty(environment, index),
+                    getBlocksToWaitBeforeInvalidatingProperty(environment, index),
+                    getBlocksToWaitForMissingTxProperty(environment, index)
             );
 
             nodes.put(nodeName, node);
@@ -192,13 +193,14 @@ public class NodeSettings {
 
         return Integer.valueOf(syncingThreshold);
     }
+
     private BigInteger getBlocksToWaitForConfirmationProperty(Environment environment, int index) {
         String blocksToWaitForConfirmation =
                 getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE, index));
 
         if (blocksToWaitForConfirmation == null) {
             blocksToWaitForConfirmation =
-                    getProperty(environment,DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE);
+                    getProperty(environment, DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE);
         }
 
         return BigInteger.valueOf(Long.valueOf(blocksToWaitForConfirmation));

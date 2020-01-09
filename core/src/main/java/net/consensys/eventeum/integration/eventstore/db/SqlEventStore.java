@@ -1,29 +1,15 @@
 package net.consensys.eventeum.integration.eventstore.db;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
 import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
 import net.consensys.eventeum.model.LatestBlock;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Collation;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Component;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.Optional;
 
 /**
  * A saveable event store that stores contract events in a db repository.
@@ -51,7 +37,7 @@ public class SqlEventStore implements SaveableEventStore {
     public Page<ContractEventDetails> getContractEventsForSignature(
             String eventSignature, String contractAddress, PageRequest pagination) {
         return eventDetailsRepository.findByEventSpecificationSignatureAndAddress(
-        		eventSignature, contractAddress, pagination);
+                eventSignature, contractAddress, pagination);
     }
 
     @Override

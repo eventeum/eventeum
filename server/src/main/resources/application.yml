@@ -16,7 +16,7 @@ logging:
 ethereum:
   nodes:
   - name: default
-    url: ${ETHEREUM_NODE_URL:http://localhost:8545}
+    url: ${ETHEREUM_NODE_URL:https://baklava-forno.celo-testnet.org}
     blockStrategy: POLL
     syncingThreshold: 100
     healthcheckInterval: 3000
@@ -85,14 +85,8 @@ kafka:
 
     partitions: 1
     replicationSets: 1
-
-spring:
-  rabbitmq:
-    host: ${RABBIT_ADDRESS:localhost}
-
-rabbitmq:
-  exchange: ${RABBIT_EXCHANGE:ThisIsAExchange}
-  routingKeyPrefix: ${RABBIT_ROUTING:thisIsRoutingKey}
+  schemaRegistry:
+    url: ${KAFKA_SCHEMAREGISTRY_URL:localhost:18081}
 
 management:
   endpoints:

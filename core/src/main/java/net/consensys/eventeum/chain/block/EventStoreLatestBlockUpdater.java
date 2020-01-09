@@ -1,4 +1,3 @@
-
 package net.consensys.eventeum.chain.block;
 
 import net.consensys.eventeum.chain.factory.BlockDetailsFactory;
@@ -15,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A contract event listener that saves the ContractEventDetails to a SaveableEventStore.
- *
+ * <p>
  * Only gets registered if a SaveableEventStore exists in the context.
  *
  * @author Craig Williams <craig.williams@consensys.net>
@@ -36,7 +35,7 @@ public class EventStoreLatestBlockUpdater implements BlockListener {
         this.latestBlockMap = new HashMap<>();
         this.blockDetailsFactory = blockDetailsFactory;
 
-        chainServicesContainer.getNodeNames().forEach( node -> {
+        chainServicesContainer.getNodeNames().forEach(node -> {
             this.latestBlockMap.put(node, valueMonitor.monitor("latestBlock", node, new AtomicLong(0)));
         });
     }

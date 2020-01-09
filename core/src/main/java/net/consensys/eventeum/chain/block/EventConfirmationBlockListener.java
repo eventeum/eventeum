@@ -5,10 +5,9 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.ContractEventStatus;
+import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.service.AsyncTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,22 +49,22 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
 
     @Override
     public void onBlock(Block block) {
-            final TransactionReceipt receipt = blockchainService.getTransactionReceipt(contractEvent.getTransactionHash());
+        final TransactionReceipt receipt = blockchainService.getTransactionReceipt(contractEvent.getTransactionHash());
 
-            if (receipt == null) {
-                //Tx has disappeared...we've probably forked
-                //Tx should be included in block on new fork soon
-                handleMissingTransaction(block);
-                return;
-            }
+        if (receipt == null) {
+            //Tx has disappeared...we've probably forked
+            //Tx should be included in block on new fork soon
+            handleMissingTransaction(block);
+            return;
+        }
 
-            final Optional<Log> log = getCorrespondingLog(receipt);
+        final Optional<Log> log = getCorrespondingLog(receipt);
 
-            if (log.isPresent()) {
-                checkEventStatus(block, log.get());
-            } else {
-                processInvalidatedEvent(block);
-            }
+        if (log.isPresent()) {
+            checkEventStatus(block, log.get());
+        } else {
+            processInvalidatedEvent(block);
+        }
     }
 
     private void checkEventStatus(Block block, Log log) {

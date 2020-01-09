@@ -1,14 +1,13 @@
 package net.consensys.eventeum.chain.converter;
 
+import net.consensys.eventeum.EventParameter;
+import net.consensys.eventeum.NumberParameter;
+import net.consensys.eventeum.StringParameter;
 import net.consensys.eventeum.dto.event.parameter.ArrayParameter;
-import net.consensys.eventeum.dto.event.parameter.EventParameter;
-import net.consensys.eventeum.dto.event.parameter.NumberParameter;
-import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import net.consensys.eventeum.settings.EventeumSettings;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
@@ -30,19 +29,15 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
     private EventeumSettings settings;
 
     public Web3jEventParameterConverter(EventeumSettings settings) {
-        typeConverters.put("address",
-                (type) -> new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString()), ""));
+        typeConverters.put("address", (type) -> new EventParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString()), ""));
 
         registerNumberConverters("uint", 8, 256);
         registerNumberConverters("int", 8, 256);
         registerBytesConverters("bytes", 1, 32);
 
         typeConverters.put("byte", (type) -> convertBytesType(type));
-        typeConverters.put("bool", (type) -> new NumberParameter(type.getTypeAsString(),
-                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO, ""));
-        typeConverters.put("string",
-                (type) -> new StringParameter(type.getTypeAsString(),
-                        trim((String) type.getValue()), ""));
+        typeConverters.put("bool", (type) -> new EventParameter(type.getTypeAsString(), ((Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO).toString(), ""));
+        typeConverters.put("string", (type) -> new EventParameter(type.getTypeAsString(), trim((String) type.getValue()), ""));
 
         this.settings = settings;
     }
@@ -53,10 +48,10 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
 
         if (typeConverter == null) {
             //Type might be an array, in which case the type will be the array type class
-            if (toConvert instanceof DynamicArray) {
-                final DynamicArray<?> theArray = (DynamicArray<?>) toConvert;
-                return convertDynamicArray(theArray);
-            }
+//            if (toConvert instanceof DynamicArray) {
+//                final DynamicArray<?> theArray = (DynamicArray<?>) toConvert;
+//                return convertDynamicArray(theArray);
+//            }
 
             throw new TypeConversionException("Unsupported type: " + toConvert.getTypeAsString());
         }
@@ -67,7 +62,7 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
     private void registerNumberConverters(String prefix, int increment, int max) {
         for (int i = increment; i <= max; i = i + increment) {
             typeConverters.put(prefix + i,
-                    (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue(), ""));
+                    (type) -> new EventParameter(type.getTypeAsString(), type.getValue().toString(), ""));
         }
     }
 
@@ -78,22 +73,22 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         }
     }
 
-    private EventParameter<?> convertDynamicArray(DynamicArray<?> toConvert) {
-        final ArrayList<EventParameter<?>> convertedArray = new ArrayList<>();
-
-        toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
-
-        return new ArrayParameter(toConvert.getValue().get(0).getTypeAsString().toLowerCase(),
-                toConvert.getComponentType(), convertedArray, "");
-    }
+//    private ArrayParameter<?> convertDynamicArray(DynamicArray<?> toConvert) {
+//        final ArrayList<EventParameter<?>> convertedArray = new ArrayList<>();
+//
+//        toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
+//
+//        return new ArrayParameter(toConvert.getValue().get(0).getTypeAsString().toLowerCase(),
+//                toConvert.getComponentType(), convertedArray, "");
+//    }
 
     private EventParameter convertBytesType(Type bytesType) {
         if (settings.isBytesToAscii()) {
-            return new StringParameter(
+            return new EventParameter(
                     bytesType.getTypeAsString(), trim(new String((byte[]) bytesType.getValue())), "");
         }
 
-        return new StringParameter(
+        return new EventParameter(
                 bytesType.getTypeAsString(), trim(Numeric.toHexString((byte[]) bytesType.getValue())), "");
     }
 

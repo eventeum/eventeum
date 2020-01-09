@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * A service that constantly polls an ethereum node (getCurrentBlockNumber) in order to ensure that the node
  * is currently running.  If a failure is detected, each configured NodeFailureListener is invoked.
  * This is also the case when it is detected that a node has recovered after failure.
- *
+ * <p>
  * The poll interval can be configured with the ethereum.node.healthcheck.pollInterval property.
  *
  * @author Craig Williams <craig.williams@consensys.net>
@@ -61,14 +61,14 @@ public class NodeHealthCheckService {
         this.syncingThreshold = syncingThreshold;
         nodeStatus = NodeStatus.SUBSCRIBED;
 
-        currentBlock = valueMonitor.monitor( "currentBlock", blockchainService.getNodeName(), new
+        currentBlock = valueMonitor.monitor("currentBlock", blockchainService.getNodeName(), new
                 AtomicLong(0));
-        nodeStatusGauge = valueMonitor.monitor( "status", blockchainService.getNodeName(), new
+        nodeStatusGauge = valueMonitor.monitor("status", blockchainService.getNodeName(), new
                 AtomicInteger(NodeStatus.SUBSCRIBED.ordinal()));
         syncing = valueMonitor.monitor("syncing", blockchainService.getNodeName(), new
                 AtomicInteger(0));
 
-        taskScheduler.scheduleWithFixedDelay(() -> this.checkHealth() ,0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
+        taskScheduler.scheduleWithFixedDelay(() -> this.checkHealth(), 0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
     }
 
     public void checkHealth() {
@@ -108,13 +108,12 @@ public class NodeHealthCheckService {
         try {
             currentBlock.set(blockchainService.getCurrentBlockNumber().longValue());
 
-            if(currentBlock.longValue()  <= syncingThreshold + getLatestBlockForNode().getNumber().longValue() ){
+            if (currentBlock.longValue() <= syncingThreshold + getLatestBlockForNode().getNumber().longValue()) {
                 syncing.set(0);
-            }
-            else {
+            } else {
                 syncing.set(1);
             }
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             log.error("Get latest block failed with exception on node " + blockchainService.getNodeName(), t);
 
             return false;
@@ -146,10 +145,10 @@ public class NodeHealthCheckService {
     private LatestBlock getLatestBlockForNode() {
         return eventStoreService.getLatestBlock(
                 blockchainService.getNodeName()).orElseGet(() -> {
-                    final LatestBlock latestBlock = new LatestBlock();
-                    latestBlock.setNumber(BigInteger.ZERO);
-                    return latestBlock;
-                });
+            final LatestBlock latestBlock = new LatestBlock();
+            latestBlock.setNumber(BigInteger.ZERO);
+            return latestBlock;
+        });
     }
 
     private enum NodeStatus {

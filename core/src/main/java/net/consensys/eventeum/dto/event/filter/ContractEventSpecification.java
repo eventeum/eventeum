@@ -3,12 +3,11 @@ package net.consensys.eventeum.dto.event.filter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
 
 /**
  * Represents contract event specification, to be used when registering a new filter.

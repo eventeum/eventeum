@@ -3,7 +3,7 @@ package net.consensys.eventeum.chain.service;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.util.Web3jUtil;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.service.EventStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * The default implementation of an EventBlockManagementService, which "Manages the latest block
  * that has been seen to a specific event specification."
- *
+ * <p>
  * This implementation stores the latest blocks for each event filter in memory, but delegates to
  * the event store if an entry is not found in memory.
  *
@@ -83,7 +83,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
                 eventStoreService.getLatestContractEvent(eventSignature, eventFilter.getContractAddress());
 
         if (contractEvent.isPresent()) {
-            BigInteger blockNumber = contractEvent.get().getBlockNumber();
+            BigInteger blockNumber = new BigInteger(contractEvent.get().getBlockNumber());
 
             log.debug("Block number for event {} found in the database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
 
@@ -101,7 +101,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
         final BlockchainService blockchainService =
                 chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
 
-        BigInteger blockNumber =  blockchainService.getCurrentBlockNumber();
+        BigInteger blockNumber = blockchainService.getCurrentBlockNumber();
 
         log.debug("Block number for event {} not found in memory or database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
 

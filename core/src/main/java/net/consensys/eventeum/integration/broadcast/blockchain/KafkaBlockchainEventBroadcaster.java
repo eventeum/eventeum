@@ -1,15 +1,13 @@
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
-import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.*;
+import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.BlockEvent;
-import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.EventeumMessage;
-import net.consensys.eventeum.dto.message.TransactionEvent;
-import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.utils.JSON;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.CrudRepository;
@@ -19,10 +17,10 @@ import java.util.Optional;
 
 /**
  * A BlockchainEventBroadcaster that broadcasts the events to a Kafka queue.
- *
+ * <p>
  * The key for each message will defined by the correlationIdStrategy if configured,
  * or a combination of the transactionHash, blockHash and logIndex otherwise.
- *
+ * <p>
  * The topic names for block and contract events can be configured via the
  * kafka.topic.contractEvents and kafka.topic.blockEvents properties.
  *
@@ -32,15 +30,15 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaBlockchainEventBroadcaster.class);
 
-    private KafkaTemplate<String, EventeumMessage> kafkaTemplate;
+    private KafkaTemplate<String, GenericRecord> kafkaTemplate;
 
     private KafkaSettings kafkaSettings;
 
     private CrudRepository<ContractEventFilter, String> filterRespository;
 
-    public KafkaBlockchainEventBroadcaster(KafkaTemplate<String, EventeumMessage> kafkaTemplate,
-                                    KafkaSettings kafkaSettings,
-                                    CrudRepository<ContractEventFilter, String> filterRepository) {
+    public KafkaBlockchainEventBroadcaster(KafkaTemplate<String, GenericRecord> kafkaTemplate,
+                                           KafkaSettings kafkaSettings,
+                                           CrudRepository<ContractEventFilter, String> filterRepository) {
         this.kafkaTemplate = kafkaTemplate;
         this.kafkaSettings = kafkaSettings;
         this.filterRespository = filterRepository;
@@ -48,41 +46,57 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     @Override
     public void broadcastNewBlock(BlockDetails block) {
-        final EventeumMessage<BlockDetails> message = createBlockEventMessage(block);
+        final BlockEvent message = createBlockEventMessage(block);
         LOG.info("Sending block message: " + JSON.stringify(message));
 
-        kafkaTemplate.send(kafkaSettings.getBlockEventsTopic(), message.getId(), message);
+        GenericRecord genericRecord = new GenericData.Record(BlockEvent.getClassSchema());
+        genericRecord.put("id", message.getId());
+        genericRecord.put("type", message.getType());
+        genericRecord.put("details", message.getDetails());
+        genericRecord.put("retries", message.getRetries());
+
+
+        kafkaTemplate.send(kafkaSettings.getBlockEventsTopic(), message.getId(), genericRecord);
     }
 
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
-        final EventeumMessage<ContractEventDetails> message = createContractEventMessage(eventDetails);
+        final ContractEvent message = createContractEventMessage(eventDetails);
         LOG.info("Sending contract event message: " + JSON.stringify(message));
+        GenericRecord genericRecord = new GenericData.Record(ContractEvent.getClassSchema());
+        genericRecord.put("id", message.getId());
+        genericRecord.put("type", message.getType());
+        genericRecord.put("details", message.getDetails());
+        genericRecord.put("retries", message.getRetries());
 
-        kafkaTemplate.send(kafkaSettings.getContractEventsTopic(), getContractEventCorrelationId(message), message);
+        kafkaTemplate.send(kafkaSettings.getContractEventsTopic(), getContractEventCorrelationId(message), genericRecord);
     }
 
     @Override
     public void broadcastTransaction(TransactionDetails transactionDetails) {
-        final EventeumMessage<TransactionDetails> message = createTransactionEventMessage(transactionDetails);
+        final TransactionEvent message = createTransactionEventMessage(transactionDetails);
         LOG.info("Sending transaction event message: " + JSON.stringify(message));
-
-        kafkaTemplate.send(kafkaSettings.getTransactionEventsTopic(), transactionDetails.getBlockHash(), message);
+        GenericRecord genericRecord = new GenericData.Record(TransactionEvent.getClassSchema());
+        genericRecord.put("id", message.getId());
+        genericRecord.put("type", message.getType());
+        genericRecord.put("details", message.getDetails());
+        genericRecord.put("retries", message.getRetries());
+        kafkaTemplate.send(kafkaSettings.getTransactionEventsTopic(), transactionDetails.getBlockHash(), genericRecord);
     }
 
-    protected EventeumMessage<BlockDetails> createBlockEventMessage(BlockDetails blockDetails) {
-        return new BlockEvent(blockDetails);
+    protected BlockEvent createBlockEventMessage(BlockDetails blockDetails) {
+        return new BlockEvent(blockDetails.getHash(), "CONTRACT_EVENT", blockDetails, 0);
     }
 
-    protected EventeumMessage<ContractEventDetails> createContractEventMessage(ContractEventDetails contractEventDetails) {
-        return new ContractEvent(contractEventDetails);
+    protected ContractEvent createContractEventMessage(ContractEventDetails contractEventDetails) {
+        return new ContractEvent(contractEventDetails.getId(), "CONTRACT_EVENT", contractEventDetails, 0);
     }
 
-    protected EventeumMessage<TransactionDetails> createTransactionEventMessage(TransactionDetails transactionDetails) {
-        return new TransactionEvent(transactionDetails);
+    protected TransactionEvent createTransactionEventMessage(TransactionDetails transactionDetails) {
+        return new TransactionEvent(transactionDetails.getHash(), "TRANSACTION", transactionDetails, 0);
     }
 
-    private String getContractEventCorrelationId(EventeumMessage<ContractEventDetails> message) {
+    private String getContractEventCorrelationId(ContractEvent message) {
         final Optional<ContractEventFilter> filter = filterRespository.findById(message.getDetails().getFilterId());
 
         if (!filter.isPresent() || filter.get().getCorrelationIdStrategy() == null) {

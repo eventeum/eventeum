@@ -5,7 +5,7 @@ import net.consensys.eventeum.model.TransactionMonitoringSpec;
 
 /**
  * A dummy broadcaster that does nothing.
- *
+ * <p>
  * (Used in single instance mode)
  *
  * @author Craig Williams <craig.williams@consensys.net>

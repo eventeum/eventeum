@@ -1,6 +1,6 @@
 package net.consensys.eventeum.chain.factory;
 
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import org.web3j.protocol.core.methods.response.Log;
 

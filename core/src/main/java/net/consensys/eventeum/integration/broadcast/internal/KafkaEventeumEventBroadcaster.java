@@ -11,7 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 /**
  * An EventeumEventBroadcaster that broadcasts the events to a Kafka queue.
- *
+ * <p>
  * The topic name can be configured via the kafka.topic.eventeumEvents property.
  *
  * @author Craig Williams <craig.williams@consensys.net>

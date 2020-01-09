@@ -1,9 +1,11 @@
 package net.consensys.eventeum.chain.contract;
 
 import net.consensys.eventeum.chain.service.EventBlockManagementService;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.ContractEventDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.math.BigInteger;
 
 /**
  * A contract event listener that updates the latest block number seen for the event spec.
@@ -22,6 +24,6 @@ public class EventBlockUpdaterListener implements ContractEventListener {
 
     @Override
     public void onEvent(ContractEventDetails eventDetails) {
-        blockManagement.updateLatestBlock(eventDetails.getEventSpecificationSignature(), eventDetails.getBlockNumber(), eventDetails.getAddress());
+        blockManagement.updateLatestBlock(eventDetails.getEventSpecificationSignature(), new BigInteger(eventDetails.getBlockNumber()), eventDetails.getAddress());
     }
 }

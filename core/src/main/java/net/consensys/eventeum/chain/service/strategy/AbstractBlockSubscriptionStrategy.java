@@ -4,22 +4,15 @@ import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.EthBlock;
-import rx.Subscription;
 
-import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {

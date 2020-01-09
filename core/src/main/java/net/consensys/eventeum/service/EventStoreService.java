@@ -1,6 +1,6 @@
 package net.consensys.eventeum.service;
 
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.ContractEventDetails;
 import net.consensys.eventeum.model.LatestBlock;
 
 import java.util.Optional;
@@ -15,7 +15,7 @@ public interface EventStoreService {
     /**
      * Returns the contract event with the latest block, that matches the event signature.
      *
-     * @param eventSignature The event signature
+     * @param eventSignature  The event signature
      * @param contractAddress The event contract address
      * @return The event details
      */

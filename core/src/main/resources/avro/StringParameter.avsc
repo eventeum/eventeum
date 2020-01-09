@@ -1,0 +1,19 @@
+{
+  "namespace": "net.consensys.eventeum",
+  "name": "StringParameter",
+  "type": "record",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "value",
+      "type": "string"
+    }
+  ]
+}

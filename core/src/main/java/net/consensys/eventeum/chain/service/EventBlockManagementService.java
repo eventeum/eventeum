@@ -1,7 +1,6 @@
 package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 
 import java.math.BigInteger;
 
@@ -16,8 +15,8 @@ public interface EventBlockManagementService {
      * Update the latest block number state for an event specification.
      *
      * @param eventSpecHash The event specification hash.
-     * @param blockNumber The new latest block number.
-     * @param address The address of the contract.
+     * @param blockNumber   The new latest block number.
+     * @param address       The address of the contract.
      */
     void updateLatestBlock(String eventSpecHash, BigInteger blockNumber, String address);
 

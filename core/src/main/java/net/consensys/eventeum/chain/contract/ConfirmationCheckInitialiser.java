@@ -9,17 +9,16 @@ import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.ContractEventStatus;
+import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 
 /**
  * A contract event listener that initialises a block listener after being passed an unconfirmed event.
- *
+ * <p>
  * This created block listener counts blocks since the event was first fired and broadcasts a CONFIRMED
  * event once the configured number of blocks have passed.
  *
@@ -53,7 +52,7 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
         }
     }
 
-    protected BlockListener createEventConfirmationBlockListener(ContractEventDetails eventDetails,Node node) {
+    protected BlockListener createEventConfirmationBlockListener(ContractEventDetails eventDetails, Node node) {
         return new EventConfirmationBlockListener(eventDetails,
                 getBlockchainService(eventDetails), eventBroadcaster, node);
     }
@@ -69,9 +68,9 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
         BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         BigInteger waitBlocks = node.getBlocksToWaitForConfirmation();
 
-        return currentBlock.compareTo(eventDetails.getBlockNumber().add(waitBlocks)) >= 0
-            && isTransactionStillInBlock(
-                    eventDetails.getTransactionHash(), eventDetails.getBlockHash(), blockchainService);
+        return currentBlock.compareTo(new BigInteger(eventDetails.getBlockNumber()).add(waitBlocks)) >= 0
+                && isTransactionStillInBlock(
+                eventDetails.getTransactionHash(), eventDetails.getBlockHash(), blockchainService);
     }
 
     private boolean isTransactionStillInBlock(String txHash, String blockHash, BlockchainService blockchainService) {

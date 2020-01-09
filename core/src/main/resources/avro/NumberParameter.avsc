@@ -1,0 +1,20 @@
+{
+  "namespace": "net.consensys.eventeum",
+  "name": "NumberParameter",
+  "type": "record",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string",
+      "java-class": "java.math.BigInteger"
+    },
+    {
+      "name": "value",
+      "type": "string"
+    }
+  ]
+}

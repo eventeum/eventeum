@@ -1,0 +1,46 @@
+{
+  "namespace": "net.consensys.eventeum",
+  "type": "record",
+  "name": "BlockEvent",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "details",
+      "type": {
+        "type": "record",
+        "name": "BlockDetails",
+        "fields": [
+          {
+            "name": "number",
+            "type": "string",
+            "java-class": "java.math.BigInteger"
+          },
+          {
+            "name": "hash",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "string",
+            "java-class": "java.math.BigInteger"
+          },
+          {
+            "name": "nodeName",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "retries",
+      "type": "int"
+    }
+  ]
+}

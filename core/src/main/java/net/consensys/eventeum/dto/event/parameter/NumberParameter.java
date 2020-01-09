@@ -3,9 +3,8 @@ package net.consensys.eventeum.dto.event.parameter;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigInteger;
-
 import javax.persistence.Embeddable;
+import java.math.BigInteger;
 
 /**
  * A number based EventParameter, represented by a BigInteger.

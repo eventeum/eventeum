@@ -11,8 +11,8 @@ import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
-import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import net.consensys.eventeum.dto.transaction.TransactionStatus;
+import net.consensys.eventeum.TransactionDetails;
+import net.consensys.eventeum.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
@@ -150,7 +150,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                    blockchainService, broadcaster,node,
+                    blockchainService, broadcaster, node,
                     matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 

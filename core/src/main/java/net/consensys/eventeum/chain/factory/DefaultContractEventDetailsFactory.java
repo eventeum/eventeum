@@ -1,16 +1,14 @@
 package net.consensys.eventeum.chain.factory;
 
-import java.util.Collections;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.util.Web3jUtil;
-import net.consensys.eventeum.chain.converter.EventParameterConverter;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.ContractEventStatus;
+import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
-import net.consensys.eventeum.dto.event.parameter.EventParameter;
+import net.consensys.eventeum.EventParameter;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.Type;
@@ -18,6 +16,7 @@ import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.Log;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -49,9 +48,9 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
         eventDetails.setNonIndexedParameters(nonIndexed);
         eventDetails.setIndexedParameters(indexed);
         eventDetails.setAddress(Keys.toChecksumAddress(log.getAddress()));
-        eventDetails.setLogIndex(log.getLogIndex());
+        eventDetails.setLogIndex(log.getLogIndex().toString());
         eventDetails.setTransactionHash(log.getTransactionHash());
-        eventDetails.setBlockNumber(log.getBlockNumber());
+        eventDetails.setBlockNumber(log.getBlockNumber().toString());
         eventDetails.setBlockHash(log.getBlockHash());
         eventDetails.setEventSpecificationSignature(Web3jUtil.getSignature(eventSpec));
         eventDetails.setNetworkName(this.networkName);

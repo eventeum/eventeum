@@ -1,6 +1,6 @@
 package net.consensys.eventeum.service;
 
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.ContractEventDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.data.domain.Page;
@@ -12,9 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @{inheritDoc}
- *
  * @author Craig Williams <craig.williams@consensys.net>
+ * @{inheritDoc}
  */
 @Component
 public class DefaultEventStoreService implements EventStoreService {

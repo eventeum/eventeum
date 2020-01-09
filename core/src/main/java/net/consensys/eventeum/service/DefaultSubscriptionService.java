@@ -6,7 +6,7 @@ import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.model.FilterSubscription;
@@ -100,7 +100,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
      */
     @Override
     public List<ContractEventFilter> listContractEventFilters() {
-      return getFilterSubscriptions().stream().map((FilterSubscription f) -> f.getFilter()).collect(Collectors.toList());
+        return getFilterSubscriptions().stream().map((FilterSubscription f) -> f.getFilter()).collect(Collectors.toList());
     }
 
     /**

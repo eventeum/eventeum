@@ -16,26 +16,26 @@ public class MonitoringConfiguration {
     public class PrometheusConfiguration {
 
         @Bean
-        @ConditionalOnProperty(name="management.endpoint.metrics.enabled", havingValue = "true")
+        @ConditionalOnProperty(name = "management.endpoint.metrics.enabled", havingValue = "true")
         public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(Environment environment) {
-            return registry -> registry.config().commonTags("application", "Eventeum", "environment",environment.getActiveProfiles()[0]);
+            return registry -> registry.config().commonTags("application", "Eventeum", "environment", environment.getActiveProfiles()[0]);
         }
 
         @Bean
-        @ConditionalOnProperty(name="management.endpoint.metrics.enabled", havingValue = "true")
+        @ConditionalOnProperty(name = "management.endpoint.metrics.enabled", havingValue = "true")
         public EventeumValueMonitor eventeumValueMonitor(MeterRegistry meterRegistry) {
             return new MicrometerValueMonitor(meterRegistry);
         }
 
         @Bean
-        @ConditionalOnProperty(name="management.endpoint.prometheus.enabled", havingValue = "true")
+        @ConditionalOnProperty(name = "management.endpoint.prometheus.enabled", havingValue = "true")
         public PrometheusMeterRegistry.Config configurePrometheus(MeterRegistry meterRegistry) {
             return meterRegistry.config().namingConvention(new CustomNamingConvention());
         }
 
     }
 
-    @ConditionalOnProperty(value = "management.endpoint.metrics.enabled", havingValue="false", matchIfMissing = true)
+    @ConditionalOnProperty(value = "management.endpoint.metrics.enabled", havingValue = "false", matchIfMissing = true)
     public class DoNothingMonitoringConfiguration {
 
         @Bean
