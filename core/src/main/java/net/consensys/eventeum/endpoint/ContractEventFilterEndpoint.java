@@ -33,7 +33,7 @@ public class ContractEventFilterEndpoint {
     public AddEventFilterResponse addEventFilter(@RequestBody ContractEventFilter eventFilter,
                                                  HttpServletResponse response) {
 
-        final ContractEventFilter registeredFilter = filterService.registerContractEventFilter(eventFilter);
+        final ContractEventFilter registeredFilter = filterService.registerContractEventFilter(eventFilter, true);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
 
         return new AddEventFilterResponse(registeredFilter.getId());

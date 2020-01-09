@@ -26,6 +26,14 @@ An Ethereum event listener that bridges your smart contract events and backend m
 * [RabbitMQ](https://www.rabbitmq.com/)
 * [Pulsar](https://pulsar.apache.org)
 
+
+At rabbit you can configure the following extra values
+
+* rabbitmq.blockNotification. true|false
+* rabbitmq.routingKey.contractEvents
+* rabbitmq.routingKey.blockEvents
+* rabbitmq.routingKey.transactionEvents
+
 ## Eventeum Tutorials
 - [Listening to Ethereum Events](https://kauri.io/article/90dc8d911f1c43008c7d0dfa20bde298/listening-to-ethereum-events-with-eventeum)
 - [Listening for Ethereum Transactions](https://kauri.io/article/3e31587c96a74d24b5cdd17952d983e9/v1/listening-for-ethereum-transactions-with-eventeum)
@@ -116,6 +124,41 @@ ethereum:
 ```
 
 If an event does not specify a node, then it will be registered against the 'default' node.
+
+That is the simplest node configuration, but there is other custom flags you can activate per node:
+
+
+- `maxIdleConnections`: Maximum number of connections to the node. (default: 5)
+- `keepAliveDuration`: Duration of the keep alive http in milliseconds (default: 10000)
+- `connectionTimeout`: Http connection timeout to the node in milliseconds (default: 5000)
+- `readTimeout`: Http read timeout to the node in milliseconds (default: 60000)
+- `addTransactionRevertReason`: Enables receiving the revert reason when a transaction fails.  (default: false)
+- `pollInterval`: Polling interval of the rpc request to the node (default: 10000)
+- `healthcheckInterval`: Polling interval of that evenreum will use to check if the node is active (default: 10000)
+- `numBlocksToWait`: Blocks to wait until we decide event is confirmed (default: 1). Overrides broadcaster config
+- `numBlocksToWaitBeforeInvalidating`:  Blocks to wait until we decide event is invalidated (default: 1).  Overrides broadcaster config
+- `numBlocksToWaitForMissingTx`: Blocks to wait until we decide tx is missing (default: 1)  Overrides broadcaster config
+
+This will be an example with a complex configuration:
+
+```yaml
+ethereum:
+  nodes:
+  - name: default
+    url: http://mainnet:8545
+    pollInterval: 1000
+    maxIdleConnections: 10
+    keepAliveDuration: 15000
+    connectionTimeout: 7000
+    readTimeout: 35000
+    healthcheckInterval: 3000
+    addTransactionRevertReason: true
+    numBlocksToWait: 1
+    numBlocksToWaitBeforeInvalidating: 1
+    numBlocksToWaitForMissingTx: 1
+  blockStrategy: POLL
+
+```
 
 ## Registering Events
 
@@ -482,12 +525,17 @@ Eventeum can either be configured by:
 | KAFKA_SECURITY_PROTOCOL | PLAINTEXT | Protocol used to communicate with Kafka brokers |
 | KAFKA_RETRIES | 10 | The number of times a Kafka consumer will try to publish a message before throwing an error |
 | KAFKA_RETRY_BACKOFF_MS | 500 | The duration between each retry |
+| KEEP_ALIVE_DURATION | 15000 | Rpc http idle threads keep alive timeout in ms |
+| MAX_IDLE_CONNECTIONS| 10 | The max number of HTTP rpc idle threads at the pool |
+| SYNCINC_THRESHOLD | 60 | Number of blocks of difference to consider that eventeum is "syncing" with a node
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
 | SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
 | RABBIT_ADDRESS | localhost:5672 | property spring.rabbitmq.host (The rabbitmq address) |
 | RABBIT_EXCHANGE | ThisIsAExchange | property rabbitmq.exchange |
 | RABBIT_ROUTING_KEY | thisIsRoutingKey | property rabbitmq.routingKeyPrefix |
 | DATABASE_TYPE | MONGO | The database to use.  Either MONGO or SQL. |
+| CONNECTION_TIMEOUT | 7000 | RPC, http connection timeout in millis |
+| READ_TIMEOUT | 35000 | RPC, http read timeout in millis |
 
 ### INFURA Support Configuration
 Connecting to an INFURA node is only supported if connecting via websockets (`wss://<...>` node url).  The blockstrategy must also be set to PUBSUB.
@@ -629,6 +677,24 @@ Eventeum offers a healthcheck url where you can ask for the status of the system
 Returning this information it is very easy to create alerts over the status of the system.
 
 The endpoint is: GET /monitoring/health
+
+## Metrics: Prometheus
+
+Eventeum includes a prometheus metrics export endpoint.
+
+It includes standard jvm, tomcat metrics enabled by spring-boot https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-prometheus https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-meter.
+
+Added to the standard metrics, custom metrics have been added:
+
+* eventeum_%Network%_syncing: 1 if node is syncing (latestBlock + syncingThreshols < currentBlock). 0 if not syncing
+* eventeum_%Network%_latestBlock: latest block read by Eventeum
+* eventeum_%Network%_currentBlock: Current node block
+* eventeum_%Network%_status: Current node status. 0 = Suscribed, 1 = Connected, 2 = Down
+
+All  metrics include application="Eventeum",environment="local" tags.
+
+The endpoint is: GET /monitoring/prometheus
+
 
 ## Known Caveats / Issues
 * In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.

@@ -10,6 +10,7 @@ import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;

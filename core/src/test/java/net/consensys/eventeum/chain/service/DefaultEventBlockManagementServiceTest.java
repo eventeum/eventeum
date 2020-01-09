@@ -44,8 +44,8 @@ public class DefaultEventBlockManagementServiceTest {
         EVENT_SPEC = new ContractEventSpecification();
         EVENT_SPEC.setEventName("AnEvent");
         EVENT_SPEC.setIndexedParameterDefinitions(Arrays.asList(
-                 new ParameterDefinition(0, ParameterType.build("ADDRESS")),
-                 new ParameterDefinition(1, ParameterType.build("UINT256"))));
+                new ParameterDefinition(0, ParameterType.build("ADDRESS")),
+                new ParameterDefinition(1, ParameterType.build("UINT256"))));
 
         EVENT_FILTER = new ContractEventFilter();
         EVENT_FILTER.setNode(Constants.DEFAULT_NODE_NAME);

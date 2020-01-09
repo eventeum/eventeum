@@ -19,6 +19,14 @@
 *.zip
 *.tar.gz
 *.rar
+*.iml
+
+#idea
+.idea/
+**/*.iml
+core/target
+server/target
+
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -32,3 +40,8 @@ hs_err_pid*
 .target
 .springBeans
 **/target
+
+#Vscode
+.vscode/
+core/.factorypath
+
