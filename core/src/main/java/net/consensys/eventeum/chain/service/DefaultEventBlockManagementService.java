@@ -3,7 +3,7 @@ package net.consensys.eventeum.chain.service;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.util.Web3jUtil;
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.service.EventStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
                 eventStoreService.getLatestContractEvent(eventSignature, eventFilter.getContractAddress());
 
         if (contractEvent.isPresent()) {
-            BigInteger blockNumber = new BigInteger(contractEvent.get().getBlockNumber());
+            BigInteger blockNumber = contractEvent.get().getBlockNumber();
 
             log.debug("Block number for event {} found in the database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
 

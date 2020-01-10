@@ -5,6 +5,8 @@ import net.consensys.eventeum.dto.message.*;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.utils.JSON;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -20,11 +22,11 @@ public class KafkaEventeumEventBroadcaster implements EventeumEventBroadcaster {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEventeumEventBroadcaster.class);
 
-    private KafkaTemplate<String, EventeumMessage> kafkaTemplate;
+    private KafkaTemplate<String, GenericRecord> kafkaTemplate;
 
     private KafkaSettings kafkaSettings;
 
-    public KafkaEventeumEventBroadcaster(KafkaTemplate<String, EventeumMessage> kafkaTemplate,
+    public KafkaEventeumEventBroadcaster(KafkaTemplate<String, GenericRecord> kafkaTemplate,
                                          KafkaSettings kafkaSettings) {
         this.kafkaTemplate = kafkaTemplate;
         this.kafkaSettings = kafkaSettings;
@@ -68,6 +70,11 @@ public class KafkaEventeumEventBroadcaster implements EventeumEventBroadcaster {
 
     private void sendMessage(EventeumMessage message) {
         LOG.info("Sending message: " + JSON.stringify(message));
-        kafkaTemplate.send(kafkaSettings.getEventeumEventsTopic(), message.getId(), message);
+        GenericRecord genericRecord = new GenericData.Record(net.consensys.eventeum.BlockEvent.getClassSchema());
+        genericRecord.put("id", message.getId());
+        genericRecord.put("type", message.getType());
+        genericRecord.put("details", message.getDetails());
+        genericRecord.put("retries", message.getRetries());
+        kafkaTemplate.send(kafkaSettings.getEventeumEventsTopic(), message.getId(), genericRecord);
     }
 }

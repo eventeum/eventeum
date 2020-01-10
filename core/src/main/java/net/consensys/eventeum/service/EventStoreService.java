@@ -1,6 +1,6 @@
 package net.consensys.eventeum.service;
 
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.model.LatestBlock;
 
 import java.util.Optional;

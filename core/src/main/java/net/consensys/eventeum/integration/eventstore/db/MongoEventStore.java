@@ -1,6 +1,6 @@
 package net.consensys.eventeum.integration.eventstore.db;
 
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
 import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;

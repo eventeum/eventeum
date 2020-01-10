@@ -1,6 +1,6 @@
 package net.consensys.eventeum.chain.contract;
 
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

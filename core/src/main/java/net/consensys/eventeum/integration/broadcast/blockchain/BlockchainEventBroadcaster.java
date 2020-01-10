@@ -1,8 +1,8 @@
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
-import net.consensys.eventeum.BlockDetails;
-import net.consensys.eventeum.TransactionDetails;
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 
 /**
  * An interface for a class that broadcasts ethereum blockchain details to the wider system.

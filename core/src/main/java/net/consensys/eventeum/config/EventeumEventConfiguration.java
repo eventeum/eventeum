@@ -9,6 +9,7 @@ import net.consensys.eventeum.integration.consumer.EventeumInternalEventConsumer
 import net.consensys.eventeum.integration.consumer.KafkaFilterEventConsumer;
 import net.consensys.eventeum.service.SubscriptionService;
 import net.consensys.eventeum.service.TransactionMonitoringService;
+import org.apache.avro.generic.GenericRecord;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +28,7 @@ public class EventeumEventConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "broadcaster.multiInstance", havingValue = "true")
-    public EventeumEventBroadcaster kafkaFilterEventBroadcaster(KafkaTemplate<String, EventeumMessage> kafkaTemplate,
+    public EventeumEventBroadcaster kafkaFilterEventBroadcaster(KafkaTemplate<String, GenericRecord> kafkaTemplate,
                                                                 KafkaSettings kafkaSettings) {
         return new KafkaEventeumEventBroadcaster(kafkaTemplate, kafkaSettings);
     }

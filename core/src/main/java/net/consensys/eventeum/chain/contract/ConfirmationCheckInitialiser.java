@@ -9,8 +9,8 @@ import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
-import net.consensys.eventeum.ContractEventDetails;
-import net.consensys.eventeum.ContractEventStatus;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +68,7 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
         BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
         BigInteger waitBlocks = node.getBlocksToWaitForConfirmation();
 
-        return currentBlock.compareTo(new BigInteger(eventDetails.getBlockNumber()).add(waitBlocks)) >= 0
+        return currentBlock.compareTo(eventDetails.getBlockNumber().add(waitBlocks)) >= 0
                 && isTransactionStillInBlock(
                 eventDetails.getTransactionHash(), eventDetails.getBlockHash(), blockchainService);
     }

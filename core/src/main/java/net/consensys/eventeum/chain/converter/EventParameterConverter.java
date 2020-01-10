@@ -1,6 +1,6 @@
 package net.consensys.eventeum.chain.converter;
 
-import net.consensys.eventeum.EventParameter;
+import net.consensys.eventeum.dto.event.parameter.EventParameter;
 
 /**
  * A converter that converts the input value of type T, into an EventParameter.

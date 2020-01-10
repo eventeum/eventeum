@@ -1,6 +1,6 @@
 package net.consensys.eventeum.integration.eventstore.rest;
 
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.integration.eventstore.rest.client.EventStoreClient;
 import net.consensys.eventeum.model.LatestBlock;

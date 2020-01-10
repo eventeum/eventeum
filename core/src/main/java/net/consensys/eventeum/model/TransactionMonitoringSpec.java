@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import net.consensys.eventeum.constant.Constants;
-import net.consensys.eventeum.TransactionStatus;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;

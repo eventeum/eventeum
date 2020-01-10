@@ -1,8 +1,8 @@
 package net.consensys.eventeum.chain.factory;
 
 import net.consensys.eventeum.chain.service.domain.Transaction;
-import net.consensys.eventeum.TransactionDetails;
-import net.consensys.eventeum.TransactionStatus;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.web3j.crypto.Keys;

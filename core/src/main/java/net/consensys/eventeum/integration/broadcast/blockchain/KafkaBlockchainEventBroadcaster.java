@@ -1,9 +1,13 @@
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
-import net.consensys.eventeum.*;
-import net.consensys.eventeum.chain.service.domain.Transaction;
+import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.message.BlockEvent;
+import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.dto.message.TransactionEvent;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.utils.JSON;
 import org.apache.avro.generic.GenericData;
@@ -46,13 +50,17 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     @Override
     public void broadcastNewBlock(BlockDetails block) {
-        final BlockEvent message = createBlockEventMessage(block);
+        final EventeumMessage<BlockDetails> message = createBlockEventMessage(block);
         LOG.info("Sending block message: " + JSON.stringify(message));
 
-        GenericRecord genericRecord = new GenericData.Record(BlockEvent.getClassSchema());
+        net.consensys.eventeum.BlockDetails blockDetails = net.consensys.eventeum.BlockDetails.newBuilder()
+                .setHash(message.getDetails().getHash()).setNodeName(message.getDetails().getNodeName())
+                .setNumber(message.getDetails().getNumber().toString()).setTimestamp(message.getDetails().getTimestamp().toString()).build();
+
+        GenericRecord genericRecord = new GenericData.Record(net.consensys.eventeum.BlockEvent.getClassSchema());
         genericRecord.put("id", message.getId());
         genericRecord.put("type", message.getType());
-        genericRecord.put("details", message.getDetails());
+        genericRecord.put("details", blockDetails);
         genericRecord.put("retries", message.getRetries());
 
 
@@ -61,9 +69,9 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
-        final ContractEvent message = createContractEventMessage(eventDetails);
+        final EventeumMessage<ContractEventDetails> message = createContractEventMessage(eventDetails);
         LOG.info("Sending contract event message: " + JSON.stringify(message));
-        GenericRecord genericRecord = new GenericData.Record(ContractEvent.getClassSchema());
+        GenericRecord genericRecord = new GenericData.Record(net.consensys.eventeum.ContractEvent.getClassSchema());
         genericRecord.put("id", message.getId());
         genericRecord.put("type", message.getType());
         genericRecord.put("details", message.getDetails());
@@ -74,9 +82,9 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     @Override
     public void broadcastTransaction(TransactionDetails transactionDetails) {
-        final TransactionEvent message = createTransactionEventMessage(transactionDetails);
+        final EventeumMessage<TransactionDetails> message = createTransactionEventMessage(transactionDetails);
         LOG.info("Sending transaction event message: " + JSON.stringify(message));
-        GenericRecord genericRecord = new GenericData.Record(TransactionEvent.getClassSchema());
+        GenericRecord genericRecord = new GenericData.Record(net.consensys.eventeum.TransactionEvent.getClassSchema());
         genericRecord.put("id", message.getId());
         genericRecord.put("type", message.getType());
         genericRecord.put("details", message.getDetails());
@@ -84,19 +92,19 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
         kafkaTemplate.send(kafkaSettings.getTransactionEventsTopic(), transactionDetails.getBlockHash(), genericRecord);
     }
 
-    protected BlockEvent createBlockEventMessage(BlockDetails blockDetails) {
-        return new BlockEvent(blockDetails.getHash(), "CONTRACT_EVENT", blockDetails, 0);
+    protected EventeumMessage<BlockDetails> createBlockEventMessage(BlockDetails blockDetails) {
+        return new BlockEvent(blockDetails);
     }
 
-    protected ContractEvent createContractEventMessage(ContractEventDetails contractEventDetails) {
-        return new ContractEvent(contractEventDetails.getId(), "CONTRACT_EVENT", contractEventDetails, 0);
+    protected EventeumMessage<ContractEventDetails> createContractEventMessage(ContractEventDetails contractEventDetails) {
+        return new ContractEvent(contractEventDetails);
     }
 
-    protected TransactionEvent createTransactionEventMessage(TransactionDetails transactionDetails) {
-        return new TransactionEvent(transactionDetails.getHash(), "TRANSACTION", transactionDetails, 0);
+    protected EventeumMessage<TransactionDetails> createTransactionEventMessage(TransactionDetails transactionDetails) {
+        return new TransactionEvent(transactionDetails);
     }
 
-    private String getContractEventCorrelationId(ContractEvent message) {
+    private String getContractEventCorrelationId(EventeumMessage<ContractEventDetails> message) {
         final Optional<ContractEventFilter> filter = filterRespository.findById(message.getDetails().getFilterId());
 
         if (!filter.isPresent() || filter.get().getCorrelationIdStrategy() == null) {

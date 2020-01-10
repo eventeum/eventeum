@@ -1,7 +1,7 @@
 package net.consensys.eventeum.dto.event.filter.correlationId;
 
 import lombok.NoArgsConstructor;
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 
 /**
  * A CorrelationIdStrategy that considers the correlation id of a specific contract event
@@ -23,6 +23,6 @@ public class NonIndexedParameterCorrelationIdStrategy extends ParameterCorrelati
         return contractEvent
                 .getNonIndexedParameters()
                 .get(getParameterIndex())
-                .getValue();
+                .getValueString();
     }
 }

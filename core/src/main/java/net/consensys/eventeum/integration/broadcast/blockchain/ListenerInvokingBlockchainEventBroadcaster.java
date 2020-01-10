@@ -1,9 +1,9 @@
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import lombok.AllArgsConstructor;
-import net.consensys.eventeum.BlockDetails;
-import net.consensys.eventeum.ContractEventDetails;
-import net.consensys.eventeum.TransactionDetails;
+import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 
 @AllArgsConstructor
 public class ListenerInvokingBlockchainEventBroadcaster implements BlockchainEventBroadcaster {

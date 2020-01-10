@@ -1,6 +1,6 @@
 package net.consensys.eventeum.chain.contract;
 
-import net.consensys.eventeum.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 
 /**
  * A listener for new contract events.

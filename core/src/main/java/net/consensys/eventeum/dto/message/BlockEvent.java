@@ -1,6 +1,6 @@
 package net.consensys.eventeum.dto.message;
 
-import net.consensys.eventeum.BlockDetails;
+import net.consensys.eventeum.dto.block.BlockDetails;
 
 
 public class BlockEvent extends AbstractMessage<BlockDetails> {
