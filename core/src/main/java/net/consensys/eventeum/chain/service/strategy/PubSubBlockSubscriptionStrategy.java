@@ -16,6 +16,7 @@ package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
@@ -33,8 +34,10 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Optional;
 
+@Slf4j
 public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<NewHead> {
 
     private static final String PUB_SUB_EXECUTOR_NAME = "PUBSUB";
@@ -46,8 +49,9 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     public PubSubBlockSubscriptionStrategy(Web3j web3j,
                                            String nodeName,
                                            EventStoreService eventStoreService,
+                                           BigInteger maxUnsyncedBlocksForFilter,
                                            AsyncTaskService asyncService) {
-        super(web3j, nodeName, eventStoreService, asyncService);
+        super(web3j, nodeName, eventStoreService, maxUnsyncedBlocksForFilter, asyncService);
 
         this.asyncService = asyncService;
     }
@@ -57,7 +61,27 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         final Optional<LatestBlock> latestBlock = getLatestBlock();
 
         if (latestBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
+
+            BigInteger latestBlockNumber = latestBlock.get().getNumber();
+
+            try {
+
+                BigInteger currentBlockNumber = web3j.ethBlockNumber().send().getBlockNumber();
+
+                BigInteger cappedBlockNumber = BigInteger.valueOf(0);
+
+                if (currentBlockNumber.subtract(latestBlockNumber).compareTo(maxUnsyncedBlocksForFilter) == 1) {
+
+                    cappedBlockNumber = currentBlockNumber.subtract(maxUnsyncedBlocksForFilter);
+                    log.info("BLOCK: Max Unsynced Blocks gap reached ´{} to {} . Applied {}. Max {}", latestBlockNumber, currentBlockNumber, cappedBlockNumber, maxUnsyncedBlocksForFilter);
+                    latestBlockNumber = cappedBlockNumber;
+                }
+            }
+            catch (Exception e){
+                log.error("Could not get current block to possibly cap range",e);
+            }
+
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlockNumber);
 
             //New heads can only start from latest block so we need to obtain missing blocks first
             blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true)

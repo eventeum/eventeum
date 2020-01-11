@@ -46,15 +46,19 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected EventStoreService eventStoreService;
     protected String nodeName;
     protected AsyncTaskService asyncService;
+    protected  BigInteger maxUnsyncedBlocksForFilter;
 
     public AbstractBlockSubscriptionStrategy(Web3j web3j,
                                              String nodeName,
                                              EventStoreService eventStoreService,
+                                             BigInteger maxUnsyncedBlocksForFilter ,
                                              AsyncTaskService asyncService) {
         this.web3j = web3j;
         this.nodeName = nodeName;
         this.eventStoreService = eventStoreService;
         this.asyncService = asyncService;
+        this.maxUnsyncedBlocksForFilter = maxUnsyncedBlocksForFilter;
+
     }
 
     @Override

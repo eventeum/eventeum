@@ -96,7 +96,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         when(mockRequest.send()).thenReturn(mockEthBlock);
 
         underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME,
-                mockEventStoreService, new DummyAsyncTaskService());
+                mockEventStoreService, BigInteger.valueOf(0), new DummyAsyncTaskService());
     }
 
     @Test

@@ -42,4 +42,5 @@ public class Node {
     private BigInteger blocksToWaitForConfirmation;
     private BigInteger blocksToWaitForMissingTx;
     private BigInteger blocksToWaitBeforeInvalidating;
+    private BigInteger maxUnsyncedBlocksForFilter;
 }
