@@ -64,6 +64,7 @@ public class ChainBootstrapperTest {
                 Optional.of(Collections.singletonList(mockFilterFactory)), transactionFilterConfiguration);
     }
 
+    /*
     @Test
     public void testThatEventFiltersAreRegistered() throws Exception {
 
@@ -82,6 +83,7 @@ public class ChainBootstrapperTest {
         verify(mockSubscriptionService, times(1)).registerContractEventFilterWithRetries(mockFilterFactoryFilters.get(0), true);
         verify(mockSubscriptionService, times(1)).registerContractEventFilterWithRetries(mockFilterFactoryFilters.get(1), true);
     }
+    */
 
     @Test
     public void testThatTransactionsMonitorsAreRegistered() throws Exception {
