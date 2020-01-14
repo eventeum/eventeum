@@ -57,8 +57,7 @@ public class ChainBootstrapper implements InitializingBean {
     }
 
     private void registerFilter(ContractEventFilter filter, boolean broadcast) {
-        //subscriptionService.registerContractEventFilterWithRetries(filter, broadcast);
-        subscriptionService.registerContractEventFilter(filter, broadcast);
+        subscriptionService.registerContractEventFilterWithRetries(filter, broadcast);
     }
 
     private void registerTransactionsToMonitor(Iterable<TransactionMonitoringSpec> specs, boolean broadcast) {
