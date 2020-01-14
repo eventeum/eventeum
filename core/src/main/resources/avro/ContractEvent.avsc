@@ -33,32 +33,58 @@
             "name": "indexedParameters",
             "type": {
               "type": "array",
-              "items": {
-                "namespace": "net.consensys.eventeum",
-                "name": "EventParameter",
-                "type": "record",
-                "fields": [
-                  {
-                    "name": "name",
-                    "type": "string"
-                  },
-                  {
-                    "name": "type",
-                    "type": "string"
-                  },
-                  {
-                    "name": "value",
-                    "type": "string"
-                  }
-                ]
-              }
+              "items": [
+                {
+                  "namespace": "net.consensys.eventeum",
+                  "name": "StringParameter",
+                  "type": "record",
+                  "fields": [
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "type",
+                      "type": "string"
+                    },
+                    {
+                      "name": "value",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "namespace": "net.consensys.eventeum",
+                  "name": "NumberParameter",
+                  "type": "record",
+                  "fields": [
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "type",
+                      "type": "string"
+                    },
+                    {
+                      "name": "value",
+                      "type": "string",
+                      "java-class": "java.math.BigInteger"
+                    }
+                  ]
+                }
+              ]
             }
           },
+
           {
             "name": "nonIndexedParameters",
             "type": {
               "type": "array",
-              "items": "EventParameter"
+              "items": [
+                "StringParameter",
+                "NumberParameter"
+              ]
             }
           },
           {

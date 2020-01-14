@@ -25,6 +25,8 @@ public interface EventParameter<T extends Serializable> extends Serializable {
 
     T getValue();
 
+    String getName();
+
     @JsonIgnore
     String getValueString();
 }

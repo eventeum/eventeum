@@ -3,6 +3,7 @@ package net.consensys.eventeum.integration.broadcast.blockchain;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import net.consensys.eventeum.dto.message.BlockEvent;
 import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.EventeumMessage;
@@ -17,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -71,10 +74,19 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
         final EventeumMessage<ContractEventDetails> message = createContractEventMessage(eventDetails);
         LOG.info("Sending contract event message: " + JSON.stringify(message));
+        net.consensys.eventeum.ContractEventDetails contractEventDetails = net.consensys.eventeum.ContractEventDetails.newBuilder()
+                .setAddress(message.getDetails().getAddress()).setBlockHash(message.getDetails().getBlockHash()).setBlockNumber(message.getDetails().getBlockNumber().toString())
+                .setEventSpecificationSignature(message.getDetails().getEventSpecificationSignature()).setFilterId(message.getDetails().getFilterId())
+                .setId(message.getDetails().getId()).setLogIndex(message.getDetails().getLogIndex().toString())
+                .setName(message.getDetails().getName()).setNetworkName(message.getDetails().getNetworkName()).setNodeName(message.getDetails().getNodeName())
+                .setNonIndexedParameters(convertParameters(message.getDetails().getNonIndexedParameters())).setIndexedParameters(convertParameters(message.getDetails().getIndexedParameters()))
+                .setStatus(net.consensys.eventeum.ContractEventStatus.valueOf(message.getDetails().getStatus().name()))
+                .setTransactionHash(message.getDetails().getTransactionHash()).build();
+
         GenericRecord genericRecord = new GenericData.Record(net.consensys.eventeum.ContractEvent.getClassSchema());
         genericRecord.put("id", message.getId());
         genericRecord.put("type", message.getType());
-        genericRecord.put("details", message.getDetails());
+        genericRecord.put("details", contractEventDetails);
         genericRecord.put("retries", message.getRetries());
 
         kafkaTemplate.send(kafkaSettings.getContractEventsTopic(), getContractEventCorrelationId(message), genericRecord);
@@ -102,6 +114,18 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     protected EventeumMessage<TransactionDetails> createTransactionEventMessage(TransactionDetails transactionDetails) {
         return new TransactionEvent(transactionDetails);
+    }
+
+    public List<Object> convertParameters(List<EventParameter> l) {
+        List<Object> parametersConverted = new ArrayList<Object>();
+        for (int i = 0; i < l.size(); i++) {
+            if (l.get(i).getClass() == net.consensys.eventeum.dto.event.parameter.StringParameter.class) {
+                parametersConverted.add(new net.consensys.eventeum.StringParameter(l.get(i).getName(), l.get(i).getType(), l.get(i).getValueString()));
+            } else if (l.get(i).getClass() == net.consensys.eventeum.dto.event.parameter.NumberParameter.class) {
+                parametersConverted.add(new net.consensys.eventeum.NumberParameter(l.get(i).getName(), l.get(i).getType(), l.get(i).getValueString()));
+            }
+        }
+        return parametersConverted;
     }
 
     private String getContractEventCorrelationId(EventeumMessage<ContractEventDetails> message) {

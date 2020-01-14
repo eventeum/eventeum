@@ -16,7 +16,7 @@ logging:
 ethereum:
   nodes:
   - name: default
-    url: ${ETHEREUM_NODE_URL:http://localhost:8545}
+    url: ${ETHEREUM_NODE_URL:https://baklava-forno.celo-testnet.org}
     blockStrategy: POLL
     syncingThreshold: 100
     healthcheckInterval: 3000
