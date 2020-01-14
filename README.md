@@ -26,6 +26,14 @@ An Ethereum event listener that bridges your smart contract events and backend m
 * [RabbitMQ](https://www.rabbitmq.com/)
 * [Pulsar](https://pulsar.apache.org)
 
+
+At rabbit you can configure the following extra values
+
+* rabbitmq.blockNotification. true|false
+* rabbitmq.routingKey.contractEvents
+* rabbitmq.routingKey.blockEvents
+* rabbitmq.routingKey.transactionEvents
+
 ## Eventeum Tutorials
 - [Listening to Ethereum Events](https://kauri.io/article/90dc8d911f1c43008c7d0dfa20bde298/listening-to-ethereum-events-with-eventeum)
 - [Listening for Ethereum Transactions](https://kauri.io/article/3e31587c96a74d24b5cdd17952d983e9/v1/listening-for-ethereum-transactions-with-eventeum)
@@ -93,6 +101,16 @@ $ docker-compose -f docker-compose.yml up
 ## SQL Support
 Eventeum now supports a SQL database as well as the default MongoDB.  To use a SQL database (only SQL Server has currently been tested but others should be supported with the correct config), set the `database.type` property to `SQL` and ensure you have all required additional properties in your properties file. See `config-examples/application-template-sqlserver.yml` for a sample SQLServer configuration.
 
+### Upgrading to 0.8.0
+
+When upgrading Eventeum to **0.8.0**, changes in the schema are required. In order to perform the migration follow these steps:
+
+1. Stop all Evnteum instances
+2. Backup your database
+3. Apply the [tools/potgres-upgrade-to-v0.8.0.sql](tools/postgres-upgrade-to-v0.8.0.sql) sql script. Note that this script is written for Postgres, syntax may differ if using other database system.
+4. Restart Eventeum instances
+
+
 ## Configuring Nodes
 Listening for events from multiple different nodes is supported in Eventeum, and these nodes can be configured in the properties file.
 
@@ -106,6 +124,41 @@ ethereum:
 ```
 
 If an event does not specify a node, then it will be registered against the 'default' node.
+
+That is the simplest node configuration, but there is other custom flags you can activate per node:
+
+
+- `maxIdleConnections`: Maximum number of connections to the node. (default: 5)
+- `keepAliveDuration`: Duration of the keep alive http in milliseconds (default: 10000)
+- `connectionTimeout`: Http connection timeout to the node in milliseconds (default: 5000)
+- `readTimeout`: Http read timeout to the node in milliseconds (default: 60000)
+- `addTransactionRevertReason`: Enables receiving the revert reason when a transaction fails.  (default: false)
+- `pollInterval`: Polling interval of the rpc request to the node (default: 10000)
+- `healthcheckInterval`: Polling interval of that evenreum will use to check if the node is active (default: 10000)
+- `numBlocksToWait`: Blocks to wait until we decide event is confirmed (default: 1). Overrides broadcaster config
+- `numBlocksToWaitBeforeInvalidating`:  Blocks to wait until we decide event is invalidated (default: 1).  Overrides broadcaster config
+- `numBlocksToWaitForMissingTx`: Blocks to wait until we decide tx is missing (default: 1)  Overrides broadcaster config
+
+This will be an example with a complex configuration:
+
+```yaml
+ethereum:
+  nodes:
+  - name: default
+    url: http://mainnet:8545
+    pollInterval: 1000
+    maxIdleConnections: 10
+    keepAliveDuration: 15000
+    connectionTimeout: 7000
+    readTimeout: 35000
+    healthcheckInterval: 3000
+    addTransactionRevertReason: true
+    numBlocksToWait: 1
+    numBlocksToWaitBeforeInvalidating: 1
+    numBlocksToWaitForMissingTx: 1
+  blockStrategy: POLL
+
+```
 
 ## Registering Events
 
@@ -162,7 +215,9 @@ Eventeum exposes a REST api that can be used to register events that should be s
 | position | Number | yes | | The zero indexed position of the parameter within the event specification |
 | type | String | yes | | The type of the event parameter. |
 
-Currently supported parameter types: UINT8, UINT256, ADDRESS, BYTES16, BYTES32, STRING, BOOL
+Currently supported parameter types: `UINT8-256`, `INT8-256`, `ADDRESS`, `BYTES1-32`, `STRING`, `BOOL`.
+
+Dynamically sized arrays are also supported by prefixing the type with `[]`
 
 **correlationIdStrategy**:
 
@@ -216,6 +271,56 @@ eventFilters:
 -   **Success Response:**
     -   **Code:** 200
         **Content:** `N/A`
+
+## Listing Registered Events
+
+### REST
+
+-   **URL:** `/api/rest/v1/event-filter`    
+-   **Method:** `GET`
+-   **Headers:**  
+
+| Key | Value |
+| -------- | -------- |
+| accept | application/json |
+
+-   **URL Params:** `N/A`
+
+-   **Response:** List of contract event filters:
+```json
+[{
+	"id": "event-identifier-1",
+	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
+	"eventSpecification": {
+		"eventName": "TestEvent",
+		"indexedParameterDefinitions": [
+		  {"position": 0, "type": "UINT256"},
+		  {"position": 1, "type": "ADDRESS"}],
+		"nonIndexedParameterDefinitions": [
+		  {"position": 2, "type": "BYTES32"},
+		  {"position": 3, "type": "STRING"}] },
+	"correlationIdStrategy": {
+		"type": "NON_INDEXED_PARAMETER",
+		"parameterIndex": 0 }
+},
+....
+{
+	"id": "event-identifier-N",
+	"contractAddress": "0x1fbBeeE6eC2B7B095fE3c5A572551b1e260Af4d2",
+	"eventSpecification": {
+		"eventName": "TestEvent",
+		"indexedParameterDefinitions": [
+		  {"position": 0, "type": "UINT256"},
+		  {"position": 1, "type": "ADDRESS"}],
+		"nonIndexedParameterDefinitions": [
+		  {"position": 2, "type": "BYTES32"},
+		  {"position": 3, "type": "STRING"}] },
+	"correlationIdStrategy": {
+		"type": "NON_INDEXED_PARAMETER",
+		"parameterIndex": 0 }
+}
+]
+```
 
 ## Registering a Transaction Monitor
 
@@ -393,17 +498,20 @@ Eventeum can either be configured by:
 | ETHEREUM_BLOCKSTRATEGY | POLL | The strategy for obtaining block events from an ethereum node (POLL or PUBSUB). It will be overwritten by the specific node configuration. |
 | ETHEREUM_NODE_URL | http://localhost:8545 | The default ethereum node url. |
 | ETHEREUM_NODE_BLOCKSTRATEGY | POLL | The strategy for obtaining block events for the ethereum node (POLL or PUBSUB).
-| ETHEREUM_NODE _HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
+| ETHEREUM_NODE_HEALTHCHECK_POLLINTERVAL | 2000 | The interval time in ms, in which a request is made to the ethereum node, to ensure that the node is running and functional. |
+| ETHEREUM_NODE_ADD_TRANSACTION_REVERT_REASON | false | In case of a failing transaction it indicates if Eventeum should get the revert reason. Currently not working for Ganache and Parity.
 | POLLING_INTERVAL | 10000 | The polling interval used by Web3j to get events from the blockchain. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
 | BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
-| BROADCASTER_CACHE _EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
-| BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
-| BROADCASTER_EVENT _CONFIRMATION _NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
+| BROADCASTER_CACHE_EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
+| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
+| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
+| BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITBEFOREINVALIDATING | 2 | Number of blocks to wait before considering a block as invalid. |
 | BROADCASTER_MULTIINSTANCE | false | If multiple instances of eventeum are to be deployed in your system, this should be set to true so that the eventeum communicates added/removed filters to other instances, via kafka. |
 | BROADCASTER_HTTP CONTRACTEVENTSURL | | The http url for posting contract events (for HTTP broadcasting) |
 | BROADCASTER_HTTP BLOCKEVENTSURL | | The http url for posting block events (for HTTP broadcasting) |
 | BROADCASTER_BYTESTOASCII | false | If any bytes values within events should be converted to ascii (default is hex) |
+| BROADCASTER_ENABLE_BLOCK_NOTIFICATION | true | Boolean that indicates if want to receive block notifications or not. Set false to not receive that event. |
 | ZOOKEEPER_ADDRESS | localhost:2181 | The zookeeper address |
 | KAFKA_ADDRESSES | localhost:9092 | Comma seperated list of kafka addresses |
 | KAFKA_TOPIC_CONTRACT_EVENTS | contract-events | The topic name for broadcast contract event messages |
@@ -417,12 +525,17 @@ Eventeum can either be configured by:
 | KAFKA_SECURITY_PROTOCOL | PLAINTEXT | Protocol used to communicate with Kafka brokers |
 | KAFKA_RETRIES | 10 | The number of times a Kafka consumer will try to publish a message before throwing an error |
 | KAFKA_RETRY_BACKOFF_MS | 500 | The duration between each retry |
+| KEEP_ALIVE_DURATION | 15000 | Rpc http idle threads keep alive timeout in ms |
+| MAX_IDLE_CONNECTIONS| 10 | The max number of HTTP rpc idle threads at the pool |
+| SYNCINC_THRESHOLD | 60 | Number of blocks of difference to consider that eventeum is "syncing" with a node
 | SPRING_DATA_MONGODB_HOST | localhost | The mongoDB host (used when event store is set to DB) |
 | SPRING_DATA_MONGODB_PORT | 27017 | The mongoDB post (used when event store is set to DB) |
 | RABBIT_ADDRESS | localhost:5672 | property spring.rabbitmq.host (The rabbitmq address) |
 | RABBIT_EXCHANGE | ThisIsAExchange | property rabbitmq.exchange |
 | RABBIT_ROUTING_KEY | thisIsRoutingKey | property rabbitmq.routingKeyPrefix |
 | DATABASE_TYPE | MONGO | The database to use.  Either MONGO or SQL. |
+| CONNECTION_TIMEOUT | 7000 | RPC, http connection timeout in millis |
+| READ_TIMEOUT | 35000 | RPC, http read timeout in millis |
 
 ### INFURA Support Configuration
 Connecting to an INFURA node is only supported if connecting via websockets (`wss://<...>` node url).  The blockstrategy must also be set to PUBSUB.
@@ -564,6 +677,24 @@ Eventeum offers a healthcheck url where you can ask for the status of the system
 Returning this information it is very easy to create alerts over the status of the system.
 
 The endpoint is: GET /monitoring/health
+
+## Metrics: Prometheus
+
+Eventeum includes a prometheus metrics export endpoint.
+
+It includes standard jvm, tomcat metrics enabled by spring-boot https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-prometheus https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-meter.
+
+Added to the standard metrics, custom metrics have been added:
+
+* eventeum_%Network%_syncing: 1 if node is syncing (latestBlock + syncingThreshols < currentBlock). 0 if not syncing
+* eventeum_%Network%_latestBlock: latest block read by Eventeum
+* eventeum_%Network%_currentBlock: Current node block
+* eventeum_%Network%_status: Current node status. 0 = Suscribed, 1 = Connected, 2 = Down
+
+All  metrics include application="Eventeum",environment="local" tags.
+
+The endpoint is: GET /monitoring/prometheus
+
 
 ## Known Caveats / Issues
 * In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.

@@ -1,12 +1,20 @@
 package net.consensys.eventeum.chain.block;
 
+import net.consensys.eventeum.chain.factory.DefaultBlockDetailsFactory;
+import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.web3j.utils.Numeric;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import java.math.BigInteger;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 public class BroadcastingBlockListenerTest {
 
@@ -18,14 +26,18 @@ public class BroadcastingBlockListenerTest {
     public void init() {
         mockBroadcaster = mock(BlockchainEventBroadcaster.class);
 
-        underTest = new BroadcastingBlockListener(mockBroadcaster);
+        underTest = new BroadcastingBlockListener(mockBroadcaster, new DefaultBlockDetailsFactory());
     }
 
     @Test
     public void testOnBlock() {
-        final BlockDetails blockDetails = new BlockDetails();
-        underTest.onBlock(blockDetails);
+        final Block block = Mockito.mock(Block.class);
+        when(block.getNumber()).thenReturn(BigInteger.TEN);
+        underTest.onBlock(block);
 
-        verify(mockBroadcaster).broadcastNewBlock(blockDetails);
+        ArgumentCaptor<BlockDetails> captor = ArgumentCaptor.forClass(BlockDetails.class);
+        verify(mockBroadcaster).broadcastNewBlock(captor.capture());
+
+        assertEquals(BigInteger.TEN, captor.getValue().getNumber());
     }
 }

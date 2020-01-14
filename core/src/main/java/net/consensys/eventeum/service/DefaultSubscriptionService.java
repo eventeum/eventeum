@@ -3,22 +3,28 @@ package net.consensys.eventeum.service;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -45,22 +51,28 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private Map<String, FilterSubscription> filterSubscriptions = new ConcurrentHashMap<>();
 
+    private ApplicationContext applicationContext;
+
+    private RetryTemplate retryTemplate;
+
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
                                       ContractEventFilterRepository eventFilterRepository,
                                       EventeumEventBroadcaster eventeumEventBroadcaster,
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
-                                      List<ContractEventListener> contractEventListeners) {
+                                      List<ContractEventListener> contractEventListeners,
+                                      @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
         this.contractEventListeners = contractEventListeners;
         this.chainServices = chainServices;
         this.asyncTaskService = asyncTaskService;
         this.eventFilterRepository = eventFilterRepository;
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.blockListeners = blockListeners;
+        this.retryTemplate = retryTemplate;
     }
 
-    @Override
+
     public void init() {
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
@@ -70,35 +82,25 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter) {
-        return registerContractEventFilter(filter, true);
+    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
+        return doRegisterContractEventFilter(filter, broadcast);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast) {
-        populateIdIfMissing(filter);
+    @Async
+    public ContractEventFilter registerContractEventFilterWithRetries(ContractEventFilter filter, boolean broadcast) {
+        return retryTemplate.execute((context) -> doRegisterContractEventFilter(filter, broadcast));
+    }
 
-        if (!isFilterRegistered(filter)) {
-            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
-
-            if (filter.getStartBlock() == null && sub != null) {
-                filter.setStartBlock(sub.getStartBlock());
-            }
-
-            saveContractEventFilter(filter);
-
-            if (broadcast) {
-                broadcastContractEventFilterAdded(filter);
-            }
-
-            return filter;
-        } else {
-            log.info("Already registered contract event filter with id: " + filter.getId());
-            return getFilterSubscription(filter.getId()).getFilter();
-        }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ContractEventFilter> listContractEventFilters() {
+      return getFilterSubscriptions().stream().map((FilterSubscription f) -> f.getFilter()).collect(Collectors.toList());
     }
 
     /**
@@ -134,11 +136,12 @@ public class DefaultSubscriptionService implements SubscriptionService {
      * {@inheritDoc}
      */
     @Override
-    public void resubscribeToAllSubscriptions() {
+    public void resubscribeToAllSubscriptions(String nodeName) {
         final List<ContractEventFilter> currentFilters = filterSubscriptions
                 .values()
                 .stream()
                 .map(filterSubscription -> filterSubscription.getFilter())
+                .filter(filter -> filter.getNode().equals(nodeName))
                 .collect(Collectors.toList());
 
         final Map<String, FilterSubscription> newFilterSubscriptions = new ConcurrentHashMap<>();
@@ -161,7 +164,18 @@ public class DefaultSubscriptionService implements SubscriptionService {
             }
         });
     }
-  
+
+    @Override
+    public boolean isFullySubscribed(String nodeName) {
+        return !filterSubscriptions
+                .values()
+                .stream()
+                .filter(filterSubscription -> filterSubscription.getFilter().getNode().equals(nodeName))
+                .filter(filterSubscription -> filterSubscription.getSubscription().isDisposed())
+                .findFirst()
+                .isPresent();
+    }
+
     @PreDestroy
     private void unregisterAllContractEventFilters() {
         filterSubscriptions.values().forEach(filterSub -> {
@@ -172,10 +186,33 @@ public class DefaultSubscriptionService implements SubscriptionService {
     public void unsubscribeFilterSubscription(FilterSubscription filterSubscription) {
 
         try {
-            filterSubscription.getSubscription().unsubscribe();
+            filterSubscription.getSubscription().dispose();
         } catch (Throwable t) {
             log.info("Unable to unregister filter...this is probably because the " +
                     "node has restarted or we're in websocket mode");
+        }
+    }
+
+    private ContractEventFilter doRegisterContractEventFilter(ContractEventFilter filter, boolean broadcast) {
+        populateIdIfMissing(filter);
+
+        if (!isFilterRegistered(filter)) {
+            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
+
+            if (filter.getStartBlock() == null && sub != null) {
+                filter.setStartBlock(sub.getStartBlock());
+            }
+
+            saveContractEventFilter(filter);
+
+            if (broadcast) {
+                broadcastContractEventFilterAdded(filter);
+            }
+
+            return filter;
+        } else {
+            log.info("Already registered contract event filter with id: " + filter.getId());
+            return getFilterSubscription(filter.getId()).getFilter();
         }
     }
 
@@ -192,7 +229,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
         final NodeServices nodeServices = chainServices.getNodeServices(filter.getNode());
 
         if (nodeServices == null) {
-            log.warn("No node configured with name {}, not registering filter", filter.getNode());
+            log.warn("No node configure" +
+                    "d with name {}, not registering filter", filter.getNode());
             return null;
         }
 
@@ -241,6 +279,10 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private FilterSubscription getFilterSubscription(String filterId) {
         return filterSubscriptions.get(filterId);
+    }
+
+    private List<FilterSubscription> getFilterSubscriptions() {
+        return new ArrayList(filterSubscriptions.values());
     }
 
     private void removeFilterSubscription(String filterId) {

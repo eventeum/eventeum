@@ -27,6 +27,8 @@ import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.BindMode;
@@ -45,7 +47,7 @@ import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Numeric;
-import scala.math.BigInt;
+import wiremock.org.apache.commons.collections4.IterableUtils;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -216,6 +218,18 @@ public class BaseIntegrationTest {
         return filter;
     }
 
+    protected List<ContractEventFilter> listEventFilters() {
+	final ResponseEntity<List<ContractEventFilter>> response = restTemplate.exchange(
+		  restUrl + "/api/rest/v1/event-filter",
+		  HttpMethod.GET,
+		  null,
+		  new ParameterizedTypeReference<List<ContractEventFilter>>(){});
+
+	List<ContractEventFilter> contractEventFilters = response.getBody();
+
+	return contractEventFilters;
+    }
+
     protected String monitorTransaction(TransactionMonitoringSpec monitorSpec) {
         final ResponseEntity<MonitorTransactionsResponse> response =
                 restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction", monitorSpec, MonitorTransactionsResponse.class);
@@ -371,7 +385,15 @@ public class BaseIntegrationTest {
         waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages());
     }
 
-    protected <T> void waitForMessages(int expectedMessageCount, List<T> messages) {
+    protected void waitForTransactionMessages(int expectedTransactionMessages,  boolean failOnTimeout) {
+        waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages(), failOnTimeout);
+    }
+
+    protected <T> boolean waitForMessages(int expectedMessageCount, List<T> messages) {
+        return waitForMessages(expectedMessageCount, messages, true);
+    }
+
+    protected <T> boolean waitForMessages(int expectedMessageCount, List<T> messages, boolean failOnTimeout) {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -381,16 +403,15 @@ public class BaseIntegrationTest {
         final long startTime = System.currentTimeMillis();
         while(true) {
             if (messages.size() >= expectedMessageCount) {
-                break;
+                return true;
             }
 
             if (System.currentTimeMillis() > startTime + 20000) {
-                final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
-                builder.append("\n");
-                builder.append("Expected message count: " + expectedMessageCount);
-                builder.append(", received: " + messages.size());
+                if (failOnTimeout) {
+                    TestCase.fail(generateFailureMessage(expectedMessageCount, messages));
+                }
 
-                TestCase.fail(builder.toString());
+                return false;
             }
 
             try {
@@ -409,13 +430,13 @@ public class BaseIntegrationTest {
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES32),
-                              new ParameterDefinition(1, ParameterType.ADDRESS)));
+                Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES32")),
+                              new ParameterDefinition(1, ParameterType.build("ADDRESS"))));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(2, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING),
-                              new ParameterDefinition(4, ParameterType.UINT8)));
+                Arrays.asList(new ParameterDefinition(2, ParameterType.build("UINT256")),
+                              new ParameterDefinition(3, ParameterType.build("STRING")),
+                              new ParameterDefinition(4, ParameterType.build("UINT8"))));
 
         eventSpec.setEventName(DUMMY_EVENT_NAME);
 
@@ -430,13 +451,13 @@ public class BaseIntegrationTest {
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.BYTES32),
-                              new ParameterDefinition(2, ParameterType.ADDRESS)));
+                Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES32")),
+                              new ParameterDefinition(2, ParameterType.build("ADDRESS"))));
 
         eventSpec.setNonIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(1, ParameterType.UINT256),
-                              new ParameterDefinition(3, ParameterType.STRING),
-                              new ParameterDefinition(4, ParameterType.UINT8)));
+                Arrays.asList(new ParameterDefinition(1, ParameterType.build("UINT256")),
+                              new ParameterDefinition(3, ParameterType.build("STRING")),
+                              new ParameterDefinition(4, ParameterType.build("UINT8"))));
 
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
@@ -491,6 +512,23 @@ public class BaseIntegrationTest {
 
     protected static void stopParity() {
         parityContainer.stop();
+    }
+
+    private <T> String generateFailureMessage(int expectedMessageCount, List<T> messages) {
+        final StringBuilder builder = new StringBuilder("Failed to receive all expected messages");
+        builder.append("\n");
+        builder.append("Expected message count: " + expectedMessageCount);
+        builder.append(", received: " + messages.size());
+        builder.append("\n\n");
+        builder.append("Registered filters:");
+        builder.append("\n\n");
+        builder.append(JSON.stringify(IterableUtils.toList(getFilterRepo().findAll())));
+        builder.append("\n\n");
+        builder.append("ContractEventDetails entries:");
+        builder.append("\n\n");
+        builder.append(JSON.stringify(IterableUtils.toList(eventDetailsRepository.findAll())));
+
+        return builder.toString();
     }
 
     private void initRestTemplate() {

@@ -1,15 +1,19 @@
 package net.consensys.eventeum.chain.converter;
 
+import net.consensys.eventeum.dto.event.parameter.ArrayParameter;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import net.consensys.eventeum.dto.event.parameter.NumberParameter;
 import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import net.consensys.eventeum.settings.EventeumSettings;
 import org.springframework.stereotype.Component;
+import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,16 +32,14 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
     public Web3jEventParameterConverter(EventeumSettings settings) {
         typeConverters.put("address",
                 (type) -> new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
-        typeConverters.put("uint8",
-                (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
-        typeConverters.put("uint256",
-                (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
-        typeConverters.put("int256",
-                (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
-        typeConverters.put("bytes16",
-                (type) -> convertBytesType(type));
-        typeConverters.put("bytes32",
-                (type) -> convertBytesType(type));
+
+        registerNumberConverters("uint", 8, 256);
+        registerNumberConverters("int", 8, 256);
+        registerBytesConverters("bytes", 1, 32);
+
+        typeConverters.put("byte", (type) -> convertBytesType(type));
+        typeConverters.put("bool", (type) -> new NumberParameter(type.getTypeAsString(),
+                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO));
         typeConverters.put("string",
                 (type) -> new StringParameter(type.getTypeAsString(),
                         trim((String)type.getValue())));
@@ -50,10 +52,39 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         final EventParameterConverter<Type> typeConverter = typeConverters.get(toConvert.getTypeAsString().toLowerCase());
 
         if (typeConverter == null) {
+            //Type might be an array, in which case the type will be the array type class
+            if (toConvert instanceof DynamicArray){
+                final DynamicArray<?> theArray = (DynamicArray<?>) toConvert;
+                return convertDynamicArray(theArray);
+            }
+
             throw new TypeConversionException("Unsupported type: " + toConvert.getTypeAsString());
         }
 
         return typeConverter.convert(toConvert);
+    }
+
+    private void registerNumberConverters(String prefix, int increment, int max) {
+        for (int i = increment; i <= max; i = i + increment) {
+            typeConverters.put(prefix + i,
+                    (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
+        }
+    }
+
+    private void registerBytesConverters(String prefix, int increment, int max) {
+        for (int i = increment; i <= max; i = i + increment) {
+            typeConverters.put(prefix + i,
+                    (type) -> convertBytesType(type));
+        }
+    }
+
+    private EventParameter<?> convertDynamicArray(DynamicArray<?> toConvert) {
+        final ArrayList<EventParameter<?>> convertedArray = new ArrayList<>();
+
+        toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
+
+        return new ArrayParameter(toConvert.getValue().get(0).getTypeAsString().toLowerCase(),
+                toConvert.getComponentType(), convertedArray);
     }
 
     private EventParameter convertBytesType(Type bytesType) {

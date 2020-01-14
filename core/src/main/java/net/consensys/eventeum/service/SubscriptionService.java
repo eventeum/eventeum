@@ -3,6 +3,8 @@ package net.consensys.eventeum.service;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.service.exception.NotFoundException;
 
+import java.util.List;
+
 /**
  * A service for manageing contract event subscriptions within the Eventeum instance.
  *
@@ -20,23 +22,30 @@ public interface SubscriptionService {
      *
      * If the id is null, then one is assigned.
      *
-     * Broadcasts the added filter event to any other Eventeum instances.
-     *
      * @param filter The filter to add.
+     * @param broadcast Specifies if the added filter event should be broadcast to other Eventeum instances.
      * @return The registered contract event filter
      */
-    ContractEventFilter registerContractEventFilter(ContractEventFilter filter);
+    ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast);
 
     /**
      * Registers a new contract event filter.
      *
      * If the id is null, then one is assigned.
      *
+     * Will retry indefinitely until successful
+     *
      * @param filter The filter to add.
      * @param broadcast Specifies if the added filter event should be broadcast to other Eventeum instances.
      * @return The registered contract event filter
      */
-    ContractEventFilter registerContractEventFilter(ContractEventFilter filter, boolean broadcast);
+    ContractEventFilter registerContractEventFilterWithRetries(ContractEventFilter filter, boolean broadcast);
+    /**
+     * List all registered contract event filters.
+     *
+     * @return The list of registered contract event filters
+     */
+    List<ContractEventFilter> listContractEventFilters();
 
     /**
      * Unregisters a previously added contract event filter.
@@ -58,10 +67,18 @@ public interface SubscriptionService {
     /**
      * Resubscribe to all currently active event filters.
      */
-    void resubscribeToAllSubscriptions();
+    void resubscribeToAllSubscriptions(String nodeName);
 
     /**
      * Unsubscribe all active listeners
      */
     void unsubscribeToAllSubscriptions(String nodeName);
+
+    /**
+     * Returns true if all subscriptions for node are active (not disposed)
+     *
+     * @param nodeName The node name
+     * @return true if all subscriptions for node are active (not disposed)
+     */
+    boolean isFullySubscribed(String nodeName);
 }

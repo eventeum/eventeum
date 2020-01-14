@@ -4,17 +4,18 @@
 
     <groupId>net.consensys.eventeum</groupId>
     <artifactId>eventeum-server</artifactId>
-    <version>0.7.0-RELEASE</version>
+    <version>0.8.0-SNAPSHOT</version>
 
     <parent>
         <groupId>net.consensys.eventeum</groupId>
         <artifactId>eventeum</artifactId>
-        <version>0.7.0-RELEASE</version>
+        <version>0.8.0-SNAPSHOT</version>
     </parent>
 
     <properties>
         <java.version>1.8</java.version>
         <skipIntegrationTests>true</skipIntegrationTests>
+        <micrometer.version>1.1.0</micrometer.version>
     </properties>
 
     <dependencies>
@@ -29,17 +30,27 @@
         <dependency>
             <groupId>net.consensys.eventeum</groupId>
             <artifactId>eventeum-core</artifactId>
-            <version>0.7.0-RELEASE</version>
+            <version>0.8.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
             <version>2.2.0.RELEASE</version>
         </dependency>
+        <!-- Micrometer Prometheus registry  -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version> ${micrometer.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>

@@ -1,39 +1,44 @@
 package net.consensys.eventeum.chain.service.strategy;
 
+import io.reactivex.disposables.Disposable;
+import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
-import rx.Subscription;
 
-import java.math.BigInteger;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
-    public PollingBlockSubscriptionStrategy(Web3j web3j, String nodeName, EventStoreService eventStoreService) {
-        super(web3j, nodeName, eventStoreService);
+    public PollingBlockSubscriptionStrategy(
+            Web3j web3j, String nodeName, EventStoreService eventStoreService, AsyncTaskService asyncService) {
+        super(web3j, nodeName, eventStoreService, asyncService);
     }
 
     @Override
-    public Subscription subscribe() {
+    public Disposable subscribe() {
 
         final Optional<LatestBlock> latestBlock = getLatestBlock();
 
         if (latestBlock.isPresent()) {
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
-            blockSubscription = web3j.catchUpToLatestAndSubscribeToNewBlocksObservable(blockParam, false)
+            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true)
                     .subscribe(block -> { triggerListeners(block); });
 
         } else {
-            blockSubscription = web3j.blockObservable(false).subscribe(block -> {
+            blockSubscription = web3j.blockFlowable(true).subscribe(block -> {
                 triggerListeners(block);
             });
         }
@@ -42,15 +47,7 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
     }
 
     @Override
-    BlockDetails convertToBlockDetails(EthBlock blockObject) {
-        final EthBlock.Block block = blockObject.getBlock();
-        final BlockDetails blockDetails = new BlockDetails();
-
-        blockDetails.setNumber(block.getNumber());
-        blockDetails.setHash(block.getHash());
-        blockDetails.setTimestamp(block.getTimestamp());
-        blockDetails.setNodeName(nodeName);
-
-        return blockDetails;
+    Block convertToEventeumBlock(EthBlock blockObject) {
+        return new Web3jBlock(blockObject.getBlock(), nodeName);
     }
 }

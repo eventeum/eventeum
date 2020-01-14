@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.service;
 
+import io.reactivex.Flowable;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
@@ -8,14 +9,18 @@ import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
+import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.reactivestreams.Subscriber;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
-import rx.Observable;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -30,6 +35,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.eq;
 
 public class Web3jServiceTest {
 
@@ -38,6 +44,8 @@ public class Web3jServiceTest {
     private static final BigInteger BLOCK_NUMBER = BigInteger.valueOf(123);
 
     private static final String CONTRACT_ADDRESS = "0x7a55a28856d43bba3c6a7e36f2cee9a82923e99b";
+
+    private static final String REVERT_REASON = "error";
 
     private Web3jService underTest;
 
@@ -68,12 +76,12 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenReturn(blockNumber);
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
 
-        underTest = new Web3jService("test", mockWeb3j,
-                mockContractEventDetailsFactory, mockBlockManagement, mockBlockSubscriptionStrategy);
+        underTest = new Web3jService("test", mockWeb3j, mockContractEventDetailsFactory,
+                mockBlockManagement, mockBlockSubscriptionStrategy, new DummyAsyncTaskService());
     }
 
     @Test
-    public void testRegisterEventListener() {
+    public void testRegisterEventListener() throws IOException {
 
         final ContractEventDetails eventDetails = doRegisterEventListenerAndTrigger();
 
@@ -81,7 +89,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testEventPassedToListenerIsCorrect() {
+    public void testEventPassedToListenerIsCorrect() throws IOException {
 
         final ContractEventDetails eventDetails = doRegisterEventListenerAndTrigger();
 
@@ -156,12 +164,24 @@ public class Web3jServiceTest {
         underTest.getCurrentBlockNumber();
     }
 
-    private ContractEventDetails doRegisterEventListenerAndTrigger() {
+    @Test
+    public void testGetRevertReason() throws IOException {
+        final Request<?, EthCall> mockRequest = mock(Request.class);
+        final EthCall ethCall = mock(EthCall.class);
+
+        when(ethCall.getRevertReason()).thenReturn(REVERT_REASON);
+        when(mockRequest.send()).thenReturn(ethCall);
+        doReturn(mockRequest).when(mockWeb3j).ethCall(any(Transaction.class), any(DefaultBlockParameter.class));
+
+        assertEquals(REVERT_REASON, underTest.getRevertReason(FROM_ADDRESS, TO_ADDRESS, BLOCK_NUMBER, "0x1"));
+    }
+
+    private ContractEventDetails doRegisterEventListenerAndTrigger() throws IOException {
         final org.web3j.protocol.core.methods.response.Log mockLog
                 = mock(org.web3j.protocol.core.methods.response.Log.class);
 
-        final Observable<org.web3j.protocol.core.methods.response.Log> observable = Observable.just(mockLog);
-        when(mockWeb3j.ethLogObservable(any(EthFilter.class))).thenReturn(observable);
+        final Flowable<org.web3j.protocol.core.methods.response.Log> flowable = new DummyFlowable<>(mockLog);
+        when(mockWeb3j.ethLogFlowable(any(EthFilter.class))).thenReturn(flowable);
 
         final ContractEventFilter filter = new ContractEventFilter();
 
@@ -255,4 +275,18 @@ public class Web3jServiceTest {
         assertEquals(TYPE, log.getType());
         assertEquals(TOPIC, log.getTopics().get(0));
     }
- }
+
+    private class DummyFlowable<T> extends Flowable<T> {
+
+        private T value;
+
+        public DummyFlowable(T value) {
+            this.value = value;
+        }
+
+        @Override
+        protected void subscribeActual(Subscriber<? super T> s) {
+            s.onNext(value);
+        }
+    }
+}

@@ -1,5 +1,6 @@
 package net.consensys.eventeum.model;
 
+import io.reactivex.disposables.Disposable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -13,11 +14,11 @@ public class FilterSubscription {
 
     private ContractEventFilter filter;
 
-    private Subscription subscription;
+    private Disposable subscription;
 
     private BigInteger startBlock;
 
-    public FilterSubscription(ContractEventFilter filter, Subscription subscription) {
+    public FilterSubscription(ContractEventFilter filter, Disposable subscription) {
         this.filter = filter;
         this.subscription = subscription;
     }

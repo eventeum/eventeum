@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.List;
+
 /**
  * A REST endpoint for adding a removing event filters.
  *
@@ -31,10 +33,23 @@ public class ContractEventFilterEndpoint {
     public AddEventFilterResponse addEventFilter(@RequestBody ContractEventFilter eventFilter,
                                                  HttpServletResponse response) {
 
-        final ContractEventFilter registeredFilter = filterService.registerContractEventFilter(eventFilter);
+        final ContractEventFilter registeredFilter = filterService.registerContractEventFilter(eventFilter, true);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
 
         return new AddEventFilterResponse(registeredFilter.getId());
+    }
+
+    /**
+     * Returns the list of registered {@link ContractEventFilter}
+     *
+     * @param response the http response
+     */
+    @RequestMapping(method = RequestMethod.GET)
+    public List<ContractEventFilter> listEventFilters(HttpServletResponse response) {
+	List<ContractEventFilter> registeredFilters = filterService.listContractEventFilters();
+	response.setStatus(HttpServletResponse.SC_OK);
+
+        return registeredFilters;
     }
 
     /**

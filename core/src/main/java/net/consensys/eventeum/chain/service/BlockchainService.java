@@ -82,6 +82,11 @@ public interface BlockchainService {
     void connect();
 
     /**
+     * Stops listening for new blocks from the ethereum node
+     */
+    void disconnect();
+
+    /**
      * Reconnects to the Ethereum node (useful after node failure)
      */
     void reconnect();
@@ -91,4 +96,6 @@ public interface BlockchainService {
      * @return true if the service is correctly connected to the ethereum node.
      */
     boolean isConnected();
+
+    String getRevertReason(String from, String to, BigInteger blockNumber, String input);
 }

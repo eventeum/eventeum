@@ -7,6 +7,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Optional;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -24,6 +26,12 @@ public class WebsocketsNodeRecoveryIT extends NodeRecoveryTests {
     }
 
     @Test
-    public void quickSuccessionNodeFailuresRecoveryTest() throws Exception { doQuickSuccessionNodeFailuresRecoveryTest();
+    public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
+        doQuickSuccessionNodeFailuresRecoveryTest();
+    }
+
+    @Test
+    public void nodeFailureBeforeEventRegistrationRecoveryTest() throws Exception {
+        doNodeFailureBeforeEventRegistrationRecoveryTest(Optional.of(Long.valueOf(5000)));
     }
 }

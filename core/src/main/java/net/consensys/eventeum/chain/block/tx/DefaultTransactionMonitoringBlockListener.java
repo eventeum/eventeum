@@ -2,27 +2,27 @@ package net.consensys.eventeum.chain.block.tx;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
 import net.consensys.eventeum.chain.service.BlockCache;
-import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.chain.settings.Node;
+import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.service.AsyncTaskService;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
@@ -42,22 +42,19 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private TransactionDetailsFactory transactionDetailsFactory;
 
-    private EventConfirmationConfig confirmationConfig;
-
-    private AsyncTaskService asyncService;
-
     private BlockCache blockCache;
 
     private RetryTemplate retryTemplate;
 
     private Lock lock = new ReentrantLock();
 
+    private NodeSettings nodeSettings;
+
     public DefaultTransactionMonitoringBlockListener(ChainServicesContainer chainServicesContainer,
                                                      BlockchainEventBroadcaster broadcaster,
                                                      TransactionDetailsFactory transactionDetailsFactory,
-                                                     EventConfirmationConfig confirmationConfig,
-                                                     AsyncTaskService asyncService,
-                                                     BlockCache blockCache) {
+                                                     BlockCache blockCache,
+                                                     NodeSettings nodeSettings) {
         this.criteria = new ConcurrentHashMap<>();
 
         this.blockchainServices = new HashMap<>();
@@ -71,22 +68,19 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
-        this.confirmationConfig = confirmationConfig;
-        this.asyncService = asyncService;
         this.blockCache = blockCache;
+        this.nodeSettings = nodeSettings;
     }
 
     @Override
-    public void onBlock(BlockDetails blockDetails) {
-        asyncService.execute(() -> {
-            lock.lock();
+    public void onBlock(Block block) {
+        lock.lock();
 
-            try {
-                processBlock(blockDetails);
-            } finally {
-                lock.unlock();
-            }
-        });
+        try {
+            processBlock(block);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -121,27 +115,9 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         criteria.get(matchingCriteria.getNodeName()).remove(matchingCriteria);
     }
 
-    protected RetryTemplate getRetryTemplate() {
-        if (retryTemplate == null) {
-            retryTemplate = new RetryTemplate();
-
-            final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-            fixedBackOffPolicy.setBackOffPeriod(500);
-            retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-
-            final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-            retryPolicy.setMaxAttempts(3);
-            retryTemplate.setRetryPolicy(retryPolicy);
-        }
-
-        return retryTemplate;
-    }
-
-    private void processBlock(BlockDetails blockDetails) {
-        getBlock(blockDetails.getHash(), blockDetails.getNodeName())
-                .ifPresent(block -> {
-                    block.getTransactions().forEach(tx -> broadcastIfMatched(tx, blockDetails.getNodeName()));
-                });
+    private void processBlock(Block block) {
+        block.getTransactions()
+                .forEach(tx -> broadcastIfMatched(tx, block.getNodeName()));
     }
 
     private void broadcastIfMatched(Transaction tx, String nodeName, List<TransactionMatchingCriteria> criteriaToCheck) {
@@ -163,31 +139,18 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         }
     }
 
-    private Optional<Block> getBlock(String blockHash, String nodeName) {
-        return getRetryTemplate().execute((context) -> {
-            final Optional<Block> block =  getBlockchainService(nodeName).getBlock(blockHash, true);
-
-            if (!block.isPresent()) {
-                throw new BlockchainException("Block not found");
-            }
-
-            blockCache.add(block.get());
-
-            return block;
-        });
-    }
-
     private void onTransactionMatched(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
 
+        final Node node = nodeSettings.getNode(txDetails.getNodeName());
         final BlockchainService blockchainService = getBlockchainService(txDetails.getNodeName());
 
         final boolean isSuccess = isSuccessTransaction(txDetails);
 
-        if (isSuccess && shouldWaitBeforeConfirmation()) {
+        if (isSuccess && shouldWaitBeforeConfirmation(node)) {
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                    blockchainService, broadcaster, confirmationConfig, asyncService,
+                    blockchainService, broadcaster,node,
                     matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 
@@ -198,6 +161,12 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         } else {
             if (!isSuccess) {
                 txDetails.setStatus(TransactionStatus.FAILED);
+
+                String reason = getRevertReason(txDetails);
+
+                if (reason != null) {
+                    txDetails.setRevertReason(reason);
+                }
             }
 
             broadcastTransaction(txDetails, matchingCriteria);
@@ -230,8 +199,8 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         return true;
     }
 
-    private boolean shouldWaitBeforeConfirmation() {
-        return !confirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
+    private boolean shouldWaitBeforeConfirmation(Node node) {
+        return !node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
     }
 
     private BlockchainService getBlockchainService(String nodeName) {
@@ -244,5 +213,21 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
             removeMatchingCriteria(matchingCriteria);
         }
+    }
+
+
+    private String getRevertReason(TransactionDetails txDetails) {
+        Node node = nodeSettings.getNode(txDetails.getNodeName());
+
+        if (!node.getAddTransactionRevertReason()) {
+            return null;
+        }
+
+        return getBlockchainService(txDetails.getNodeName()).getRevertReason(
+                txDetails.getFrom(),
+                txDetails.getTo(),
+                Numeric.toBigInt(txDetails.getBlockNumber()),
+                txDetails.getInput()
+        );
     }
 }

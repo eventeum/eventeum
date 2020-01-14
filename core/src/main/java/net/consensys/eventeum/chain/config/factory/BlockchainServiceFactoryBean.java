@@ -7,6 +7,7 @@ import net.consensys.eventeum.chain.service.Web3jService;
 import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
+import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.beans.factory.FactoryBean;
 import org.web3j.protocol.Web3j;
 
@@ -18,11 +19,12 @@ public class BlockchainServiceFactoryBean implements FactoryBean<BlockchainServi
     private ContractEventDetailsFactory contractEventDetailsFactory;
     private EventBlockManagementService eventBlockManagementService;
     private BlockSubscriptionStrategy blockSubscriptionStrategy;
+    private AsyncTaskService asyncTaskService;
 
     @Override
     public BlockchainService getObject() throws Exception {
         return new Web3jService(node.getName(), web3j,
-                contractEventDetailsFactory, eventBlockManagementService, blockSubscriptionStrategy);
+                contractEventDetailsFactory, eventBlockManagementService, blockSubscriptionStrategy, asyncTaskService);
     }
 
     @Override

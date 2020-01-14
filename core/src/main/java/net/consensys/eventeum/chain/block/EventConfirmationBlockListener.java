@@ -1,13 +1,13 @@
 package net.consensys.eventeum.chain.block;
 
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
+import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.service.AsyncTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,65 +25,57 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
     private BlockchainEventBroadcaster eventBroadcaster;
     private BigInteger targetBlock;
     private BigInteger blocksToWaitForMissingTx;
-    private EventConfirmationConfig eventConfirmationConfig;
-    private AsyncTaskService asyncTaskService;
+    private BigInteger blocksToWait;
 
     private AtomicBoolean isInvalidated = new AtomicBoolean(false);
     private BigInteger missingTxBlockLimit;
+    private BigInteger numBlocksToWaitBeforeInvalidating;
+    private BigInteger currentNumBlocksToWaitBeforeInvalidating;
 
     public EventConfirmationBlockListener(ContractEventDetails contractEvent,
                                           BlockchainService blockchainService,
                                           BlockchainEventBroadcaster eventBroadcaster,
-                                          EventConfirmationConfig eventConfirmationConfig,
-                                          AsyncTaskService asyncTaskService) {
+                                          Node node) {
         super(blockchainService);
         this.contractEvent = contractEvent;
         this.blockchainService = blockchainService;
         this.eventBroadcaster = eventBroadcaster;
-        this.asyncTaskService = asyncTaskService;
 
         final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
-        this.targetBlock = currentBlock.add(eventConfirmationConfig.getBlocksToWaitForConfirmation());
-        this.blocksToWaitForMissingTx = eventConfirmationConfig.getBlocksToWaitForMissingTx();
+        this.blocksToWait = node.getBlocksToWaitForConfirmation();
+        this.targetBlock = currentBlock.add(blocksToWait);
+        this.blocksToWaitForMissingTx = node.getBlocksToWaitForMissingTx();
+        this.numBlocksToWaitBeforeInvalidating = node.getBlocksToWaitBeforeInvalidating();
     }
 
     @Override
-    public void onBlock(BlockDetails blockDetails) {
-        //Needs to be called asynchronously, otherwise websocket is blocked
-        asyncTaskService.execute(() -> {
+    public void onBlock(Block block) {
             final TransactionReceipt receipt = blockchainService.getTransactionReceipt(contractEvent.getTransactionHash());
 
             if (receipt == null) {
                 //Tx has disappeared...we've probably forked
                 //Tx should be included in block on new fork soon
-                handleMissingTransaction(blockDetails);
+                handleMissingTransaction(block);
                 return;
             }
 
             final Optional<Log> log = getCorrespondingLog(receipt);
 
             if (log.isPresent()) {
-                checkEventStatus(blockDetails.getNumber(), log.get());
+                checkEventStatus(block, log.get());
             } else {
-                processInvalidatedEvent();
+                processInvalidatedEvent(block);
             }
-        });
     }
 
-    private void checkEventStatus(BigInteger currentBlockNumber, Log log) {
+    private void checkEventStatus(Block block, Log log) {
         if (isEventAnOrphan(log)) {
-            processInvalidatedEvent();
-        } else if (currentBlockNumber.compareTo(targetBlock) >= 0) {
+            processInvalidatedEvent(block);
+        } else if (block.getNumber().compareTo(targetBlock) >= 0) {
             LOG.debug("Target block reached for event: {}", contractEvent.getId());
             broadcastEventConfirmed();
             unregister();
         }
-    }
-
-    private void processInvalidatedEvent() {
-        broadcastEventInvalidated();
-        isInvalidated.set(true);
-        unregister();
     }
 
     private boolean isEventAnOrphan(Log log) {
@@ -131,11 +123,25 @@ public class EventConfirmationBlockListener extends SelfUnregisteringBlockListen
                 .findFirst();
     }
 
-    private void handleMissingTransaction(BlockDetails blockDetails) {
-        if (missingTxBlockLimit == null) {
-            missingTxBlockLimit = blockDetails.getNumber().add(blocksToWaitForMissingTx);
-        } else if (blockDetails.getNumber().compareTo(missingTxBlockLimit) > 0) {
-            processInvalidatedEvent();
+    private void processInvalidatedEvent(Block block) {
+        if (currentNumBlocksToWaitBeforeInvalidating == null) {
+            currentNumBlocksToWaitBeforeInvalidating = block.getNumber().add(numBlocksToWaitBeforeInvalidating);
+        } else if (block.getNumber().compareTo(currentNumBlocksToWaitBeforeInvalidating) > 0) {
+            unRegisterEventListener();
         }
+    }
+
+    private void handleMissingTransaction(Block block) {
+        if (missingTxBlockLimit == null) {
+            missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
+        } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
+            unRegisterEventListener();
+        }
+    }
+
+    private void unRegisterEventListener() {
+        broadcastEventInvalidated();
+        isInvalidated.set(true);
+        unregister();
     }
 }

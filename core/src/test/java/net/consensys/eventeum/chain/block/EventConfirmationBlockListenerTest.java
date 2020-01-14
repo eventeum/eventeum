@@ -1,10 +1,10 @@
 package net.consensys.eventeum.chain.block;
 
-import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Log;
-import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
@@ -22,6 +22,7 @@ public class EventConfirmationBlockListenerTest {
 
     private static final BigInteger BLOCKS_TO_WAIT = BigInteger.valueOf(10);
     private static final BigInteger BLOCKS_TO_WAIT_MISSING = BigInteger.valueOf(100);
+    private static final BigInteger BLOCKS_TO_WAIT_BEFORE_INVALIDATING = BigInteger.valueOf(1);
     private static final String EVENT_BLOCK_HASH =
             "0x368ce0ee3afdf1bd73d7e6912f899f31b14b9656e1a3164400ba4587df192c1d";
     private static final BigInteger EVENT_BLOCK_NUMBER = BigInteger.valueOf(1000);
@@ -35,7 +36,6 @@ public class EventConfirmationBlockListenerTest {
     private BlockchainService mockBlockchainService;
     private BlockchainEventBroadcaster mockEventBroadcaster;
     private TransactionReceipt mockTransactionReceipt;
-    private AsyncTaskService asyncTaskService = new DummyAsyncTaskService();
     private Log mockLog;
 
     @Before
@@ -59,11 +59,14 @@ public class EventConfirmationBlockListenerTest {
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(EVENT_BLOCK_NUMBER);
         when(mockBlockchainService.getTransactionReceipt(EVENT_TX_HASH)).thenReturn(mockTransactionReceipt);
 
-        final EventConfirmationConfig eventConfirmationConfig =
-                new EventConfirmationConfig(BLOCKS_TO_WAIT, BLOCKS_TO_WAIT_MISSING);
+        Node node =
+                new Node();
+        node.setBlocksToWaitForConfirmation(BLOCKS_TO_WAIT);
+        node.setBlocksToWaitForMissingTx(BLOCKS_TO_WAIT_MISSING);
+        node.setBlocksToWaitBeforeInvalidating(BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
 
         underTest = new EventConfirmationBlockListener(mockEventDetails,
-                mockBlockchainService, mockEventBroadcaster, eventConfirmationConfig, asyncTaskService);
+                mockBlockchainService, mockEventBroadcaster, node);
     }
 
     @Test
@@ -78,6 +81,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdLogRemoved() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -86,6 +91,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdBlockHashChanged() {
         wireLog(true, EVENT_BLOCK_HASH + "changed", EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -94,6 +101,8 @@ public class EventConfirmationBlockListenerTest {
     public void testOnBlockWhenUnderBlockThresholdNoMatchingLog() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX.add(BigInteger.ONE));
         underTest.onBlock(createBlockDetails(1002));
+        underTest.onBlock(createBlockDetails(1003));
+        underTest.onBlock(createBlockDetails(1004));
 
         expectInvalidation();
     }
@@ -112,6 +121,7 @@ public class EventConfirmationBlockListenerTest {
 
         underTest.onBlock(createBlockDetails(1005));
         underTest.onBlock(createBlockDetails(1103));
+
         expectNoBroadcast();
     }
 
@@ -121,14 +131,15 @@ public class EventConfirmationBlockListenerTest {
 
         underTest.onBlock(createBlockDetails(1005));
         underTest.onBlock(createBlockDetails(1106));
+
         expectInvalidation();
     }
 
-    private BlockDetails createBlockDetails(int blockNumber) {
-        final BlockDetails blockDetails = mock(BlockDetails.class);
-        when(blockDetails.getNumber()).thenReturn(BigInteger.valueOf(blockNumber));
+    private Block createBlockDetails(int blockNumber) {
+        final Block block = mock(Block.class);
+        when(block.getNumber()).thenReturn(BigInteger.valueOf(blockNumber));
 
-        return blockDetails;
+        return block;
     }
 
     private void wireLog() {

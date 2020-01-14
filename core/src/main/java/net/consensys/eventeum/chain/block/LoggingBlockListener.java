@@ -1,5 +1,6 @@
 package net.consensys.eventeum.chain.block;
 
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class LoggingBlockListener implements BlockListener {
     private static final Logger logger = LoggerFactory.getLogger(LoggingBlockListener.class);
 
     @Override
-    public void onBlock(BlockDetails blockDetails) {
-        logger.info(String.format("New block mined. Hash: %s, Number: %s", blockDetails.getHash(), blockDetails.getNumber()));
+    public void onBlock(Block block) {
+        logger.info(String.format("New block mined. Hash: %s, Number: %s", block.getHash(), block.getNumber()));
     }
 }

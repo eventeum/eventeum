@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.web3j.crypto.Hash;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,6 +64,17 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
         //This errors if id is not a valid UUID
         UUID.fromString(registeredFilter.getId());
+    }
+
+    @Test
+    public void testListEventFilters() {
+        final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
+
+        registerEventFilter(filter);
+
+	List<ContractEventFilter> contractEventFilters = listEventFilters();
+
+	assertEquals(1, contractEventFilters.size());
     }
 
     @Test
