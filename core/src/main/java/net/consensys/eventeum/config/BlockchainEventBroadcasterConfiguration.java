@@ -10,6 +10,7 @@ import net.consensys.eventeum.integration.broadcast.blockchain.*;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -57,7 +58,7 @@ public class BlockchainEventBroadcasterConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name=BROADCASTER_PROPERTY, havingValue="HTTP")
-    public BlockchainEventBroadcaster httpBlockchainEventBroadcaster(HttpBroadcasterSettings settings, RetryTemplate retryTemplate) {
+    public BlockchainEventBroadcaster httpBlockchainEventBroadcaster(HttpBroadcasterSettings settings, @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
         final BlockchainEventBroadcaster broadcaster =
                 new HttpBlockchainEventBroadcaster(settings, retryTemplate);
 
