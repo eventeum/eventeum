@@ -208,26 +208,31 @@ public class DefaultSubscriptionService implements SubscriptionService {
     }
 
     private ContractEventFilter doRegisterContractEventFilter(ContractEventFilter filter, boolean broadcast) {
-        populateIdIfMissing(filter);
+        try {
+	    populateIdIfMissing(filter);
 
-        if (!isFilterRegistered(filter)) {
-            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
+	    if (!isFilterRegistered(filter)) {
+		final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
 
-            if (filter.getStartBlock() == null && sub != null) {
-                filter.setStartBlock(sub.getStartBlock());
-            }
+		if (filter.getStartBlock() == null && sub != null) {
+		    filter.setStartBlock(sub.getStartBlock());
+		}
 
-            saveContractEventFilter(filter);
+		saveContractEventFilter(filter);
 
-            if (broadcast) {
-                broadcastContractEventFilterAdded(filter);
-            }
+		if (broadcast) {
+		    broadcastContractEventFilterAdded(filter);
+		}
 
-            return filter;
-        } else {
-            log.info("Already registered contract event filter with id: " + filter.getId());
-            return getFilterSubscription(filter.getId()).getFilter();
-        }
+		return filter;
+	    } else {
+		log.info("Already registered contract event filter with id: " + filter.getId());
+		return getFilterSubscription(filter.getId()).getFilter();
+	    }
+	} catch (Exception e) {
+	    log.error("Error registering filter " + filter.getId(), e);
+	    throw e;
+	}
     }
 
     private void subscribeToNewBlockEvents(
