@@ -27,7 +27,7 @@ An Ethereum event listener that bridges your smart contract events and backend m
 * [Pulsar](https://pulsar.apache.org)
 
 
-At rabbit you can configure the following extra values
+For RabbitMQ, you can configure the following extra values
 
 * rabbitmq.blockNotification. true|false
 * rabbitmq.routingKey.contractEvents
