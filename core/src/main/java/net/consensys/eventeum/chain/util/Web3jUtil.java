@@ -54,6 +54,7 @@ public class Web3jUtil {
         typeMappings.put(ParameterType.build(BYTE), new TypeMapping(new TypeReference<Bytes1>() {}, Bytes1.class));
         typeMappings.put(ParameterType.build(BYTE + "[]"), new TypeMapping(
                 new TypeReference<DynamicArray<Bytes1>>() {}, DynamicArray.class));
+        typeMappings.put(ParameterType.build(BYTES), new TypeMapping(new TypeReference<DynamicBytes>() {}, DynamicBytes.class));
         typeMappings.put(ParameterType.build(ADDRESS), new TypeMapping(new TypeReference<Address>() {}, Address.class));
         typeMappings.put(ParameterType.build(ADDRESS + "[]"), new TypeMapping(
                 new TypeReference<DynamicArray<Address>>() {}, DynamicArray.class));
