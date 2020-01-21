@@ -52,6 +52,7 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         registerBytesConverters("bytes", 1, 32);
 
         typeConverters.put("byte", this::convertBytesType);
+        typeConverters.put("bytes", this::convertBytesType);
         typeConverters.put("bool", (type) -> new NumberParameter(type.getTypeAsString(),
                 (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO));
         typeConverters.put("string",
