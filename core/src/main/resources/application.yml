@@ -22,6 +22,512 @@ ethereum:
   healthcheck:
     pollInterval: 2000
 
+eventFilters:
+  - id: Exchanged
+    contractAddress: "0xC8FD77490A12F46709BffbCC0FCe35740Da8D860"
+    eventSpecification:
+      eventName: Exchanged
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: exchanger
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: sellAmount
+        - position: 1
+          type: UINT256
+          name: buyAmount
+        - position: 2
+          type: BOOL
+          name: soldGold
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: UpdateFrequencySet
+    contractAddress: "0xC8FD77490A12F46709BffbCC0FCe35740Da8D860"
+    eventSpecification:
+      eventName: UpdateFrequencySet
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: updateFrequency
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: MinimumReportsSet
+    contractAddress: "0xC8FD77490A12F46709BffbCC0FCe35740Da8D860"
+    eventSpecification:
+      eventName: MinimumReportsSet
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: minimumReports
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: SpreadSet
+    contractAddress: "0xC8FD77490A12F46709BffbCC0FCe35740Da8D860"
+    eventSpecification:
+      eventName: SpreadSet
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: spread
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ReserveFractionSet
+    contractAddress: "0xC8FD77490A12F46709BffbCC0FCe35740Da8D860"
+    eventSpecification:
+      eventName: ReserveFractionSet
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: reserveFraction
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: StableTokenSet
+    contractAddress: "0xC8FD77490A12F46709BffbCC0FCe35740Da8D860"
+    eventSpecification:
+      eventName: StableTokenSet
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: stable
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: Transfer
+    contractAddress: "0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829"
+    eventSpecification:
+      eventName: Transfer
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: from
+        - position: 1
+          type: UINT256
+          name: to
+      nonIndexedParameterDefinitions:
+        - position: 2
+          type: UINT256
+          name: amount
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: TransferComment
+    contractAddress: "0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829"
+    eventSpecification:
+      eventName: TransferComment
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: STRING
+          name: comment
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: InflationFactorUpdated
+    contractAddress: "0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829"
+    eventSpecification:
+      eventName: InflationFactorUpdated
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: factor
+        - position: 1
+          type: UINT256
+          name: lastUpdated
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: InflationParametersUpdated
+    contractAddress: "0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829"
+    eventSpecification:
+      eventName: InflationParametersUpdated
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: rate
+        - position: 1
+          type: UINT256
+          name: updatePeriod
+        - position: 2
+          type: UINT256
+          name: lastUpdated
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: OracleAdded
+    contractAddress: "0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA"
+    eventSpecification:
+      eventName: OracleAdded
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: token
+        - position: 1
+          type: ADDRESS
+          name: oracleAddress
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: OracleRemoved
+    contractAddress: "0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA"
+    eventSpecification:
+      eventName: OracleRemoved
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: token
+        - position: 1
+          type: ADDRESS
+          name: oracleAddress
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: OracleReported
+    contractAddress: "0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA"
+    eventSpecification:
+      eventName: OracleReported
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: token
+        - position: 1
+          type: ADDRESS
+          name: oracle
+        - position: 2
+          type: ADDRESS
+          name: timestamp
+        - position: 3
+          type: ADDRESS
+          name: numerator
+        - position: 4
+          type: UINT256
+          name: denominator
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: OracleReportedRemoved
+    contractAddress: "0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA"
+    eventSpecification:
+      eventName: OracleReportedRemoved
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: token
+        - position: 1
+          type: ADDRESS
+          name: oracle
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: MedianUpdated
+    contractAddress: "0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA"
+    eventSpecification:
+      eventName: MedianUpdated
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: token
+        - position: 1
+          type: UINT256
+          name: numerator
+        - position: 2
+          type: UINT256
+          name: denominator
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ReportExpirySet
+    contractAddress: "0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA"
+    eventSpecification:
+      eventName: ReportExpirySet
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: reportExpiry
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: TobinTaxStalenessThresholdSet
+    contractAddress: "0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2"
+    eventSpecification:
+      eventName: TobinTaxStalenessThresholdSet
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+          name: value
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: TokenAdded
+    contractAddress: "0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2"
+    eventSpecification:
+      eventName: TokenAdded
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: token
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: TokenRemoved
+    contractAddress: "0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2"
+    eventSpecification:
+      eventName: TokenRemoved
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: token
+        - position: 1
+          type: UINT256
+          name: index
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: SpenderAdded
+    contractAddress: "0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2"
+    eventSpecification:
+      eventName: SpenderAdded
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: spender
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: SpenderRemoved
+    contractAddress: "0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2"
+    eventSpecification:
+      eventName: SpenderRemoved
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: spender
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: TransferEscrow
+    contractAddress: "0xaaeC0C52945a85d0ED9C831B01c62906a9c3f286"
+    eventSpecification:
+      eventName: Transfer
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: from
+        - position: 1
+          type: BYTES32
+          name: identifier
+        - position: 2
+          type: ADDRESS
+          name: token
+      nonIndexedParameterDefinitions:
+        - position: 3
+          type: UINT256
+          name: value
+        - position: 4
+          type: ADDRESS
+          name: paymentId
+        - position: 5
+          type: UINT256
+          name: minAttestations
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: Withdrawal
+    contractAddress: "0xaaeC0C52945a85d0ED9C831B01c62906a9c3f286"
+    eventSpecification:
+      eventName: Withdrawal
+      indexedParameterDefinitions:
+        - position: 0
+          type: BYTES32
+          name: identifier
+        - position: 1
+          type: ADDRESS
+          name: to
+        - position: 2
+          type: ADDRESS
+          name: token
+      nonIndexedParameterDefinitions:
+        - position: 3
+          type: UINT256
+          name: value
+        - position: 4
+          type: ADDRESS
+          name: paymentId
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: Revocation
+    contractAddress: "0xaaeC0C52945a85d0ED9C831B01c62906a9c3f286"
+    eventSpecification:
+      eventName: Revocation
+      indexedParameterDefinitions:
+        - position: 0
+          type: BYTES32
+          name: identifier
+        - position: 1
+          type: ADDRESS
+          name: by
+        - position: 2
+          type: ADDRESS
+          name: token
+      nonIndexedParameterDefinitions:
+        - position: 3
+          type: UINT256
+          name: value
+        - position: 4
+          type: ADDRESS
+          name: paymentId
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: AccountCreated
+    contractAddress: "0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55"
+    eventSpecification:
+      eventName: AccountCreated
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: account
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ValidatorSignerAuthorized
+    contractAddress: "0x62492A644A588FD904270BeD06ad52B9abfEA1aE"
+    eventSpecification:
+      eventName: ValidatorSignerAuthorized
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: account
+      nonIndexedParameterDefinitions:
+        - position: 1
+          type: ADDRESS
+          name: signer
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: VoteSignerAuthorized
+    contractAddress: "0x62492A644A588FD904270BeD06ad52B9abfEA1aE"
+    eventSpecification:
+      eventName: VoteSignerAuthorized
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: account
+      nonIndexedParameterDefinitions:
+        - position: 1
+          type: ADDRESS
+          name: signer
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: AttestationSignerAuthorized
+    contractAddress: "0x62492A644A588FD904270BeD06ad52B9abfEA1aE"
+    eventSpecification:
+      eventName: AttestationSignerAuthorized
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: account
+      nonIndexedParameterDefinitions:
+        - position: 1
+          type: ADDRESS
+          name: signer
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ValidatorAffiliated
+    contractAddress: "0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55"
+    eventSpecification:
+      eventName: ValidatorAffiliated
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: validator
+        - position: 1
+          type: ADDRESS
+          name: group
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ValidatorRegistered
+    contractAddress: "0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55"
+    eventSpecification:
+      eventName: ValidatorRegistered
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: validator
+      nonIndexedParameterDefinitions:
+        - position: 1
+          type: BYTES32
+          name: ecdsaPublicKey
+        - position: 2
+          type: BYTES32
+          name: blsPublicKey
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ValidatorGroupRegistered
+    contractAddress: "0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55"
+    eventSpecification:
+      eventName: ValidatorGroupRegistered
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: group
+      nonIndexedParameterDefinitions:
+        - position: 1
+          type: UINT256
+          name: commission
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ValidatorScoreUpdated
+    contractAddress: "0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55"
+    eventSpecification:
+      eventName: ValidatorScoreUpdated
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: validator
+      nonIndexedParameterDefinitions:
+        - position: 1
+          type: UINT256
+          name: score
+        - position: 2
+          type: UINT256
+          name: epochScore
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+  - id: ValidatorEpochPaymentDistributed
+    contractAddress: "0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55"
+    eventSpecification:
+      eventName: ValidatorEpochPaymentDistributed
+      indexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+          name: validator
+        - position: 2
+          type: ADDRESS
+          name: group
+      nonIndexedParameterDefinitions:
+        - position: 1
+          type: UINT256
+          name: validatorPayment
+        - position: 3
+          type: UINT256
+          name: groupPayment
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+
 #eventFilters:
 #  - id: RequestCreated
 #    contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
