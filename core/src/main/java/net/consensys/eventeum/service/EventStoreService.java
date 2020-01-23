@@ -15,7 +15,7 @@ public interface EventStoreService {
     /**
      * Returns the contract event with the latest block, that matches the event signature.
      *
-     * @param eventSignature The event signature
+     * @param eventSignature  The event signature
      * @param contractAddress The event contract address
      * @return The event details
      */

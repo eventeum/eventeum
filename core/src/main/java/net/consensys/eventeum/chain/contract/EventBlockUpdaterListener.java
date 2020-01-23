@@ -5,6 +5,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+
 /**
  * A contract event listener that updates the latest block number seen for the event spec.
  *

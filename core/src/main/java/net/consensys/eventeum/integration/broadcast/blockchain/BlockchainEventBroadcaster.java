@@ -1,8 +1,8 @@
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 
 /**
  * An interface for a class that broadcasts ethereum blockchain details to the wider system.
@@ -13,6 +13,7 @@ public interface BlockchainEventBroadcaster {
 
     /**
      * Broadcast details of a new block that has been mined.
+     *
      * @param block
      */
     void broadcastNewBlock(BlockDetails block);

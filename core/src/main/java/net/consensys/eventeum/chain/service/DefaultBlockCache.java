@@ -2,7 +2,6 @@ package net.consensys.eventeum.chain.service;
 
 import com.google.common.collect.EvictingQueue;
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;

@@ -1,6 +1,5 @@
 package net.consensys.eventeum.integration.eventstore;
 
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.data.domain.Page;

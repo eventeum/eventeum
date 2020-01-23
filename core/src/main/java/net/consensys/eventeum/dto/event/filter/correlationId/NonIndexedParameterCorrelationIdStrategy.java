@@ -10,7 +10,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @NoArgsConstructor
-public class NonIndexedParameterCorrelationIdStrategy extends ParameterCorrelationIdStrategy{
+public class NonIndexedParameterCorrelationIdStrategy extends ParameterCorrelationIdStrategy {
 
     public static final String TYPE = "NON_INDEXED_PARAMETER";
 

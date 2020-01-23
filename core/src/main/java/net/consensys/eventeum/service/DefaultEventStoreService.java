@@ -12,9 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @{inheritDoc}
- *
  * @author Craig Williams <craig.williams@consensys.net>
+ * @{inheritDoc}
  */
 @Component
 public class DefaultEventStoreService implements EventStoreService {

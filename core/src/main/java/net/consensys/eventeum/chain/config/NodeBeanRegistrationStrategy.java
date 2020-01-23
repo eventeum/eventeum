@@ -213,10 +213,10 @@ public class NodeBeanRegistrationStrategy {
             ConnectionPool pool = new ConnectionPool(node.getMaxIdleConnections(), node.getKeepAliveDuration(), TimeUnit.MILLISECONDS);
             OkHttpClient client = globalOkHttpClient.newBuilder()
                     .connectionPool(pool)
-                    .readTimeout(node.getReadTimeout(),TimeUnit.MILLISECONDS)
-                    .connectTimeout(node.getConnectionTimeout(),TimeUnit.MILLISECONDS)
+                    .readTimeout(node.getReadTimeout(), TimeUnit.MILLISECONDS)
+                    .connectTimeout(node.getConnectionTimeout(), TimeUnit.MILLISECONDS)
                     .build();
-            HttpService httpService = new HttpService(node.getUrl(),client,false);
+            HttpService httpService = new HttpService(node.getUrl(), client, false);
             if (authHeaders != null) {
                 httpService.addHeaders(authHeaders);
             }

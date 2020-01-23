@@ -1,6 +1,5 @@
 package net.consensys.eventeum.repository;
 
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterRepositoryFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

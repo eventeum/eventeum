@@ -6,7 +6,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 
 @AllArgsConstructor
-    public class ListenerInvokingBlockchainEventBroadcaster implements BlockchainEventBroadcaster {
+public class ListenerInvokingBlockchainEventBroadcaster implements BlockchainEventBroadcaster {
 
     private OnBlockchainEventListener listener;
 

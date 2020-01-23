@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 @Component
-public class LoggingContractEventListener implements ContractEventListener{
+public class LoggingContractEventListener implements ContractEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingContractEventListener.class);
 

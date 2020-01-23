@@ -19,10 +19,10 @@ public interface SubscriptionService {
 
     /**
      * Registers a new contract event filter.
-     *
+     * <p>
      * If the id is null, then one is assigned.
      *
-     * @param filter The filter to add.
+     * @param filter    The filter to add.
      * @param broadcast Specifies if the added filter event should be broadcast to other Eventeum instances.
      * @return The registered contract event filter
      */
@@ -30,16 +30,17 @@ public interface SubscriptionService {
 
     /**
      * Registers a new contract event filter.
-     *
+     * <p>
      * If the id is null, then one is assigned.
-     *
+     * <p>
      * Will retry indefinitely until successful
      *
-     * @param filter The filter to add.
+     * @param filter    The filter to add.
      * @param broadcast Specifies if the added filter event should be broadcast to other Eventeum instances.
      * @return The registered contract event filter
      */
     ContractEventFilter registerContractEventFilterWithRetries(ContractEventFilter filter, boolean broadcast);
+
     /**
      * List all registered contract event filters.
      *
@@ -49,7 +50,7 @@ public interface SubscriptionService {
 
     /**
      * Unregisters a previously added contract event filter.
-     *
+     * <p>
      * Broadcasts the removed filter event to any other Eventeum instances.
      *
      * @param filterId The filter id of the event to remove.
@@ -59,7 +60,7 @@ public interface SubscriptionService {
     /**
      * Unregisters a previously added contract event filter.
      *
-     * @param filterId The filter id of the event to remove.
+     * @param filterId  The filter id of the event to remove.
      * @param broadcast Specifies if the removed filter event should be broadcast to other Eventeum instances.
      */
     void unregisterContractEventFilter(String filterId, boolean broadcast) throws NotFoundException;

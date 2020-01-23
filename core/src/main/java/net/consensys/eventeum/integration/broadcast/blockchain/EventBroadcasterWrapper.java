@@ -4,7 +4,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -12,10 +11,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * {@inheritDoc}
- *
+ * <p>
  * This broadcaster also ensures that the same message is only sent once
  * (by storing sent events in a short lives cache and not sending events if a cache match is found).
- *
+ * <p>
  * The cache expiration time can be configured with the broadcaster.cache.expirationMillis property.
  *
  * @author Craig Williams <craig.williams@consensys.net>

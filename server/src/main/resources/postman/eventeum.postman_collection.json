@@ -1,0 +1,1466 @@
+{
+	"info": {
+		"_postman_id": "f41bfed6-617a-15de-b21a-1398b7dc804b",
+		"name": "eventeum",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Exchange",
+			"item": [
+				{
+					"name": "event-filter Exchanged",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"Exchanged\",\n\"contractAddress\": \"0xC8FD77490A12F46709BffbCC0FCe35740Da8D860\",\n\"eventSpecification\": {\n  \"eventName\": \"Exchanged\",\n  \"indexedParameterDefinitions\": [\n\t{\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"exchanger\"}\n  ],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"UINT256\", \"name\": \"sellAmount\"},\n    {\"position\": 2, \"type\": \"UINT256\", \"name\": \"buyAmount\"},\n    {\"position\": 3, \"type\": \"BOOL\", \"name\": \"soldGold\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter UpdateFrequencySet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"UpdateFrequencySet\",\n    \"contractAddress\": \"0xC8FD77490A12F46709BffbCC0FCe35740Da8D860\",\n    \"eventSpecification\": {\n        \"eventName\": \"UpdateFrequencySet\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"UINT256\",\n                \"name\": \"updateFrequency\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter MinimumReportsSet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"MinimumReportsSet\",\n    \"contractAddress\": \"0xC8FD77490A12F46709BffbCC0FCe35740Da8D860\",\n    \"eventSpecification\": {\n        \"eventName\": \"MinimumReportsSet\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"UINT256\",\n                \"name\": \"minimumReports\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter SpreadSet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"SpreadSet\",\n    \"contractAddress\": \"0xC8FD77490A12F46709BffbCC0FCe35740Da8D860\",\n    \"eventSpecification\": {\n        \"eventName\": \"SpreadSet\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"UINT256\",\n                \"name\": \"spread\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter ReserveFractionSet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"ReserveFractionSet\",\n    \"contractAddress\": \"0xC8FD77490A12F46709BffbCC0FCe35740Da8D860\",\n    \"eventSpecification\": {\n        \"eventName\": \"ReserveFractionSet\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"UINT256\",\n                \"name\": \"reserveFraction\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter StableTokenSet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"StableTokenSet\",\n    \"contractAddress\": \"0xC8FD77490A12F46709BffbCC0FCe35740Da8D860\",\n    \"eventSpecification\": {\n        \"eventName\": \"StableTokenSet\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"stable\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "StableToken",
+			"item": [
+				{
+					"name": "event-filter Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"Transfer\",\n\"contractAddress\": \"0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829\",\n\"eventSpecification\": {\n  \"eventName\": \"Transfer\",\n     \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"from\"},\n                  {\"position\": 1, \"type\": \"ADDRESS\", \"name\": \"to\"}\n              ],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 2, \"type\": \"UINT256\", \"name\": \"amount\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter TransferComment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Cache-Control",
+								"value": "no-cache",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"TransferComment\",\n\"contractAddress\": \"0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829\",\n\"eventSpecification\": {\n  \"eventName\": \"TransferComment\",\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 0, \"type\": \"STRING\", \"name\":\"comment\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter InflationFactorUpdated",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"InflationFactorUpdated\",\n\"contractAddress\": \"0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829\",\n\"eventSpecification\": {\n  \"eventName\": \"InflationFactorUpdated\",\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 0, \"type\": \"UINT256\", \"name\":\"factor\"},\n    {\"position\": 1, \"type\": \"UINT256\", \"name\": \"lastUpdate\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter InflationParametersUpdated",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"InflationParametersUpdated\",\n\"contractAddress\": \"0x5c7197E1147ebF98658A2a8Bc3D32BeBF1692829\",\n\"eventSpecification\": {\n  \"eventName\": \"InflationParametersUpdated\",\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 0, \"type\": \"UINT256\", \"name\":\"rate\"},\n    {\"position\": 1, \"type\": \"UINT256\", \"name\":\"updatePeriod\"},\n    {\"position\": 2, \"type\": \"UINT256\", \"name\":\"lastUpdated\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "SortedOracles",
+			"item": [
+				{
+					"name": "event-filter OracleAdded",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"OracleAdded\",\n    \"contractAddress\": \"0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA\",\n    \"eventSpecification\": {\n        \"eventName\": \"OracleAdded\",\n        \"indexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"token\"\n            },\n            {\n                \"position\": 1,\n                \"type\": \"ADDRESS\",\n                \"name\": \"oracleAddress\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter OracleRemoved",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"OracleRemoved\",\n    \"contractAddress\": \"0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA\",\n    \"eventSpecification\": {\n        \"eventName\": \"OracleRemoved\",\n        \"indexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"token\"\n            },\n            {\n                \"position\": 1,\n                \"type\": \"ADDRESS\",\n                \"name\": \"oracleAddress\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter OracleReported",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"OracleReported\",\n    \"contractAddress\": \"0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA\",\n    \"eventSpecification\": {\n        \"eventName\": \"OracleReported\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"token\"\n            },\n            {\n                \"position\": 1,\n                \"type\": \"ADDRESS\",\n                \"name\": \"oracle\"\n            },\n             {\n                \"position\": 2,\n                \"type\": \"UINT256\",\n                \"name\": \"timestamp\"\n            },\n             {\n                \"position\": 3,\n                \"type\": \"UINT256\",\n                \"name\" : \"numerator\"\n            },\n             {\n                \"position\": 4,\n                \"type\": \"UINT256\",\n                \"name\": \"denominator\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter OracleReportedRemoved",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"OracleReportedRemoved\",\n    \"contractAddress\": \"0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA\",\n    \"eventSpecification\": {\n        \"eventName\": \"OracleReportedRemoved\",\n        \"indexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"token\"\n            },\n            {\n                \"position\": 1,\n                \"type\": \"ADDRESS\",\n                \"name\": \"oracle\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter MedianUpdated",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"MedianUpdated\",\n    \"contractAddress\": \"0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA\",\n    \"eventSpecification\": {\n        \"eventName\": \"MedianUpdated\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"token\"\n            },\n            {\n                \"position\": 1,\n                \"type\": \"UINT256\",\n                \"name\": \"numerator\"\n            },\n             {\n                \"position\": 2,\n                \"type\": \"UINT256\",\n                \"name\": \"denominator\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter ReportExpirySet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"ReportExpirySet\",\n    \"contractAddress\": \"0x91061bF2F509AF76aa01F46E9F3E97577a5a80BA\",\n    \"eventSpecification\": {\n        \"eventName\": \"ReportExpirySet\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"UINT256\",\n                \"name\": \"reportExpiry\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Reserve",
+			"item": [
+				{
+					"name": "event-filter TobinTaxStalenessThresholdSet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"TobinTaxStalenessThresholdSet\",\n    \"contractAddress\": \"0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2\",\n    \"eventSpecification\": {\n        \"eventName\": \"TobinTaxStalenessThresholdSet\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"UINT256\",\n                \"name\": \"value\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter TokenAdded",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"TokenAdded\",\n    \"contractAddress\": \"0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2\",\n    \"eventSpecification\": {\n        \"eventName\": \"TokenAdded\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"token\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter TokenRemoved",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"TokenRemoved\",\n    \"contractAddress\": \"0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2\",\n    \"eventSpecification\": {\n        \"eventName\": \"TokenRemoved\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"token\"\n            },\n            {\n                \"position\": 1,\n                \"type\": \"UINT256\",\n                \"name\": \"index\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter SpenderAdded",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"SpenderAdded\",\n    \"contractAddress\": \"0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2\",\n    \"eventSpecification\": {\n        \"eventName\": \"SpenderAdded\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"spender\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter SpenderRemoved",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"SpenderRemoved\",\n    \"contractAddress\": \"0x1726428A6D575FdC9C7C3B7bac9f2247a5649Bf2\",\n    \"eventSpecification\": {\n        \"eventName\": \"SpenderRemoved\",\n        \"nonIndexedParameterDefinitions\": [\n            {\n                \"position\": 0,\n                \"type\": \"ADDRESS\",\n                \"name\": \"spender\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Escrow",
+			"item": [
+				{
+					"name": "event-filter TransferEscrow",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"TransferEscrow\",\n\"contractAddress\": \"0xaaeC0C52945a85d0ED9C831B01c62906a9c3f286\",\n\"eventSpecification\": {\n  \"eventName\": \"Transfer\",\n     \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\",\"name\":\"from\"},\n                  {\"position\": 1, \"type\": \"BYTES32\", \"name\": \"identifier\"},\n                  {\"position\": 2, \"type\": \"ADDRESS\", \"name\": \"token\"}\n              ],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 3, \"type\": \"UINT256\", \"name\": \"value\"},\n    {\"position\": 4, \"type\": \"ADDRESS\", \"name\": \"paymentId\"},\n    {\"position\": 5, \"type\": \"UINT256\", \"name\": \"minAttestations\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter Withdrawal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"Withdrawal\",\n\"contractAddress\": \"0xaaeC0C52945a85d0ED9C831B01c62906a9c3f286\",\n\"eventSpecification\": {\n  \"eventName\": \"Withdrawal\",\n     \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"BYTES32\",\"name\":\"identifier\"},\n                  {\"position\": 1, \"type\": \"ADDRESS\", \"name\":\"to\"},\n                  {\"position\": 2, \"type\": \"ADDRESS\", \"name\":\"token\"}\n              ],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 3, \"type\": \"UINT256\", \"name\":\"value\"},\n    {\"position\": 4, \"type\": \"ADDRESS\", \"name\":\"paymentId\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "event-filter Revocation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							},
+							{
+								"key": "Cache-Control",
+								"type": "text",
+								"value": "no-cache"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"Revocation\",\n\"contractAddress\": \"0xaaeC0C52945a85d0ED9C831B01c62906a9c3f286\",\n\"eventSpecification\": {\n  \"eventName\": \"Revocation\",\n     \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"BYTES32\", \"name\":\"identifier\"},\n                  {\"position\": 1, \"type\": \"ADDRESS\", \"name\":\"by\"},\n                  {\"position\": 2, \"type\": \"ADDRESS\", \"name\":\"token\"}\n              ],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 3, \"type\": \"UINT256\", \"name\":\"value\"},\n    {\"position\": 4, \"type\": \"ADDRESS\", \"name\":\"paymentId\"}] }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Account",
+			"item": [
+				{
+					"name": "AccountCreated",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"accountCreated\",\n\"contractAddress\": \"0x62492A644A588FD904270BeD06ad52B9abfEA1aE\",\n\"eventSpecification\": {\n  \"eventName\": \"AccountCreated\",\n   \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"account\"}]}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ValidatorSignerAuthorized",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"validatorSignerAuthorized\",\n\"contractAddress\": \"0x62492A644A588FD904270BeD06ad52B9abfEA1aE\",\n\"eventSpecification\": {\n  \"eventName\": \"ValidatorSignerAuthorized\",\n   \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"account\"}],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"ADDRESS\", \"name\": \"signer\"}] }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "VoteSignerAuthorized",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"voteSignerAuthorized\",\n\"contractAddress\": \"0x62492A644A588FD904270BeD06ad52B9abfEA1aE\",\n\"eventSpecification\": {\n  \"eventName\": \"VoteSignerAuthorized\",\n    \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"account\"}],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"ADDRESS\", \"name\": \"signer\"}] }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AttestationSignerAuthorized",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"attestationSignerAuthorized\",\n\"contractAddress\": \"0x62492A644A588FD904270BeD06ad52B9abfEA1aE\",\n\"eventSpecification\": {\n  \"eventName\": \"AttestationSignerAuthorized\",\n    \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"account\"}],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"ADDRESS\", \"name\": \"signer\"}] }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Validator",
+			"item": [
+				{
+					"name": "ValidatorAffiliated",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"ValidatorAffiliated\",\n\"contractAddress\": \"0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55\",\n\"eventSpecification\": {\n  \"eventName\": \"ValidatorAffiliated\",\n   \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"validator\"},\n                  {\"position\": 1, \"type\": \"ADDRESS\", \"name\": \"group\"}]}\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ValidatorRegistered",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"ValidatorRegistered\",\n\"contractAddress\": \"0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55\",\n\"eventSpecification\": {\n  \"eventName\": \"ValidatorRegistered\",\n    \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"validator\"}],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"BYTES\", \"name\": \"ecdsaPublicKey\"},\n    {\"position\": 2, \"type\": \"BYTES\", \"name\": \"blsPublicKey\"}] }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ValidatorGroupRegistered",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"ValidatorGroupRegistered\",\n\"contractAddress\": \"0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55\",\n\"eventSpecification\": {\n  \"eventName\": \"ValidatorGroupRegistered\",\n    \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"group\"}],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"UINT256\", \"name\": \"commission\"}] }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ValidatorScoreUpdated",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"ValidatorScoreUpdated\",\n\"contractAddress\": \"0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55\",\n\"eventSpecification\": {\n  \"eventName\": \"ValidatorScoreUpdated\",\n    \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"validator\"}],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"UINT256\", \"name\": \"score\"},\n    {\"position\": 2, \"type\": \"UINT256\", \"name\": \"epochScore\"}] }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ValidatorEpochPaymentDistributed",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cache-Control",
+								"value": "no-cache"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Postman-Token",
+								"value": "616712a3-bf11-bbf5-b4ac-b82835779d51"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"id\": \"ValidatorEpochPaymentDistributed\",\n\"contractAddress\": \"0xC03c31f91b893317C786AB6b6A2a6BdD61db9c55\",\n\"eventSpecification\": {\n  \"eventName\": \"ValidatorEpochPaymentDistributed\",\n    \"indexedParameterDefinitions\": [\n                  {\"position\": 0, \"type\": \"ADDRESS\", \"name\": \"validator\"},\n                  {\"position\": 2, \"type\": \"ADDRESS\", \"name\": \"group\"}],\n  \"nonIndexedParameterDefinitions\": [\n    {\"position\": 1, \"type\": \"UINT256\", \"name\": \"validatorPayment\"},\n    {\"position\": 3, \"type\": \"UINT256\", \"name\": \"groupPayment\"}] }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8060/api/rest/v1/event-filter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8060",
+							"path": [
+								"api",
+								"rest",
+								"v1",
+								"event-filter"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "transaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"TO_ADDRESS\" ,\n\t\t    \"transactionIdentifierValue\": \"\n\t\t    \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t0x4582aa91b3ab1bf069c6a6c70dd7aee0a8c56a71\",\n    \"nodeName\": \"default\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8060/api/rest/v1/transaction",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8060",
+					"path": [
+						"api",
+						"rest",
+						"v1",
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -100,7 +100,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
      */
     @Override
     public List<ContractEventFilter> listContractEventFilters() {
-      return getFilterSubscriptions().stream().map((FilterSubscription f) -> f.getFilter()).collect(Collectors.toList());
+        return getFilterSubscriptions().stream().map((FilterSubscription f) -> f.getFilter()).collect(Collectors.toList());
     }
 
     /**

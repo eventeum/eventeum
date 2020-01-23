@@ -60,6 +60,7 @@ class OnMultiExpressionCondition extends SpringBootCondition {
 
     /**
      * Allow user to provide bare expression with no '#{}' wrapper.
+     *
      * @param expression source expression
      * @return wrapped expression
      */

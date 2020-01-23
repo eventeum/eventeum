@@ -150,7 +150,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
             blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                    blockchainService, broadcaster,node,
+                    blockchainService, broadcaster, node,
                     matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 

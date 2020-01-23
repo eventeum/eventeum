@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * The default implementation of an EventBlockManagementService, which "Manages the latest block
  * that has been seen to a specific event specification."
- *
+ * <p>
  * This implementation stores the latest blocks for each event filter in memory, but delegates to
  * the event store if an entry is not found in memory.
  *
@@ -101,7 +101,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
         final BlockchainService blockchainService =
                 chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
 
-        BigInteger blockNumber =  blockchainService.getCurrentBlockNumber();
+        BigInteger blockNumber = blockchainService.getCurrentBlockNumber();
 
         log.debug("Block number for event {} not found in memory or database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
 

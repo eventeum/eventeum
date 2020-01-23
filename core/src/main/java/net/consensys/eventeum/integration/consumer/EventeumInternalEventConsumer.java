@@ -1,7 +1,6 @@
 package net.consensys.eventeum.integration.consumer;
 
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.EventeumMessage;
+import org.apache.avro.generic.GenericRecord;
 
 /**
  * A consumer for internal Eventeum messages sent from a different instance.
@@ -9,5 +8,5 @@ import net.consensys.eventeum.dto.message.EventeumMessage;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 public interface EventeumInternalEventConsumer {
-    void onMessage(EventeumMessage<?> message);
+    void onMessage(GenericRecord message);
 }

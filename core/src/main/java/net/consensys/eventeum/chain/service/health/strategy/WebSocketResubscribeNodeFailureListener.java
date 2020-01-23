@@ -10,7 +10,7 @@ import org.web3j.protocol.websocket.WebSocketClient;
  * An NodeFailureListener that reconnects to the websocket server on failure, and
  * reconnects the blockchain service and resubscribes to all
  * active event subscriptions on recovery.
- *
+ * <p>
  * Note:  All subscriptions are unregistered before being reregistered.
  *
  * @author Craig Williams <craig.williams@consensys.net>

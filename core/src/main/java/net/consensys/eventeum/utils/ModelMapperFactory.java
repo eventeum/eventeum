@@ -11,7 +11,8 @@ public class ModelMapperFactory {
 
     private static ModelMapperFactory INSTANCE;
 
-    private ModelMapperFactory() {}
+    private ModelMapperFactory() {
+    }
 
     public static ModelMapperFactory getInstance() {
         if (INSTANCE == null) {

@@ -5,14 +5,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdStrategy;
-
-import java.math.BigInteger;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.math.BigInteger;
 
 /**
  * Represents the details of a contract event filter.

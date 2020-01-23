@@ -1,0 +1,144 @@
+{
+  "namespace": "net.consensys.eventeum",
+  "type": "record",
+  "name": "ContractEvent",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "details",
+      "type": {
+        "type": "record",
+        "name": "ContractEventDetails",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "filterId",
+            "type": "string"
+          },
+          {
+            "name": "nodeName",
+            "type": "string"
+          },
+          {
+            "name": "indexedParameters",
+            "type": {
+              "type": "array",
+              "items": [
+                {
+                  "namespace": "net.consensys.eventeum",
+                  "name": "StringParameter",
+                  "type": "record",
+                  "fields": [
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "type",
+                      "type": "string"
+                    },
+                    {
+                      "name": "value",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "namespace": "net.consensys.eventeum",
+                  "name": "NumberParameter",
+                  "type": "record",
+                  "fields": [
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "type",
+                      "type": "string"
+                    },
+                    {
+                      "name": "value",
+                      "type": "string",
+                      "java-class": "java.math.BigInteger"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+
+          {
+            "name": "nonIndexedParameters",
+            "type": {
+              "type": "array",
+              "items": [
+                "StringParameter",
+                "NumberParameter"
+              ]
+            }
+          },
+          {
+            "name": "transactionHash",
+            "type": "string"
+          },
+          {
+            "name": "logIndex",
+            "type": "string",
+            "java-class": "java.math.BigInteger"
+          },
+          {
+            "name": "blockNumber",
+            "type": "string",
+            "java-class": "java.math.BigInteger"
+          },
+          {
+            "name": "blockHash",
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "type": {
+              "name": "ContractEventStatus",
+              "type": "enum",
+              "symbols": [
+                "UNCONFIRMED",
+                "CONFIRMED",
+                "INVALIDATED"
+              ]
+            }
+          },
+          {
+            "name": "eventSpecificationSignature",
+            "type": "string"
+          },
+          {
+            "name": "networkName",
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "retries",
+      "type": "int"
+    }
+  ]
+}

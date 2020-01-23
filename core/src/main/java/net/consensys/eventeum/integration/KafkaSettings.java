@@ -63,6 +63,9 @@ public class KafkaSettings {
     @Value("${kafka.sasl.password:}")
     private String password;
 
+    @Value("${kafka.schemaRegistry.url}")
+    private String schemaRegistryUrl;
+
     private String groupId;
 
     public KafkaSettings(@Value("${server.port}") String port) {

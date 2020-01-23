@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @ConditionalOnProperty(name = "eventStore.type", havingValue = "REST")
-@FeignClient(name="eventStore", url="${eventStore.url}")
+@FeignClient(name = "eventStore", url = "${eventStore.url}")
 public interface EventStoreClient {
 
-    @RequestMapping(method = RequestMethod.GET, value="${eventStore.eventPath}")
+    @RequestMapping(method = RequestMethod.GET, value = "${eventStore.eventPath}")
     Page<ContractEventDetails> getContractEvents(
             @RequestParam(value = "page") int pageNo,
             @RequestParam(value = "size") int pageSize,
@@ -23,6 +23,6 @@ public interface EventStoreClient {
             @RequestParam(value = "signature") String signature,
             @RequestParam(value = "contractAddress") String contractAddress);
 
-    @RequestMapping(method = RequestMethod.GET, value="${eventStore.latestBlockPath}")
+    @RequestMapping(method = RequestMethod.GET, value = "${eventStore.latestBlockPath}")
     LatestBlock getLatestBlock(@RequestParam(value = "nodeName") String nodeName);
 }

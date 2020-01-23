@@ -1,15 +1,12 @@
 package net.consensys.eventeum.dto.event.filter;
 
-import java.io.Serializable;
-
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import java.io.Serializable;
 
 @Embeddable
 @Data

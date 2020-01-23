@@ -9,6 +9,7 @@ import net.consensys.eventeum.integration.consumer.EventeumInternalEventConsumer
 import net.consensys.eventeum.integration.consumer.KafkaFilterEventConsumer;
 import net.consensys.eventeum.service.SubscriptionService;
 import net.consensys.eventeum.service.TransactionMonitoringService;
+import org.apache.avro.generic.GenericRecord;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 /**
  * Spring bean configuration for the FilterEvent broadcaster and consumer.
- *
+ * <p>
  * If broadcaster.multiInstance is set to true, then register a Kafka broadcaster,
  * otherwise register a dummy broadcaster that does nothing.
  *
@@ -26,14 +27,14 @@ import org.springframework.kafka.core.KafkaTemplate;
 public class EventeumEventConfiguration {
 
     @Bean
-    @ConditionalOnProperty(name="broadcaster.multiInstance", havingValue="true")
-    public EventeumEventBroadcaster kafkaFilterEventBroadcaster(KafkaTemplate<String, EventeumMessage> kafkaTemplate,
+    @ConditionalOnProperty(name = "broadcaster.multiInstance", havingValue = "true")
+    public EventeumEventBroadcaster kafkaFilterEventBroadcaster(KafkaTemplate<String, GenericRecord> kafkaTemplate,
                                                                 KafkaSettings kafkaSettings) {
         return new KafkaEventeumEventBroadcaster(kafkaTemplate, kafkaSettings);
     }
 
     @Bean
-    @ConditionalOnProperty(name="broadcaster.multiInstance", havingValue="true")
+    @ConditionalOnProperty(name = "broadcaster.multiInstance", havingValue = "true")
     public EventeumInternalEventConsumer kafkaFilterEventConsumer(SubscriptionService subscriptionService,
                                                                   TransactionMonitoringService transactionMonitoringService,
                                                                   KafkaSettings kafkaSettings) {
@@ -41,7 +42,7 @@ public class EventeumEventConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(name="broadcaster.multiInstance", havingValue="false")
+    @ConditionalOnProperty(name = "broadcaster.multiInstance", havingValue = "false")
     public EventeumEventBroadcaster doNothingFilterEventBroadcaster() {
         return new DoNothingEventeumEventBroadcaster();
     }

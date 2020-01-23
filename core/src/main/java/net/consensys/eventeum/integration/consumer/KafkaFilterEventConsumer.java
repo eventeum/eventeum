@@ -1,12 +1,16 @@
 package net.consensys.eventeum.integration.consumer;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.message.*;
+import net.consensys.eventeum.dto.message.ContractEventFilterAdded;
+import net.consensys.eventeum.dto.message.ContractEventFilterRemoved;
+import net.consensys.eventeum.dto.message.TransactionMonitorAdded;
+import net.consensys.eventeum.dto.message.TransactionMonitorRemoved;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
+import net.consensys.eventeum.service.SubscriptionService;
 import net.consensys.eventeum.service.TransactionMonitoringService;
 import net.consensys.eventeum.service.exception.NotFoundException;
-import net.consensys.eventeum.service.SubscriptionService;
+import org.apache.avro.generic.GenericRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +22,7 @@ import java.util.function.Consumer;
 
 /**
  * A FilterEventConsumer that consumes ContractFilterEvents messages from a Kafka topic.
- *
+ * <p>
  * The topic to be consumed from can be configured via the kafka.topic.contractEvents property.
  *
  * @author Craig Williams <craig.williams@consensys.net>
@@ -27,7 +31,7 @@ public class KafkaFilterEventConsumer implements EventeumInternalEventConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaFilterEventConsumer.class);
 
-    private final Map<String, Consumer<EventeumMessage>> messageConsumers;
+    private final Map<String, Consumer<GenericRecord>> messageConsumers;
 
     @Autowired
     public KafkaFilterEventConsumer(SubscriptionService subscriptionService,
@@ -37,13 +41,13 @@ public class KafkaFilterEventConsumer implements EventeumInternalEventConsumer {
         messageConsumers = new HashMap<>();
         messageConsumers.put(ContractEventFilterAdded.TYPE, (message) -> {
             subscriptionService.registerContractEventFilter(
-                    (ContractEventFilter) message.getDetails(), false);
+                    (ContractEventFilter) message.get("details"), false);
         });
 
         messageConsumers.put(ContractEventFilterRemoved.TYPE, (message) -> {
             try {
                 subscriptionService.unregisterContractEventFilter(
-                        ((ContractEventFilter) message.getDetails()).getId(), false);
+                        ((ContractEventFilter) message.get("details")).getId(), false);
             } catch (NotFoundException e) {
                 logger.debug("Received filter removed message but filter doesn't exist. (We probably sent message)");
             }
@@ -51,13 +55,13 @@ public class KafkaFilterEventConsumer implements EventeumInternalEventConsumer {
 
         messageConsumers.put(TransactionMonitorAdded.TYPE, (message) -> {
             transactionMonitoringService.registerTransactionsToMonitor(
-                    (TransactionMonitoringSpec) message.getDetails(), false);
+                    (TransactionMonitoringSpec) message.get("details"), false);
         });
 
         messageConsumers.put(TransactionMonitorRemoved.TYPE, (message) -> {
             try {
                 transactionMonitoringService.stopMonitoringTransactions(
-                        ((TransactionMonitoringSpec) message.getDetails()).getId(), false);
+                        ((TransactionMonitoringSpec) message.get("details")).getId(), false);
             } catch (NotFoundException e) {
                 logger.debug("Received transaction monitor removed message but monitor doesn't exist. (We probably sent message)");
             }
@@ -67,11 +71,11 @@ public class KafkaFilterEventConsumer implements EventeumInternalEventConsumer {
     @Override
     @KafkaListener(topics = "#{eventeumKafkaSettings.eventeumEventsTopic}", groupId = "#{eventeumKafkaSettings.groupId}",
             containerFactory = "eventeumKafkaListenerContainerFactory")
-    public void onMessage(EventeumMessage message) {
-        final Consumer<EventeumMessage> consumer = messageConsumers.get(message.getType());
+    public void onMessage(GenericRecord message) {
+        final Consumer<GenericRecord> consumer = messageConsumers.get(message.get("type"));
 
         if (consumer == null) {
-            logger.error(String.format("No consumer for message type %s!", message.getType()));
+            logger.error(String.format("No consumer for message type %s!", message.get("type")));
             return;
         }
 

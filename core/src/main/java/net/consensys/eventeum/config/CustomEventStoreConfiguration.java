@@ -34,6 +34,6 @@ public class CustomEventStoreConfiguration {
                                                       BlockDetailsFactory blockDetailsFactory,
                                                       EventeumValueMonitor valueMonitor,
                                                       ChainServicesContainer chainServicesContainer) {
-        return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory,  valueMonitor, chainServicesContainer);
+        return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory, valueMonitor, chainServicesContainer);
     }
 }
