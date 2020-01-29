@@ -91,8 +91,9 @@ public class NodeHealthCheckService {
 
             final NodeStatus statusAtStart = nodeStatus;
 
-            if (isNodeConnected()) {
+            if (isNodeConnected() && isSubscribed()) {
                 log.trace("Node connected");
+
                 if (nodeStatus == NodeStatus.DOWN) {
                     log.info("Node {} has come back up.", blockchainService.getNodeName());
 
@@ -101,7 +102,7 @@ public class NodeHealthCheckService {
                 }
 
             } else {
-                log.error("Node {} is down!!", blockchainService.getNodeName());
+                log.error("Node {} is down or unsubscribed!!", blockchainService.getNodeName());
                 nodeStatus = NodeStatus.DOWN;
 
                 if (statusAtStart != NodeStatus.DOWN) {
