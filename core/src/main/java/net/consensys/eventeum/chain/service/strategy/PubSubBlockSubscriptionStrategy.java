@@ -62,24 +62,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
 
         if (latestBlock.isPresent()) {
 
-            BigInteger latestBlockNumber = latestBlock.get().getNumber();
-
-            try {
-
-                BigInteger currentBlockNumber = web3j.ethBlockNumber().send().getBlockNumber();
-
-                BigInteger cappedBlockNumber = BigInteger.valueOf(0);
-
-                if (currentBlockNumber.subtract(latestBlockNumber).compareTo(maxUnsyncedBlocksForFilter) == 1) {
-
-                    cappedBlockNumber = currentBlockNumber.subtract(maxUnsyncedBlocksForFilter);
-                    log.info("BLOCK: Max Unsynced Blocks gap reached ´{} to {} . Applied {}. Max {}", latestBlockNumber, currentBlockNumber, cappedBlockNumber, maxUnsyncedBlocksForFilter);
-                    latestBlockNumber = cappedBlockNumber;
-                }
-            }
-            catch (Exception e){
-                log.error("Could not get current block to possibly cap range",e);
-            }
+            BigInteger latestBlockNumber = getCappedBlockNumber(latestBlock);
 
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlockNumber);
 
