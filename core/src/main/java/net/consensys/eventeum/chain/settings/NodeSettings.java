@@ -45,6 +45,8 @@ public class NodeSettings {
 
     private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION = "12";
 
+    private static final BigInteger DEFAULT_MAX_UNSYNCED_BLOCKS_FOR_FILTER_ATTRIBUTE = BigInteger.valueOf(0);
+
     private static final String ATTRIBUTE_PREFIX = "ethereum";
 
     private static final String NODE_ATTRIBUTE_PREFIX = ATTRIBUTE_PREFIX + ".nodes[%s]";
@@ -85,6 +87,8 @@ public class NodeSettings {
 
     private static final String BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "numBlocksToWaitForMissingTx";
 
+    private static final String MAX_UNSYNCED_BLOCKS_FOR_FILTER_ATTRIBUTE = "maxUnsyncedBlocksForFilter";
+
     private static final String GLOBAL_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWaitForMissingTx";
 
     private HashMap<String, Node> nodes;
@@ -123,7 +127,8 @@ public class NodeSettings {
                     getNodeHealthcheckIntervalProperty(environment, index),
                     getBlocksToWaitForConfirmationProperty(environment,index),
                     getBlocksToWaitBeforeInvalidatingProperty(environment,index),
-                    getBlocksToWaitForMissingTxProperty(environment,index)
+                    getBlocksToWaitForMissingTxProperty(environment,index),
+		    getMaxUnsyncedBlocksForFilterProperty(environment, index)
             );
 
             nodes.put(nodeName, node);
@@ -235,6 +240,17 @@ public class NodeSettings {
         }
 
         return BigInteger.valueOf(Long.valueOf(blocksToWaitBeforeInvalidating));
+    }
+
+    private BigInteger getMaxUnsyncedBlocksForFilterProperty(Environment environment, int index) {
+        String maxUnsyncedBlocksForFilter =
+                getProperty(environment, buildNodeAttribute(MAX_UNSYNCED_BLOCKS_FOR_FILTER_ATTRIBUTE, index));
+
+        if (maxUnsyncedBlocksForFilter == null) {
+            return DEFAULT_MAX_UNSYNCED_BLOCKS_FOR_FILTER_ATTRIBUTE;
+        }
+
+        return BigInteger.valueOf(Long.valueOf(maxUnsyncedBlocksForFilter));
     }
 
     private BigInteger getBlocksToWaitForMissingTxProperty(Environment environment, int index) {

@@ -31,13 +31,15 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
+@Slf4j
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
     public PollingBlockSubscriptionStrategy(
-            Web3j web3j, String nodeName, EventStoreService eventStoreService, AsyncTaskService asyncService) {
-        super(web3j, nodeName, eventStoreService, asyncService);
+            Web3j web3j, String nodeName, EventStoreService eventStoreService, BigInteger maxUnsyncedBlocksForFilter,AsyncTaskService asyncService) {
+        super(web3j, nodeName, eventStoreService, maxUnsyncedBlocksForFilter, asyncService);
     }
 
     @Override
@@ -46,7 +48,9 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
         final Optional<LatestBlock> latestBlock = getLatestBlock();
 
         if (latestBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
+            BigInteger latestBlockNumber = getCappedBlockNumber(latestBlock);
+
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlockNumber);
 
             blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true)
                     .subscribe(block -> { triggerListeners(block); });

@@ -46,15 +46,19 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected EventStoreService eventStoreService;
     protected String nodeName;
     protected AsyncTaskService asyncService;
+    protected  BigInteger maxUnsyncedBlocksForFilter;
 
     public AbstractBlockSubscriptionStrategy(Web3j web3j,
                                              String nodeName,
                                              EventStoreService eventStoreService,
+                                             BigInteger maxUnsyncedBlocksForFilter ,
                                              AsyncTaskService asyncService) {
         this.web3j = web3j;
         this.nodeName = nodeName;
         this.eventStoreService = eventStoreService;
         this.asyncService = asyncService;
+        this.maxUnsyncedBlocksForFilter = maxUnsyncedBlocksForFilter;
+
     }
 
     @Override
@@ -103,6 +107,28 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected Optional<LatestBlock> getLatestBlock() {
         return eventStoreService.getLatestBlock(nodeName);
+    }
+
+    protected BigInteger getCappedBlockNumber(Optional<LatestBlock> latestBlock) {
+        BigInteger latestBlockNumber = latestBlock.get().getNumber();
+
+        try {
+
+            BigInteger currentBlockNumber = web3j.ethBlockNumber().send().getBlockNumber();
+
+            BigInteger cappedBlockNumber = BigInteger.valueOf(0);
+
+            if (!BigInteger.valueOf(0).equals(maxUnsyncedBlocksForFilter) && currentBlockNumber.subtract(latestBlockNumber).compareTo(maxUnsyncedBlocksForFilter) == 1) {
+                cappedBlockNumber = currentBlockNumber.subtract(maxUnsyncedBlocksForFilter);
+                log.info("BLOCK: Max Unsynced Blocks gap reached ´{} to {} . Applied {}. Max {}", latestBlockNumber, currentBlockNumber, cappedBlockNumber, maxUnsyncedBlocksForFilter);
+                latestBlockNumber = cappedBlockNumber;
+            }
+        }
+        catch(Exception e){
+            log.error("Could not get current block to possibly cap range",e);
+        }
+
+        return latestBlockNumber;
     }
 
     abstract Block convertToEventeumBlock(T blockObject);

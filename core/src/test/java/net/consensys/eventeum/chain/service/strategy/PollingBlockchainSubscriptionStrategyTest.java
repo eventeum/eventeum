@@ -26,7 +26,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.EthBlockNumber;
 
 import java.math.BigInteger;
 
@@ -73,7 +75,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
         when(mockWeb3j.blockFlowable(true)).thenReturn(blockPublishProcessor);
 
         underTest = new PollingBlockSubscriptionStrategy(mockWeb3j,
-                NODE_NAME, mockEventStoreService, new DummyAsyncTaskService());
+                NODE_NAME, mockEventStoreService, BigInteger.valueOf(0), new DummyAsyncTaskService());
     }
 
     @Test
@@ -82,6 +84,23 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
         assertEquals(false, returnedSubscription.isDisposed());
     }
+
+    /*
+    @Test
+    public void testSubscribeCapped() {
+
+        // mock current EthBlockNumber
+        Request<?, EthBlockNumber> ethBlockNumberRequest = mock(Request.class);
+        EthBlockNumber mockEthBlockNumbter = mock(EthBlockNumber.class);
+	    when(mockEthBlockNumbter.getBlockNumber()).thenReturn(BigInteger.valueOf(123));
+	    when(ethBlockNumberRequest.send()).thenReturn(mockEthBlockNumbter);
+        when(mockWeb3j.ethBlockNumber()).thenReturn(ethBlockNumberRequest);
+
+        final Disposable returnedSubscription = underTest.subscribe();
+
+        assertEquals(false, returnedSubscription.isDisposed());
+    }
+    */
 
     @Test
     public void testUnsubscribe() {
