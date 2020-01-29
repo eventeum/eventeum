@@ -217,7 +217,7 @@ Eventeum exposes a REST api that can be used to register events that should be s
 
 Currently supported parameter types: `UINT8-256`, `INT8-256`, `ADDRESS`, `BYTES1-32`, `STRING`, `BOOL`.
 
-Dynamically sized arrays are also supported by prefixing the type with `[]`
+Dynamically sized arrays are also supported by suffixing the type with `[]`, e.g. `UINT256[]`.
 
 **correlationIdStrategy**:
 
