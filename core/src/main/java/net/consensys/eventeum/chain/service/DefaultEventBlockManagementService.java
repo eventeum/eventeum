@@ -43,10 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class DefaultEventBlockManagementService implements EventBlockManagementService {
 
-
-    @Value("#{new Boolean('${ethereum.syncFromLatest}')}")
-    private Boolean syncFromLatest = false;
-
     private AbstractMap<String, AbstractMap> latestBlocks = new ConcurrentHashMap<>();
 
     private ChainServicesContainer chainServicesContainer;
@@ -87,17 +83,6 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
     public BigInteger getLatestBlockForEvent(ContractEventFilter eventFilter) {
         final String eventSignature = Web3jUtil.getSignature(eventFilter.getEventSpecification());
         final AbstractMap<String, BigInteger> events = latestBlocks.get(eventFilter.getContractAddress());
-
-	if (this.syncFromLatest) {
-	  final BlockchainService blockchainService =
-		  chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
-
-	  BigInteger blockNumber =  blockchainService.getCurrentBlockNumber();
-
-	  log.debug("Block number for event {} not found in memory or database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
-
-	  return blockNumber;
-	}
 
         if (events != null) {
             final BigInteger latestBlockNumber = events.get(eventSignature);
