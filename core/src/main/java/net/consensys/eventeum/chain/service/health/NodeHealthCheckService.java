@@ -96,9 +96,6 @@ public class NodeHealthCheckService {
 
                 if (nodeStatus == NodeStatus.DOWN) {
                     log.info("Node {} has come back up.", blockchainService.getNodeName());
-
-                    //We've come back up
-                    doResubscribe();
                 }
 
             } else {
