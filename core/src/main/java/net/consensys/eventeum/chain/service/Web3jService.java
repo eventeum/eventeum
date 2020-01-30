@@ -125,7 +125,8 @@ public class Web3jService implements BlockchainService {
                 log.debug("Dispatching log: {}", theLog);
 
                 //Check signatures match
-                if (ethFilter.getTopics().get(0) == null
+                if (ethFilter.getTopics() == null
+                        || ethFilter.getTopics().isEmpty()
                         || ethFilter.getTopics().get(0).getValue().equals(theLog.getTopics().get(0))) {
                     eventListener.onEvent(
                             eventDetailsFactory.createEventDetails(eventFilter, theLog));
