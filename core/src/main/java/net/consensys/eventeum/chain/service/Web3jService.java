@@ -109,12 +109,13 @@ public class Web3jService implements BlockchainService {
 
         final BigInteger startBlock = getStartBlockForEventFilter(eventFilter);
 
-        EthFilter ethFilter = new EthFilter(
+        final EthFilter ethFilter = new EthFilter(
                 new DefaultBlockParameterNumber(startBlock),
                 DefaultBlockParameterName.LATEST, eventFilter.getContractAddress());
 
+
         if (eventFilter.getEventSpecification() != null) {
-            ethFilter = ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
+            ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
         }
 
         final Flowable<Log> flowable = web3j.ethLogFlowable(ethFilter);
@@ -122,8 +123,15 @@ public class Web3jService implements BlockchainService {
         final Disposable sub = flowable.subscribe(theLog -> {
             asyncTaskService.execute(ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, eventFilter.getNode()), () -> {
                 log.debug("Dispatching log: {}", theLog);
-                eventListener.onEvent(
-                        eventDetailsFactory.createEventDetails(eventFilter, theLog));
+
+                //Check signatures match
+                if (ethFilter.getTopics().get(0) == null
+                        || ethFilter.getTopics().get(0).getValue().equals(theLog.getTopics().get(0))) {
+                    eventListener.onEvent(
+                            eventDetailsFactory.createEventDetails(eventFilter, theLog));
+                } else {
+                    log.warn("Filter topic doesn't match  log!");
+                }
             });
         });
 
