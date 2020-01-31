@@ -87,13 +87,13 @@ kafka:
     partitions: 1
     replicationSets: 1
 
-spring:
-  rabbitmq:
-    host: ${RABBIT_ADDRESS:localhost}
-
-rabbitmq:
-  exchange: ${RABBIT_EXCHANGE:ThisIsAExchange}
-  routingKeyPrefix: ${RABBIT_ROUTING:thisIsRoutingKey}
+# spring:
+#   rabbitmq:
+#     host: ${RABBIT_ADDRESS:localhost}
+# 
+# rabbitmq:
+#   exchange: ${RABBIT_EXCHANGE:ThisIsAExchange}
+#   routingKeyPrefix: ${RABBIT_ROUTING:thisIsRoutingKey}
 
 management:
   endpoints:
