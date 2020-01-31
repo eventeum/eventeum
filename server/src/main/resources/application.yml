@@ -6,7 +6,7 @@ server:
 logging:
   level:
     org.springframework.web: ERROR
-    net.consensys: DEBUG
+    net.consensys: INFO
     net.consensys.configs: ERROR
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
