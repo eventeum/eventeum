@@ -1,61 +1,85 @@
-# Eventeum
-An Ethereum event listener that bridges your smart contract events and backend microservices. Eventeum listens for specified event emissions from the Ethereum network, and broadcasts these events into your middleware layer. This provides a distinct separation of concerns and means that your microservices do not have to subscribe to events directly to an Ethereum node.
+# Keyko Web3 Monitoring Agent
 
-[![Gitter](https://badges.gitter.im/eventeum/community.svg)](https://gitter.im/eventeum/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+Table of Contents
+=================
 
-**Master**
+   * [Keyko Web3 Monitoring Agent](#keyko-web3-monitoring-agent)
+      * [Features](#features)
+      * [Getting Started](#getting-started)
+         * [Prerequisites](#prerequisites)
+         * [Build](#build)
+         * [Run](#run)
+      * [Configuring Nodes](#configuring-nodes)
+      * [Registering Events](#registering-events)
+         * [REST](#rest)
+         * [Hard Coded Configuration](#hard-coded-configuration)
+      * [Un-Registering Events](#un-registering-events)
+         * [REST](#rest-1)
+      * [Listing Registered Events](#listing-registered-events)
+         * [REST](#rest-2)
+      * [Registering a Transaction Monitor](#registering-a-transaction-monitor)
+         * [REST](#rest-3)
+      * [Un-Registering a Transaction Monitor](#un-registering-a-transaction-monitor)
+         * [REST](#rest-4)
+      * [Broadcast Messages Format](#broadcast-messages-format)
+         * [Contract Events](#contract-events)
+         * [Block Events](#block-events)
+         * [Transaction Events](#transaction-events)
+            * [Contract Creation Transaction](#contract-creation-transaction)
+            * [Transaction Event Statuses](#transaction-event-statuses)
+      * [Configuration](#configuration)
+         * [INFURA Support Configuration](#infura-support-configuration)
+      * [Advanced](#advanced)
+         * [Correlation Id Strategies (Kafka Broadcasting)](#correlation-id-strategies-kafka-broadcasting)
+         * [Event Store](#event-store)
+            * [MongoDB](#mongodb)
+            * [REST Service](#rest-service)
+      * [Metrics: Prometheus](#metrics-prometheus)
+      * [Known Caveats / Issues](#known-caveats--issues)
+      * [Attribution](#attribution)
+      * [License](#license)
 
-[![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/master.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/master)
 
-**Development**
+---
 
-[![CircleCI](https://circleci.com/gh/ConsenSys/eventeum/tree/development.svg?style=svg)](https://circleci.com/gh/ConsenSys/eventeum/tree/development)
+Keyko Web3 Monitoring agent provides an intelligent software able to ingest blockchain information into Kafka. 
+It listens for specified event emissions from the Ethereum network, and broadcasts these events into your middleware layer. 
+It's also prepared to ingest network blocks and transactions. 
+This provides a distinct separation of concerns and means that your microservices do not have to subscribe to events directly to an Ethereum node.
+
+![W3M Agent Build](https://github.com/keyko-io/eventeum/workflows/W3M%20Agent%20Build/badge.svg)
 
 ## Features
-* Dynamically Configurable - Eventeum exposes a REST api so that smart contract events can be dynamically subscribed / unsubscribed.
 
-* Highly Available - Eventeum instances communicate with each other to ensure that every instance is subscribed to the same collection of smart contract events.
+* Dynamically Configurable - It exposes a REST api so that smart contract events can be dynamically subscribed / unsubscribed.
+
+* Highly Available - The instances communicate with each other to ensure that every instance is subscribed to the same collection of smart contract events.
 
 * Resilient - Node failures are detected and event subscriptions will continue from the failure block once the node comes back online.
 
-* Fork Tolerance - Eventeum can be configured to wait a certain amount of blocks before an event is considered 'Confirmed'.  If a fork occurs during this time, a message is broadcast to the network, allowing your services to react to the forked/removed event.
-
-## Supported Broadcast Mechanisms
-* Kafka
-* HTTP Post
-* [RabbitMQ](https://www.rabbitmq.com/)
-* [Pulsar](https://pulsar.apache.org)
-
-
-At rabbit you can configure the following extra values
-
-* rabbitmq.blockNotification. true|false
-* rabbitmq.routingKey.contractEvents
-* rabbitmq.routingKey.blockEvents
-* rabbitmq.routingKey.transactionEvents
-
-## Eventeum Tutorials
-- [Listening to Ethereum Events](https://kauri.io/article/90dc8d911f1c43008c7d0dfa20bde298/listening-to-ethereum-events-with-eventeum)
-- [Listening for Ethereum Transactions](https://kauri.io/article/3e31587c96a74d24b5cdd17952d983e9/v1/listening-for-ethereum-transactions-with-eventeum)
-- [Using Eventeum to Build a Java Smart Contract Data Cache](https://kauri.io/article/fe81ee9612eb4e5a9ab72790ef24283d/using-eventeum-to-build-a-java-smart-contract-data-cache)
+* Fork Tolerance - It can be configured to wait a certain amount of blocks before an event is considered 'Confirmed'.  If a fork occurs during this time, a message is broadcast to the network, allowing your services to react to the forked/removed event.
 
 ## Getting Started
-Follow the instructions below in order to run Eventeum on your local machine for development and testing purposes.
+
+Follow the instructions below in order to run the agent on your local machine for development and testing purposes.
 
 ### Prerequisites
-* Java 8
+
+* Java 11
 * Maven
 * Docker (optional)
 
 ### Build
+
 1. After checking out the code, navigate to the root directory
 ```
-$ cd /path/to/eventeum/
+cd /path/to/agent/directory/
 ```
 
 2. Compile, test and package the project
+
 ```
-$ mvn clean package
+mvn clean package
 ```
 
 ### Run
@@ -65,14 +89,13 @@ a. If you have a running instance of MongoDB, Kafka, Zookeeper and an Ethereum n
 **Executable JAR:**
 
 ```sh
-$ cd server
-$ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
-$ export ETHEREUM_NODE_URL=http://<node-host:port>
-$ export ZOOKEEPER_ADDRESS=<zookeeper-host:port>
-$ export KAFKA_ADDRESSES=<kafka-host:port>
-$ export RABBIT_ADDRESSES=<rabbit-host:port>
+cd server
+export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
+export ETHEREUM_NODE_URL=http://<node-host:port>
+export ZOOKEEPER_ADDRESS=<zookeeper-host:port>
+export KAFKA_ADDRESSES=<kafka-host:port>
 
-$ java -jar target/eventeum-server.jar
+java -jar target/monitoring-agent-server.jar
 ```
 
 **Docker:**
@@ -85,7 +108,6 @@ $ export SPRING_DATA_MONGODB_HOST=<mongodb-host:port>
 $ export ETHEREUM_NODE_URL=http://<node-host:port>
 $ export ZOOKEEPER_ADDRESS=<zookeeper-host:port>
 $ export KAFKA_ADDRESSES=<kafka-host:port>
-$ export RABBIT_ADDRESSES=<rabbit-host:port>
 
 $ docker run -p 8060:8060 kauri/eventeum
 ```
@@ -98,21 +120,8 @@ $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
 ```
 
-## SQL Support
-Eventeum now supports a SQL database as well as the default MongoDB.  To use a SQL database (only SQL Server has currently been tested but others should be supported with the correct config), set the `database.type` property to `SQL` and ensure you have all required additional properties in your properties file. See `config-examples/application-template-sqlserver.yml` for a sample SQLServer configuration.
-
-### Upgrading to 0.8.0
-
-When upgrading Eventeum to **0.8.0**, changes in the schema are required. In order to perform the migration follow these steps:
-
-1. Stop all Evnteum instances
-2. Backup your database
-3. Apply the [tools/potgres-upgrade-to-v0.8.0.sql](tools/postgres-upgrade-to-v0.8.0.sql) sql script. Note that this script is written for Postgres, syntax may differ if using other database system.
-4. Restart Eventeum instances
-
-
 ## Configuring Nodes
-Listening for events from multiple different nodes is supported in Eventeum, and these nodes can be configured in the properties file.
+Listening for events from multiple different nodes is supported, and these nodes can be configured in the properties file.
 
 ```yaml
 ethereum:
@@ -163,7 +172,8 @@ ethereum:
 ## Registering Events
 
 ### REST
-Eventeum exposes a REST api that can be used to register events that should be subscribed to / broadcast.
+
+The server exposes a REST api that can be used to register events that should be subscribed to / broadcast.
 
 -   **URL:** `/api/rest/v1/event-filter`    
 -   **Method:** `POST`
@@ -324,7 +334,7 @@ eventFilters:
 
 ## Registering a Transaction Monitor
 
-From version 0.6.2, eventeum supports monitoring and broadcasting transactions. The matching criteria can be:
+It supports monitoring and broadcasting transactions. The matching criteria can be:
 
 - HASH: Monitor a single transaction hash. The monitoring will be removed once is notified.
 - FROM_ADDRESS: Monitor all transactions that are sent from a specific address.
@@ -487,7 +497,7 @@ A broadcast transaction event can have the following statuses:
 | FAILED | The transaction has been mined but the tx execution failed |
 
 ## Configuration
-Eventeum can either be configured by:
+It can either be configured by:
 
 1. storing an `application.yml` next to the built JAR (copy one from `config-examples`). This overlays the defaults from `server/src/main/resources/application.yml`.
 2. Setting the associated environment variables.
@@ -621,63 +631,6 @@ The implemented REST service should have a pageable endpoint which accepts a req
 | EVENTSTORE_URL  | http://localhost:8081/api/rest/v1 | The REST endpoint url |
 | EVENTSTORE_EVENTPATH | /event | The path to the event REST endpoint |
 
-### Integrating Eventeum into Third Party Spring Application
-
-Eventeum can be embedded into an existing Spring Application via an annotation.
-
-#### Steps to Embed
-
-1. Add the Consensys Kauri bintray repository into your `pom.xml` file:
-
-```xml
-<repositories>
-  <repository>
-    <id>bintray-consensys-kauri</id>
-    <url>https://consensys.bintray.com/kauri</url>
-  </repository>
-</repositories>
-```
-
-2. Add the eventeum-core dependency to your `pom.xml` file:
-
-```xml
-<dependency>
-  <groupId>net.consensys.eventeum</groupId>
-  <artifactId>eventeum-core</artifactId>
-  <version>*LATEST_EVENTEUM_VERSION*</version>
-</dependency>
-```
-
-3. Within your Application class or a `@Configuration` annotated class, add the `@EnableEventeum` annotation.
-
-#### Health check endpoint
-
-Eventeum offers a healthcheck url where you can ask for the status of the systems you are using. It will look like:
-
-```
-{
-   "status":"UP",
-   "details":{
-      "rabbit":{
-         "status":"UP",
-         "details":{
-            "version":"3.7.13"
-         }
-      },
-      "mongo":{
-         "status":"UP",
-         "details":{
-            "version":"4.0.8"
-         }
-      }
-   }
-}
-```
-
-Returning this information it is very easy to create alerts over the status of the system.
-
-The endpoint is: GET /monitoring/health
-
 ## Metrics: Prometheus
 
 Eventeum includes a prometheus metrics export endpoint.
@@ -697,4 +650,26 @@ The endpoint is: GET /monitoring/prometheus
 
 
 ## Known Caveats / Issues
-* In multi-instance mode, where there is more than one Eventeum instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.
+* In multi-instance mode, where there is more than one instance in a system, your services are required to handle duplicate messages gracefully, as each instance will broadcast the same events.
+
+## Attribution
+
+This project is based in the fantastic [Consensys Eventeum](https://github.com/consensys/eventeum) project. In Keyko we started from Eventeum 0.7 adding some additional functionalities.
+
+## License
+
+```
+Copyright 2020 Keyko GmbH
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```

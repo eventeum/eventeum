@@ -1,5 +1,5 @@
 {
-  "namespace": "net.consensys.eventeum",
+  "namespace": "io.keyko.monitoring.agent.core",
   "type": "record",
   "name": "BlockEvent",
   "fields": [

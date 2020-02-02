@@ -1,0 +1,137 @@
+package io.keyko.monitoring.agent.server.eventeumserver.integrationtest;
+
+import io.keyko.monitoring.agent.core.chain.util.Web3jUtil;
+import io.keyko.monitoring.agent.core.dto.event.ContractEventDetails;
+import io.keyko.monitoring.agent.core.dto.event.ContractEventStatus;
+import io.keyko.monitoring.agent.core.dto.event.filter.ContractEventFilter;
+import io.keyko.monitoring.agent.core.dto.event.filter.ContractEventSpecification;
+import io.keyko.monitoring.agent.core.dto.event.filter.ParameterDefinition;
+import io.keyko.monitoring.agent.core.dto.event.filter.ParameterType;
+import io.keyko.monitoring.agent.core.dto.event.parameter.NumberParameter;
+import io.keyko.monitoring.agent.core.dto.event.parameter.StringParameter;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.web3j.abi.EventEncoder;
+import org.web3j.crypto.Keys;
+import org.web3j.utils.Numeric;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
+
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@TestPropertySource(locations="classpath:application-test-db.properties")
+public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
+
+    @Test
+    public void testBytes16Broadcast() throws Exception {
+        final EventEmitter eventEmitter = deployEventEmitterContract();
+
+        final ContractEventSpecification eventSpec = new ContractEventSpecification();
+        eventSpec.setIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES16"),"")));
+
+        eventSpec.setNonIndexedParameterDefinitions(
+                Arrays.asList(new ParameterDefinition(1, ParameterType.build("BYTES16"),"")));
+
+        eventSpec.setEventName(eventEmitter.DUMMYEVENTBYTES16_EVENT.getName());
+
+        registerEventFilter(createFilter(null , eventEmitter.getContractAddress(), eventSpec));
+
+        //Generate random 16 byte value
+        byte[] rndBytes = randomBytesValue(16);
+
+        eventEmitter.emitEventBytes16(rndBytes).send();
+
+        waitForContractEventMessages(1);
+
+        final ContractEventDetails event = getBroadcastContractEvents().get(0);
+        final String valueHex = Numeric.toHexString(rndBytes, 0, 16, true);
+
+        assertEquals(valueHex, event.getNonIndexedParameters().get(0).getValueString());
+        assertEquals(valueHex, event.getIndexedParameters().get(0).getValueString());
+    }
+
+    @Test
+    public void testEventWithAdditionalTypes() throws Exception {
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        byte[] byteValue = randomBytesValue(1);
+        final ContractEventFilter registeredFilter =
+                registerDummyEventAdditionalTypesFilter(emitter.getContractAddress());
+        emitter.emitEventAdditionalTypes(BigInteger.ONE, BigInteger.TEN, byteValue).send();
+
+        waitForContractEventMessages(1);
+
+        assertEquals(1, getBroadcastContractEvents().size());
+
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+
+        assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
+        assertEquals(ContractEventStatus.UNCONFIRMED, eventDetails.getStatus());
+
+        assertEquals(BigInteger.ONE, eventDetails.getIndexedParameters().get(0).getValue());
+        assertEquals(BigInteger.TEN, eventDetails.getIndexedParameters().get(1).getValue());
+
+        final ArrayList<StringParameter> addressArray =
+                (ArrayList<StringParameter>) eventDetails.getNonIndexedParameters().get(0).getValue();
+
+        assertEquals(Keys.toChecksumAddress(CREDS.getAddress()), addressArray.get(0).getValue());
+        assertEquals(Keys.toChecksumAddress(emitter.getContractAddress()), addressArray.get(1).getValue());
+
+        assertEquals(Numeric.toHexString(byteValue, 0, 1, true),
+                eventDetails.getNonIndexedParameters().get(1).getValueString());
+
+        assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
+
+        assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
+                eventDetails.getEventSpecificationSignature());
+    }
+
+    private ContractEventFilter registerDummyEventAdditionalTypesFilter(String contractAddress) {
+        return registerEventFilter(createDummyEventAdditionalTypesFilter(contractAddress));
+    }
+
+    private ContractEventFilter createDummyEventAdditionalTypesFilter(String contractAddress) {
+
+        final ContractEventSpecification eventSpec = new ContractEventSpecification();
+
+        eventSpec.setIndexedParameterDefinitions(
+                Arrays.asList(
+                        new ParameterDefinition(0, ParameterType.build("UINT16"),""),
+                        new ParameterDefinition(1, ParameterType.build("INT64"),"")
+
+                )
+        );
+        eventSpec.setNonIndexedParameterDefinitions(
+                Arrays.asList(
+                        new ParameterDefinition(2, ParameterType.build("ADDRESS[]"),""),
+                        new ParameterDefinition(3, ParameterType.build("BYTE"),""),
+                        new ParameterDefinition(4, ParameterType.build("BOOL"),"")
+                )
+        );
+
+        eventSpec.setEventName("DummyEventAdditionalTypes");
+
+        return createFilter(getDummyEventFilterId(), contractAddress, eventSpec);
+    }
+
+    private byte[] randomBytesValue(int size) {
+        //Generate random 16 byte value
+        final Random random = new Random();
+        byte[] rndBytes = new byte[size];
+        random.nextBytes(rndBytes);
+
+        return rndBytes;
+    }
+}

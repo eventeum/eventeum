@@ -1,5 +1,5 @@
 {
-  "namespace": "net.consensys.eventeum",
+  "namespace": "io.keyko.monitoring.agent.core",
   "type": "record",
   "name": "EventBlock",
   "fields": [
@@ -35,7 +35,7 @@
               "type": "array",
               "items": [
                 {
-                  "namespace": "net.consensys.eventeum",
+                  "namespace": "io.keyko.monitoring.agent.core",
                   "name": "StringParameter",
                   "type": "record",
                   "fields": [
@@ -54,7 +54,7 @@
                   ]
                 },
                 {
-                  "namespace": "net.consensys.eventeum",
+                  "namespace": "io.keyko.monitoring.agent.core",
                   "name": "NumberParameter",
                   "type": "record",
                   "fields": [
