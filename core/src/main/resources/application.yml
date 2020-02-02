@@ -16,7 +16,8 @@ logging:
 ethereum:
   nodes:
     - name: default
-      url: https://baklava-forno.celo-testnet.org
+      #url: https://baklava-forno.celo-testnet.org
+      url: http://192.168.0.210
       pollingInterval: ${POLLING_INTERVAL:10000}
 
   healthcheck:

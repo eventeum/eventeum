@@ -19,7 +19,7 @@ public class SimplePageImpl<T> implements Page<T> {
             @JsonProperty("number") int number,
             @JsonProperty("size") int size,
             @JsonProperty("totalElements") long totalElements) {
-        delegate = new PageImpl<>(content, new PageRequest(number, size), totalElements);
+        delegate = new PageImpl<>(content, PageRequest.of(number, size), totalElements);
     }
 
 

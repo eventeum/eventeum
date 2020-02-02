@@ -13,9 +13,7 @@
     </parent>
 
     <properties>
-        <java.version>1.8</java.version>
         <skipIntegrationTests>true</skipIntegrationTests>
-        <micrometer.version>1.1.0</micrometer.version>
     </properties>
 
     <dependencies>
@@ -40,17 +38,13 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring.kafka.version}</version>
         </dependency>
         <!-- Micrometer Prometheus registry  -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
             <version> ${micrometer.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
@@ -67,7 +61,7 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring.kafka.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -110,42 +104,17 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <classesDirectory>${project.build.directory}/${artifactId}.jar.original</classesDirectory>
+                    <classesDirectory>${project.build.directory}/${project.artifactId}.jar.original</classesDirectory>
                     <skipITs>${skipIntegrationTests}</skipITs>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.web3j</groupId>-->
-                <!--<artifactId>web3j-maven-plugin</artifactId>-->
-                <!--<version>0.3.7</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>generate-sources</id>-->
-                        <!--<phase>generate-sources</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>generate-sources</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<packageName>net.consensys.eventeumserver.integrationtest</packageName>-->
-                            <!--<sourceDestination>src/test/java</sourceDestination>-->
-                            <!--<nativeJavaType>true</nativeJavaType>-->
-                            <!--<outputFormat>java</outputFormat>-->
-                            <!--<soliditySourceFiles>-->
-                                <!--<directory>${basedir}/src/test/resources</directory>-->
-                                <!--<includes>-->
-                                    <!--<include>**/*.sol</include>-->
-                                <!--</includes>-->
-                            <!--</soliditySourceFiles>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
         </plugins>

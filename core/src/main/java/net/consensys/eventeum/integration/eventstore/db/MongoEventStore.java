@@ -49,7 +49,7 @@ public class MongoEventStore implements SaveableEventStore {
                         .is(eventSignature)
                         .and("address")
                         .is(contractAddress))
-                .with(new Sort(Direction.DESC, "blockNumber"))
+                .with(Sort.by(Direction.DESC, "blockNumber"))
                 .collation(Collation.of("en").numericOrderingEnabled());
 
         final long totalResults = mongoTemplate.count(query, ContractEventDetails.class);

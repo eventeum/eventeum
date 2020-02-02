@@ -23,7 +23,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 
@@ -49,7 +49,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     private KafkaMessageListenerContainer springMessageListener;
 
     @ClassRule
-    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 1);
+    public static EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 1);
 
     private KafkaMessageListenerContainer<String, String> testContainer;
 
@@ -93,7 +93,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                                 objectMapper.readValue(record.value(), EventeumMessage.class);
 
                         if (message.getType().equals(ContractEventFilterAdded.TYPE)
-                            || message.getType().equals(ContractEventFilterRemoved.TYPE)) {
+                                || message.getType().equals(ContractEventFilterRemoved.TYPE)) {
                             final EventeumMessage<ContractEventFilter> filterMessge = message;
                             getBroadcastFilterEventMessages().add(filterMessge);
                         } else {
