@@ -16,6 +16,8 @@ package net.consensys.eventeum.chain.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.service.container.NodeServices;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -85,19 +87,26 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
      */
     @Override
     public BigInteger getLatestBlockForEvent(ContractEventFilter eventFilter) {
+        final NodeServices nodeServices = chainServicesContainer.getNodeServices(eventFilter.getNode());
+        final BlockchainService blockchainService = nodeServices.getBlockchainService();
+
+        BigInteger currentBlockNumber =  blockchainService.getCurrentBlockNumber();
+
+        if (this.syncFromLatest) {
+
+            log.debug("Using SyncFromLatest, starting at blockNumber: {}", eventFilter.getId(), currentBlockNumber);
+
+            return currentBlockNumber;
+        }
+
+        BigInteger latestBlockNumber = calculateLatestBlockForEvent(eventFilter, currentBlockNumber);
+
+        return getCappedBlockNumber(latestBlockNumber, currentBlockNumber, nodeServices.getNode());
+    }
+
+    private BigInteger calculateLatestBlockForEvent(ContractEventFilter eventFilter, BigInteger currentBlockNumber) {
         final String eventSignature = Web3jUtil.getSignature(eventFilter.getEventSpecification());
         final AbstractMap<String, BigInteger> events = latestBlocks.get(eventFilter.getContractAddress());
-
-	if (this.syncFromLatest) {
-	  final BlockchainService blockchainService =
-		  chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
-
-	  BigInteger blockNumber =  blockchainService.getCurrentBlockNumber();
-
-	  log.debug("Block number for event {} not found in memory or database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
-
-	  return blockNumber;
-	}
 
         if (events != null) {
             final BigInteger latestBlockNumber = events.get(eventSignature);
@@ -128,13 +137,29 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
             return blockNumber;
         }
 
-        final BlockchainService blockchainService =
-                chainServicesContainer.getNodeServices(eventFilter.getNode()).getBlockchainService();
+        log.debug("Block number for event {} not found in memory or database, starting at blockNumber: {}", eventFilter.getId(), currentBlockNumber);
 
-        BigInteger blockNumber =  blockchainService.getCurrentBlockNumber();
+        return currentBlockNumber;
+    }
 
-        log.debug("Block number for event {} not found in memory or database, starting at blockNumber: {}", eventFilter.getId(), blockNumber);
+    protected BigInteger getCappedBlockNumber(BigInteger latestBlockNumber, BigInteger currentBlockNumber, Node node) {
 
-        return blockNumber;
+        try {
+            BigInteger maxUnsyncedBlocksForFilter = node.getMaxUnsyncedBlocksForFilter();
+
+
+            BigInteger cappedBlockNumber = BigInteger.valueOf(0);
+
+            if (!BigInteger.valueOf(0).equals(maxUnsyncedBlocksForFilter) && currentBlockNumber.subtract(latestBlockNumber).compareTo(maxUnsyncedBlocksForFilter) == 1) {
+                cappedBlockNumber = currentBlockNumber.subtract(maxUnsyncedBlocksForFilter);
+                log.info("BLOCK: Max Unsynced Blocks gap reached ´{} to {} . Applied {}. Max {}", latestBlockNumber, currentBlockNumber, cappedBlockNumber, maxUnsyncedBlocksForFilter);
+                return cappedBlockNumber;
+            }
+        }
+        catch(Exception e){
+            log.error("Could not get current block to possibly cap range",e);
+        }
+
+        return latestBlockNumber;
     }
 }

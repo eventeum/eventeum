@@ -95,7 +95,8 @@ public class NodeBeanRegistrationStrategy {
 
         builder.addPropertyValue("nodeName", node.getName())
                 .addPropertyValue("web3j", web3j)
-                .addPropertyReference("blockchainService", web3jServiceBeanName);
+                .addPropertyReference("blockchainService", web3jServiceBeanName)
+                .addPropertyValue("node", node);
 
         final String beanName = String.format(NODE_SERVICES_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
