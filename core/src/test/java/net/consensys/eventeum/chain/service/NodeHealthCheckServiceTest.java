@@ -137,7 +137,7 @@ public class NodeHealthCheckServiceTest {
         wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
-        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(2)).reconnect();
         verify(mockReconnectionStrategy, times(1)).resubscribe();
     }
 
@@ -156,13 +156,13 @@ public class NodeHealthCheckServiceTest {
         underTest.checkHealth();
 
         verify(mockReconnectionStrategy, times(1)).reconnect();
-        verify(mockReconnectionStrategy, times(1)).resubscribe();
+        verify(mockReconnectionStrategy, never()).resubscribe();
         verify(mockSubscriptionService, never()).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
 
         underTest.checkHealth();
 
         verify(mockReconnectionStrategy, times(1)).reconnect();
-        verify(mockReconnectionStrategy, times(1)).resubscribe();
+        verify(mockReconnectionStrategy, never()).resubscribe();
         verify(mockSubscriptionService, never()).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
     }
 

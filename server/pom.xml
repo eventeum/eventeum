@@ -18,12 +18,12 @@
 
     <groupId>net.consensys.eventeum</groupId>
     <artifactId>eventeum-server</artifactId>
-    <version>0.8.1-SNAPSHOT</version>
+    <version>0.8.1-KAURI</version>
 
     <parent>
         <groupId>net.consensys.eventeum</groupId>
         <artifactId>eventeum</artifactId>
-        <version>0.8.1-SNAPSHOT</version>
+        <version>0.8.1-KAURI</version>
     </parent>
 
     <properties>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>net.consensys.eventeum</groupId>
             <artifactId>eventeum-core</artifactId>
-            <version>0.8.1-SNAPSHOT</version>
+            <version>0.8.1-KAURI</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

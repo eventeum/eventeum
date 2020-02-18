@@ -96,6 +96,7 @@ workflows:
               only:
                 - master
                 - development
+                - patch/kauri0120
       - release-docker-image-snapshot:
           requires:
             - build-and-test
@@ -103,9 +104,11 @@ workflows:
             branches:
               only:
                 - development
+                - patch/kauri0120
       - release-docker-image:
           requires:
             - build-and-test
           filters:
             branches:
-              only: master
+              only:
+                - master
