@@ -84,7 +84,10 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected void triggerListeners(T blockObject) {
         final Block eventeumBlock = convertToEventeumBlock(blockObject);
-        triggerListeners(eventeumBlock);
+
+        if (eventeumBlock != null) {
+            triggerListeners(eventeumBlock);
+        }
     }
 
     protected void triggerListeners(Block eventeumBlock) {
@@ -103,6 +106,12 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected Optional<LatestBlock> getLatestBlock() {
         return eventStoreService.getLatestBlock(nodeName);
+    }
+
+    protected void onError(Disposable disposable, Throwable error) {
+        log.error("There was an error when processing a block, disposing blocksubscription (will be reinitialised)", error);
+
+        disposable.dispose();
     }
 
     abstract Block convertToEventeumBlock(T blockObject);
