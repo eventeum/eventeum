@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
@@ -8,6 +22,7 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.utils.JSON;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
@@ -19,6 +34,7 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.util.Optional;
 
+@Slf4j
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
     public PollingBlockSubscriptionStrategy(
@@ -34,13 +50,16 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
         if (latestBlock.isPresent()) {
             final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
 
-            blockSubscription = web3j.replayPastAndFutureBlocksFlowable(blockParam, true)
-                    .subscribe(block -> { triggerListeners(block); });
+            blockSubscription = web3j
+                    .replayPastAndFutureBlocksFlowable(blockParam, true)
+                    .doOnError((error) -> onError(blockSubscription, error))
+                    .subscribe(block -> triggerListeners(block), (error) -> onError(blockSubscription, error));
 
         } else {
-            blockSubscription = web3j.blockFlowable(true).subscribe(block -> {
-                triggerListeners(block);
-            });
+            blockSubscription = web3j
+                    .blockFlowable(true)
+                    .doOnError((error) -> onError(blockSubscription, error))
+                    .subscribe(block -> triggerListeners(block), (error) -> onError(blockSubscription, error));
         }
 
         return blockSubscription;
@@ -48,6 +67,16 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
 
     @Override
     Block convertToEventeumBlock(EthBlock blockObject) {
-        return new Web3jBlock(blockObject.getBlock(), nodeName);
+        //Infura is sometimes returning null blocks...just ignore in this case.
+        if (blockObject == null || blockObject.getBlock() == null) {
+            return null;
+        }
+
+        try {
+            return new Web3jBlock(blockObject.getBlock(), nodeName);
+        } catch (Throwable t) {
+            log.error("Error converting block: " + JSON.stringify(blockObject), t);
+            throw t;
+        }
     }
 }

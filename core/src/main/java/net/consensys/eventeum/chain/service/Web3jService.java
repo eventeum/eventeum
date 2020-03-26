@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service;
 
 import io.reactivex.Flowable;
@@ -95,12 +109,13 @@ public class Web3jService implements BlockchainService {
 
         final BigInteger startBlock = getStartBlockForEventFilter(eventFilter);
 
-        EthFilter ethFilter = new EthFilter(
+        final EthFilter ethFilter = new EthFilter(
                 new DefaultBlockParameterNumber(startBlock),
                 DefaultBlockParameterName.LATEST, eventFilter.getContractAddress());
 
+
         if (eventFilter.getEventSpecification() != null) {
-            ethFilter = ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
+            ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
         }
 
         final Flowable<Log> flowable = web3j.ethLogFlowable(ethFilter);
@@ -108,8 +123,16 @@ public class Web3jService implements BlockchainService {
         final Disposable sub = flowable.subscribe(theLog -> {
             asyncTaskService.execute(ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, eventFilter.getNode()), () -> {
                 log.debug("Dispatching log: {}", theLog);
-                eventListener.onEvent(
-                        eventDetailsFactory.createEventDetails(eventFilter, theLog));
+
+                //Check signatures match
+                if (ethFilter.getTopics() == null
+                        || ethFilter.getTopics().isEmpty()
+                        || ethFilter.getTopics().get(0).getValue().equals(theLog.getTopics().get(0))) {
+                    eventListener.onEvent(
+                            eventDetailsFactory.createEventDetails(eventFilter, theLog));
+                } else {
+                    log.warn("Filter topic doesn't match  log!");
+                }
             });
         });
 

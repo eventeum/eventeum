@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -194,26 +208,31 @@ public class DefaultSubscriptionService implements SubscriptionService {
     }
 
     private ContractEventFilter doRegisterContractEventFilter(ContractEventFilter filter, boolean broadcast) {
-        populateIdIfMissing(filter);
+        try {
+	    populateIdIfMissing(filter);
 
-        if (!isFilterRegistered(filter)) {
-            final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
+	    if (!isFilterRegistered(filter)) {
+		final FilterSubscription sub = registerContractEventFilter(filter, filterSubscriptions);
 
-            if (filter.getStartBlock() == null && sub != null) {
-                filter.setStartBlock(sub.getStartBlock());
-            }
+		if (filter.getStartBlock() == null && sub != null) {
+		    filter.setStartBlock(sub.getStartBlock());
+		}
 
-            saveContractEventFilter(filter);
+		saveContractEventFilter(filter);
 
-            if (broadcast) {
-                broadcastContractEventFilterAdded(filter);
-            }
+		if (broadcast) {
+		    broadcastContractEventFilterAdded(filter);
+		}
 
-            return filter;
-        } else {
-            log.info("Already registered contract event filter with id: " + filter.getId());
-            return getFilterSubscription(filter.getId()).getFilter();
-        }
+		return filter;
+	    } else {
+		log.info("Already registered contract event filter with id: " + filter.getId());
+		return getFilterSubscription(filter.getId()).getFilter();
+	    }
+	} catch (Exception e) {
+	    log.error("Error registering filter " + filter.getId(), e);
+	    throw e;
+	}
     }
 
     private void subscribeToNewBlockEvents(
