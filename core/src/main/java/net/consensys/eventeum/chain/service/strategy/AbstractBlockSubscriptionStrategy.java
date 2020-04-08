@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
@@ -9,6 +23,7 @@ import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import rx.Subscription;
@@ -24,8 +39,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {
 
     protected static final String BLOCK_EXECUTOR_NAME = "BLOCK";
-
-    private Lock lock = new ReentrantLock();
 
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
     protected Disposable blockSubscription;
@@ -71,17 +84,15 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected void triggerListeners(T blockObject) {
         final Block eventeumBlock = convertToEventeumBlock(blockObject);
-        triggerListeners(eventeumBlock);
+
+        if (eventeumBlock != null) {
+            triggerListeners(eventeumBlock);
+        }
     }
 
     protected void triggerListeners(Block eventeumBlock) {
-        asyncService.execute(BLOCK_EXECUTOR_NAME, () -> {
-            lock.lock();
-            try {
-                blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
-            } finally {
-                lock.unlock();
-            }
+        asyncService.execute(ExecutorNameFactory.build(BLOCK_EXECUTOR_NAME, eventeumBlock.getNodeName()), () -> {
+            blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
         });
     }
 
@@ -95,6 +106,12 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected Optional<LatestBlock> getLatestBlock() {
         return eventStoreService.getLatestBlock(nodeName);
+    }
+
+    protected void onError(Disposable disposable, Throwable error) {
+        log.error("There was an error when processing a block, disposing blocksubscription (will be reinitialised)", error);
+
+        disposable.dispose();
     }
 
     abstract Block convertToEventeumBlock(T blockObject);

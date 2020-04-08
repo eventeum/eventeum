@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.service;
 
 import java.util.Collections;
@@ -17,11 +31,13 @@ import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,6 +77,8 @@ public class DefaultSubscriptionServiceTest {
     @Mock
     private ContractEventListener mockEventListener2;
 
+    private RetryTemplate mockRetryTemplate;
+
     static {
         eventSpec = new ContractEventSpecification();
         eventSpec.setEventName(EVENT_NAME);
@@ -81,9 +99,12 @@ public class DefaultSubscriptionServiceTest {
                 Collections.singletonList(Constants.DEFAULT_NODE_NAME));
         when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
 
+        mockRetryTemplate = new RetryTemplate();
+
         underTest = new DefaultSubscriptionService(mockChainServicesContainer,
-                mockRepo, mockFilterBroadcaster,
-                Arrays.asList(mockBlockListener1, mockBlockListener2));
+                mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),
+                Arrays.asList(mockBlockListener1, mockBlockListener2),
+                Arrays.asList(mockEventListener1, mockEventListener2), mockRetryTemplate);
     }
 
     @Test
@@ -98,7 +119,7 @@ public class DefaultSubscriptionServiceTest {
     @Test
     public void testRegisterNewContractEventFilter() {
         final ContractEventFilter filter = createEventFilter();
-        underTest.registerContractEventFilter(filter);
+        underTest.registerContractEventFilter(filter, true);
 
         verifyContractEventFilterBroadcast(filter,true);
         assertEquals(1, underTest.listContractEventFilters().size());
@@ -126,7 +147,7 @@ public class DefaultSubscriptionServiceTest {
 
     @Test
     public void testRegisterNewContractEventFilterAutoGenerateId() {
-        final ContractEventFilter filter = createEventFilter(null);
+        final ContractEventFilter filter = createEventFilter(null, Constants.DEFAULT_NODE_NAME);
 
         underTest.registerContractEventFilter(filter, true);
 
@@ -136,7 +157,7 @@ public class DefaultSubscriptionServiceTest {
 
     @Test
     public void testListContractEventFilterAlreadyRegistered() {
-        final ContractEventFilter filter1 = createEventFilter(null);
+        final ContractEventFilter filter1 = createEventFilter(null, Constants.DEFAULT_NODE_NAME);
 
         underTest.registerContractEventFilter(filter1, true);
         underTest.registerContractEventFilter(filter1, true);
@@ -170,7 +191,7 @@ public class DefaultSubscriptionServiceTest {
 
     @Test
     public void testUnsubscribeToAllSubscriptions() {
-        final ContractEventFilter filter1 = createEventFilter("filter1");
+        final ContractEventFilter filter1 = createEventFilter("filter1", Constants.DEFAULT_NODE_NAME);
         final ContractEventFilter filter2 = createEventFilter();
 
         underTest.registerContractEventFilter(filter1, false);
@@ -187,18 +208,19 @@ public class DefaultSubscriptionServiceTest {
         verify(mockFilterBroadcaster, times(1)).broadcastEventFilterAdded(filter);
     }
 
-    private ContractEventFilter createEventFilter(String id) {
+    private ContractEventFilter createEventFilter(String id, String nodeName) {
         final ContractEventFilter filter = new ContractEventFilter();
 
         filter.setId(id);
         filter.setContractAddress(CONTRACT_ADDRESS);
         filter.setEventSpecification(eventSpec);
+        filter.setNode(nodeName);
 
         return filter;
     }
 
     private ContractEventFilter createEventFilter() {
-        final ContractEventFilter filter =  createEventFilter(FILTER_ID);
+        final ContractEventFilter filter = createEventFilter(FILTER_ID, Constants.DEFAULT_NODE_NAME);
 
         return filter;
     }

@@ -1,14 +1,31 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service;
 
 import io.reactivex.Flowable;
-import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
+import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
@@ -21,6 +38,7 @@ import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.AsyncTaskService;
+import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -29,7 +47,6 @@ import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
-import org.web3j.utils.Numeric;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -102,21 +119,30 @@ public class Web3jService implements BlockchainService {
 
         final BigInteger startBlock = getStartBlockForEventFilter(eventFilter);
 
-        EthFilter ethFilter = new EthFilter(
+        final EthFilter ethFilter = new EthFilter(
                 new DefaultBlockParameterNumber(startBlock),
                 DefaultBlockParameterName.LATEST, eventFilter.getContractAddress());
 
+
         if (eventFilter.getEventSpecification() != null) {
-            ethFilter = ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
+            ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
         }
 
         final Flowable<Log> flowable = web3j.ethLogFlowable(ethFilter);
 
         final Disposable sub = flowable.subscribe(theLog -> {
-            asyncTaskService.execute(EVENT_EXECUTOR_NAME, () -> {
+            asyncTaskService.execute(ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, eventFilter.getNode()), () -> {
                 log.debug("Dispatching log: {}", theLog);
-                eventListener.onEvent(
-                        eventDetailsFactory.createEventDetails(eventFilter, theLog));
+
+                //Check signatures match
+                if (ethFilter.getTopics() == null
+                        || ethFilter.getTopics().isEmpty()
+                        || ethFilter.getTopics().get(0).getValue().equals(theLog.getTopics().get(0))) {
+                    eventListener.onEvent(
+                            eventDetailsFactory.createEventDetails(eventFilter, theLog));
+                } else {
+                    log.warn("Filter topic doesn't match  log!");
+                }
             });
         });
 
@@ -142,14 +168,23 @@ public class Web3jService implements BlockchainService {
      * {inheritDoc}
      */
     @Override
-    public void reconnect() {
-        log.info("Reconnecting...");
+    public void disconnect() {
+        log.info("Unsubscribing from block events");
         try {
             blockSubscriptionStrategy.unsubscribe();
         } catch (FilterException e) {
             log.warn("Unable to unregister block subscription.  " +
                     "This is probably because the node has restarted or we're in websocket mode");
         }
+    }
+
+    /**
+     * {inheritDoc}
+     */
+    @Override
+    public void reconnect() {
+        log.info("Reconnecting...");
+        disconnect();
         connect();
     }
 
