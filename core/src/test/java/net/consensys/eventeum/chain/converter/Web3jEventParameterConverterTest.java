@@ -35,7 +35,7 @@ public class Web3jEventParameterConverterTest {
 
     @Before
     public void init() {
-        underTest = new Web3jEventParameterConverter(new EventeumSettings(true));
+        underTest = new Web3jEventParameterConverter(new EventeumSettings(true, BigInteger.ONE));
     }
 
     @Test

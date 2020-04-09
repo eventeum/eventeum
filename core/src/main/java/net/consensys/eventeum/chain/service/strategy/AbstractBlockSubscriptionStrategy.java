@@ -18,22 +18,17 @@ import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.EthBlock;
-import rx.Subscription;
 
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {
@@ -46,15 +41,18 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected EventStoreService eventStoreService;
     protected String nodeName;
     protected AsyncTaskService asyncService;
+    protected EventeumSettings settings;
 
     public AbstractBlockSubscriptionStrategy(Web3j web3j,
                                              String nodeName,
                                              EventStoreService eventStoreService,
-                                             AsyncTaskService asyncService) {
+                                             AsyncTaskService asyncService,
+                                             EventeumSettings settings) {
         this.web3j = web3j;
         this.nodeName = nodeName;
         this.eventStoreService = eventStoreService;
         this.asyncService = asyncService;
+        this.settings = settings;
     }
 
     @Override
@@ -106,6 +104,17 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected Optional<LatestBlock> getLatestBlock() {
         return eventStoreService.getLatestBlock(nodeName);
+    }
+
+    protected Optional<BigInteger> getStartBlock() {
+        final Optional<LatestBlock> latestBlock = getLatestBlock();
+
+        if (latestBlock.isPresent()) {
+            return Optional.ofNullable(latestBlock.get().getNumber());
+        }
+
+
+        return Optional.ofNullable(settings.getInitialStartBlock());
     }
 
     protected void onError(Disposable disposable, Throwable error) {
