@@ -78,6 +78,9 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
         final Map<String, Object> consumerProperties =
                 KafkaTestUtils.consumerProps(generateTestGroupId(), "false", embeddedKafka);
 
+        //Child classes can modify the properties
+        modifyKafkaConsumerProps(consumerProperties);
+
         // create a Kafka consumer factory
         DefaultKafkaConsumerFactory<String, String> consumerFactory =
                 new DefaultKafkaConsumerFactory<>(consumerProperties, new StringDeserializer(), new StringDeserializer());
@@ -185,6 +188,10 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
     private String generateTestGroupId() {
         return "testGroup-" + UUID.randomUUID().toString();
+    }
+
+    protected Map<String, Object> modifyKafkaConsumerProps(Map<String, Object> consumerProps) {
+        return consumerProps;
     }
 
 }
