@@ -110,9 +110,13 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         final Optional<LatestBlock> latestBlock = getLatestBlock();
 
         if (latestBlock.isPresent()) {
-            return Optional.ofNullable(latestBlock.get().getNumber());
-        }
+            final BigInteger latestBlockNumber = latestBlock.get().getNumber();
 
+            final BigInteger startBlock = latestBlockNumber.subtract(settings.getNumBlocksToReplay());
+
+            //Check the replay subtraction result is positive
+            return Optional.of(startBlock.signum() == 1 ? startBlock : BigInteger.ONE);
+        }
 
         return Optional.ofNullable(settings.getInitialStartBlock());
     }
