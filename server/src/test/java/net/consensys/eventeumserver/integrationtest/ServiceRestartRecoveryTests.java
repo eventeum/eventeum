@@ -112,7 +112,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         System.out.println("BROADCAST BLOCKS AFTER: " + JSON.stringify(getBroadcastBlockMessages()));
 
         //Eventeum will rebroadcast the last seen block after restart in case block
-        //wasn't fully processed
+        //wasn't fully processed (when numBlocksToReplay=0)
         assertEquals(lastBlockNumber, getBroadcastBlockMessages().get(0).getNumber());
 
         //Assert incremental blocks
