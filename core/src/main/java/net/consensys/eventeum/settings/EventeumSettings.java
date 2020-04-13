@@ -32,7 +32,7 @@ public class EventeumSettings {
 
     public EventeumSettings(@Value("${broadcaster.bytesToAscii:false}") boolean bytesToAscii,
                             @Value("${ethereum.initialStartBlock:#{null}}") BigInteger initialStartBlock,
-                            @Value("${ethereum.numBlocksToReplay:0}") BigInteger numBlocksToReplay) {
+                            @Value("${ethereum.numBlocksToReplay:12}") BigInteger numBlocksToReplay) {
         this.bytesToAscii = bytesToAscii;
         this.initialStartBlock = initialStartBlock;
         this.numBlocksToReplay = numBlocksToReplay;
