@@ -29,6 +29,7 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {
@@ -42,6 +43,8 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected String nodeName;
     protected AsyncTaskService asyncService;
     protected EventeumSettings settings;
+
+    private AtomicBoolean errored = new AtomicBoolean(false);
 
     public AbstractBlockSubscriptionStrategy(Web3j web3j,
                                              String nodeName,
@@ -63,6 +66,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
             }
         } finally {
             blockSubscription = null;
+            errored.set(false);
         }
     }
 
@@ -95,10 +99,12 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     protected void triggerListener(BlockListener listener, Block block) {
-        try {
-            listener.onBlock(block);
-        } catch(Throwable t) {
-            log.error(String.format("An error occured when processing block with hash %s", block.getHash()), t);
+        if (!errored.get()) {
+            try {
+                listener.onBlock(block);
+            } catch (Throwable t) {
+                onError(blockSubscription, t);
+            }
         }
     }
 
@@ -124,6 +130,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected void onError(Disposable disposable, Throwable error) {
         log.error("There was an error when processing a block, disposing blocksubscription (will be reinitialised)", error);
 
+        errored.set(true);
         disposable.dispose();
     }
 

@@ -43,12 +43,13 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
 
     @Override
     public void processLogsInBlock(Block block, List<ContractEventFilter> contractEventFilters) {
-        asyncTaskService.execute(ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, block.getNodeName()), () -> {
+        asyncTaskService.executeWithCompletableFuture(ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, block.getNodeName()), () -> {
             final BlockchainService blockchainService = getBlockchainService(block.getNodeName());
 
             contractEventFilters
                     .forEach(filter -> processLogsForFilter(filter, block, blockchainService));
-        });
+        })
+        .join();
     }
 
     private void processLogsForFilter(ContractEventFilter filter,
