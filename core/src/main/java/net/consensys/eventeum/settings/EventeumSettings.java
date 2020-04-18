@@ -18,13 +18,23 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
+
 @Component
 @Data
 public class EventeumSettings {
 
     private boolean bytesToAscii;
 
-    public EventeumSettings(@Value("${broadcaster.bytesToAscii:false}") boolean bytesToAscii) {
+    private BigInteger initialStartBlock;
+
+    private BigInteger numBlocksToReplay;
+
+    public EventeumSettings(@Value("${broadcaster.bytesToAscii:false}") boolean bytesToAscii,
+                            @Value("${ethereum.initialStartBlock:#{null}}") BigInteger initialStartBlock,
+                            @Value("${ethereum.numBlocksToReplay:12}") BigInteger numBlocksToReplay) {
         this.bytesToAscii = bytesToAscii;
+        this.initialStartBlock = initialStartBlock;
+        this.numBlocksToReplay = numBlocksToReplay;
     }
 }

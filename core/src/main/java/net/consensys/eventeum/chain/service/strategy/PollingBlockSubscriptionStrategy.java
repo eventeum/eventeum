@@ -22,6 +22,7 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.utils.JSON;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -32,23 +33,27 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 @Slf4j
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
-    public PollingBlockSubscriptionStrategy(
-            Web3j web3j, String nodeName, EventStoreService eventStoreService, AsyncTaskService asyncService) {
-        super(web3j, nodeName, eventStoreService, asyncService);
+    public PollingBlockSubscriptionStrategy(Web3j web3j,
+                                            String nodeName,
+                                            EventStoreService eventStoreService,
+                                            AsyncTaskService asyncService,
+                                            EventeumSettings settings) {
+        super(web3j, nodeName, eventStoreService, asyncService, settings);
     }
 
     @Override
     public Disposable subscribe() {
 
-        final Optional<LatestBlock> latestBlock = getLatestBlock();
+        final Optional<BigInteger> startBlock = getStartBlock();
 
-        if (latestBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
+        if (startBlock.isPresent()) {
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock.get());
 
             blockSubscription = web3j
                     .replayPastAndFutureBlocksFlowable(blockParam, true)

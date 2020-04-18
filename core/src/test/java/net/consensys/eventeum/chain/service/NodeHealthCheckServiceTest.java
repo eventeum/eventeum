@@ -94,7 +94,6 @@ public class NodeHealthCheckServiceTest {
 
         verify(mockReconnectionStrategy, times(1)).reconnect();
         verify(mockReconnectionStrategy, times(1)).resubscribe();
-        verify(mockSubscriptionService, times(1)).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
     }
 
     @Test
@@ -105,7 +104,6 @@ public class NodeHealthCheckServiceTest {
 
         verify(mockReconnectionStrategy, times(1)).reconnect();
         verify(mockReconnectionStrategy, never()).resubscribe();
-        verify(mockSubscriptionService, times(1)).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
     }
 
     @Test
@@ -114,13 +112,11 @@ public class NodeHealthCheckServiceTest {
         underTest.checkHealth();
 
         verify(mockReconnectionStrategy, times(1)).reconnect();
-        verify(mockSubscriptionService, times(1)).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
 
         underTest.checkHealth();
 
         verify(mockReconnectionStrategy, times(2)).reconnect();
         verify(mockReconnectionStrategy, never()).resubscribe();
-        verify(mockSubscriptionService, times(1)).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
     }
 
 
@@ -131,7 +127,6 @@ public class NodeHealthCheckServiceTest {
 
         verify(mockReconnectionStrategy, times(1)).reconnect();
         verify(mockReconnectionStrategy, never()).resubscribe();
-        verify(mockSubscriptionService, times(1)).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
 
         reset(mockBlockchainService);
         wireBlockchainServiceUp(false);
@@ -142,48 +137,50 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testNodeComesBackUpAndStaysUp() {
-        wireBlockchainServiceDown(false, false);
-        underTest.checkHealth();
-
-        verify(mockReconnectionStrategy, times(1)).reconnect();
-        verify(mockReconnectionStrategy, never()).resubscribe();
-        verify(mockSubscriptionService, times(1)).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
-
-        reset(mockBlockchainService);
-        reset(mockSubscriptionService);
+    public void testNodeFromSubscribedToConnected() {
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
-        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, never()).reconnect();
         verify(mockReconnectionStrategy, never()).resubscribe();
-        verify(mockSubscriptionService, never()).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
 
+        reset(mockBlockchainService);
+        wireBlockchainServiceUp(false);
         underTest.checkHealth();
 
         verify(mockReconnectionStrategy, times(1)).reconnect();
-        verify(mockReconnectionStrategy, never()).resubscribe();
-        verify(mockSubscriptionService, never()).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
     }
 
     @Test
-    public void testUnsubscribeOnlyOccursFirsTime() {
-        wireBlockchainServiceDown(false, false);
+    public void testNodeComesBackUpAndStaysUp() {
+        wireBlockchainServiceDown(true, false);
 
         underTest.checkHealth();
-        verify(mockSubscriptionService, times(1)).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
 
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
+
+        reset(mockBlockchainService);
         reset(mockSubscriptionService);
 
+        wireBlockchainServiceUp(true);
+
         underTest.checkHealth();
-        verify(mockSubscriptionService, never()).unsubscribeToAllSubscriptions(Constants.DEFAULT_NODE_NAME);
+
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
+
+        underTest.checkHealth();
+
+        verify(mockReconnectionStrategy, times(1)).reconnect();
+        verify(mockReconnectionStrategy, times(1)).resubscribe();
     }
 
     private void wireBlockchainServiceUp(boolean isSubscribed) {
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(BLOCK_NUMBER);
         when(mockBlockchainService.isConnected()).thenReturn(isSubscribed);
         when(mockBlockchainService.getNodeName()).thenReturn(Constants.DEFAULT_NODE_NAME);
-        when(mockSubscriptionService.isFullySubscribed(Constants.DEFAULT_NODE_NAME)).thenReturn(isSubscribed);
     }
 
     private void wireBlockchainServiceDown(boolean isConnected, boolean isSubscribed) {

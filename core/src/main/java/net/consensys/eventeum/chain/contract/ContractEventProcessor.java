@@ -12,23 +12,14 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.chain.service.health.strategy;
+package net.consensys.eventeum.chain.contract;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.service.SubscriptionService;
+import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
-@AllArgsConstructor
-@Data
-public abstract class ResubscribingReconnectionStrategy implements ReconnectionStrategy {
+import java.util.List;
 
-    private SubscriptionService subscriptionService;
-    private BlockchainService blockchainService;
+public interface ContractEventProcessor {
 
-    @Override
-    public void resubscribe() {
-
-        blockchainService.reconnect();
-    }
+    void processLogsInBlock(Block block, List<ContractEventFilter> contractEventFilters);
 }

@@ -18,11 +18,13 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.model.FilterSubscription;
 import rx.Subscription;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -81,6 +83,8 @@ public interface BlockchainService {
      * @return The block for the specified hash or nothing if a block with the specified hash does not exist.
      */
     public Optional<Block> getBlock(String blockHash, boolean fullTransactionObjects);
+
+    List<ContractEventDetails> getEventsForFilter(ContractEventFilter filter, BigInteger blockNumber);
 
     /**
      * Obtain the transaction receipt for a specified transaction id.

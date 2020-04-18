@@ -43,9 +43,4 @@ public class HttpNodeRecoveryIT extends NodeRecoveryTests {
     public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
         doQuickSuccessionNodeFailuresRecoveryTest();
     }
-
-    @Test
-    public void nodeFailureBeforeEventRegistrationRecoveryTest() throws Exception {
-        doNodeFailureBeforeEventRegistrationRecoveryTest(Optional.empty());
-    }
 }

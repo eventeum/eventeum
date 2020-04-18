@@ -30,6 +30,11 @@ public class DummyAsyncTaskService implements AsyncTaskService {
     }
 
     @Override
+    public CompletableFuture<Void> executeWithCompletableFuture(String executorName, Runnable task) {
+        return null;
+    }
+
+    @Override
     public <T> Future<T> submit(String executorName, Callable<T> task) {
         try {
             return CompletableFuture.completedFuture(task.call());

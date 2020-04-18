@@ -19,10 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * An async task service that utilises a single thread executor
@@ -42,6 +39,11 @@ public class SingleThreadedAsyncTaskService implements AsyncTaskService {
     @Override
     public <T> Future<T> submit(String executorName, Callable<T> task) {
         return getOrCreateExecutor(executorName).submit(task);
+    }
+
+    @Override
+    public CompletableFuture<Void> executeWithCompletableFuture(String executorName, Runnable task) {
+        return CompletableFuture.runAsync(task, getOrCreateExecutor(executorName));
     }
 
     private ExecutorService getOrCreateExecutor(String executorName) {

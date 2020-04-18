@@ -22,6 +22,7 @@ import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.AlwaysRetryPolicy;
@@ -33,6 +34,7 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Optional;
 
 public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<NewHead> {
@@ -46,18 +48,18 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     public PubSubBlockSubscriptionStrategy(Web3j web3j,
                                            String nodeName,
                                            EventStoreService eventStoreService,
-                                           AsyncTaskService asyncService) {
-        super(web3j, nodeName, eventStoreService, asyncService);
+                                           AsyncTaskService asyncService,
+                                           EventeumSettings settings) {
+        super(web3j, nodeName, eventStoreService, asyncService, settings);
 
         this.asyncService = asyncService;
     }
 
     @Override
     public Disposable subscribe() {
-        final Optional<LatestBlock> latestBlock = getLatestBlock();
-
-        if (latestBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
+        final Optional<BigInteger> startBlock = getStartBlock();
+        if (startBlock.isPresent()) {
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock.get());
 
             //New heads can only start from latest block so we need to obtain missing blocks first
             blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true)

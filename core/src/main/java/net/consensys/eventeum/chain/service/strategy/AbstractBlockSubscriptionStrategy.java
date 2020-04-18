@@ -18,22 +18,18 @@ import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.EthBlock;
-import rx.Subscription;
 
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {
@@ -46,15 +42,20 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected EventStoreService eventStoreService;
     protected String nodeName;
     protected AsyncTaskService asyncService;
+    protected EventeumSettings settings;
+
+    private AtomicBoolean errored = new AtomicBoolean(false);
 
     public AbstractBlockSubscriptionStrategy(Web3j web3j,
                                              String nodeName,
                                              EventStoreService eventStoreService,
-                                             AsyncTaskService asyncService) {
+                                             AsyncTaskService asyncService,
+                                             EventeumSettings settings) {
         this.web3j = web3j;
         this.nodeName = nodeName;
         this.eventStoreService = eventStoreService;
         this.asyncService = asyncService;
+        this.settings = settings;
     }
 
     @Override
@@ -65,6 +66,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
             }
         } finally {
             blockSubscription = null;
+            errored.set(false);
         }
     }
 
@@ -97,10 +99,12 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     protected void triggerListener(BlockListener listener, Block block) {
-        try {
-            listener.onBlock(block);
-        } catch(Throwable t) {
-            log.error(String.format("An error occured when processing block with hash %s", block.getHash()), t);
+        if (!errored.get()) {
+            try {
+                listener.onBlock(block);
+            } catch (Throwable t) {
+                onError(blockSubscription, t);
+            }
         }
     }
 
@@ -108,9 +112,25 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         return eventStoreService.getLatestBlock(nodeName);
     }
 
+    protected Optional<BigInteger> getStartBlock() {
+        final Optional<LatestBlock> latestBlock = getLatestBlock();
+
+        if (latestBlock.isPresent()) {
+            final BigInteger latestBlockNumber = latestBlock.get().getNumber();
+
+            final BigInteger startBlock = latestBlockNumber.subtract(settings.getNumBlocksToReplay());
+
+            //Check the replay subtraction result is positive
+            return Optional.of(startBlock.signum() == 1 ? startBlock : BigInteger.ONE);
+        }
+
+        return Optional.ofNullable(settings.getInitialStartBlock());
+    }
+
     protected void onError(Disposable disposable, Throwable error) {
         log.error("There was an error when processing a block, disposing blocksubscription (will be reinitialised)", error);
 
+        errored.set(true);
         disposable.dispose();
     }
 

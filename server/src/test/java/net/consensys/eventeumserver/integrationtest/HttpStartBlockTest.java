@@ -12,23 +12,10 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.chain.service.health.strategy;
+package net.consensys.eventeumserver.integrationtest;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.service.SubscriptionService;
+import org.springframework.test.context.TestPropertySource;
 
-@AllArgsConstructor
-@Data
-public abstract class ResubscribingReconnectionStrategy implements ReconnectionStrategy {
-
-    private SubscriptionService subscriptionService;
-    private BlockchainService blockchainService;
-
-    @Override
-    public void resubscribe() {
-
-        blockchainService.reconnect();
-    }
+@TestPropertySource(locations="classpath:application-test-start-block.properties")
+public class HttpStartBlockTest extends BaseStartBlockTest {
 }

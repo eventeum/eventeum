@@ -79,20 +79,8 @@ public interface SubscriptionService {
     void unregisterContractEventFilter(String filterId, boolean broadcast) throws NotFoundException;
 
     /**
-     * Resubscribe to all currently active event filters.
-     */
-    void resubscribeToAllSubscriptions(String nodeName);
-
-    /**
      * Unsubscribe all active listeners
      */
     void unsubscribeToAllSubscriptions(String nodeName);
 
-    /**
-     * Returns true if all subscriptions for node are active (not disposed)
-     *
-     * @param nodeName The node name
-     * @return true if all subscriptions for node are active (not disposed)
-     */
-    boolean isFullySubscribed(String nodeName);
 }

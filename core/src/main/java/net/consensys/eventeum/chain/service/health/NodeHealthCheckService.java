@@ -103,7 +103,6 @@ public class NodeHealthCheckService {
                 nodeStatus = NodeStatus.DOWN;
 
                 if (statusAtStart != NodeStatus.DOWN) {
-                    subscriptionService.unsubscribeToAllSubscriptions(blockchainService.getNodeName());
                     blockchainService.disconnect();
                 }
 
@@ -136,8 +135,7 @@ public class NodeHealthCheckService {
     }
 
     protected boolean isSubscribed() {
-        return blockchainService.isConnected() &&
-                subscriptionService.isFullySubscribed(blockchainService.getNodeName());
+        return blockchainService.isConnected();
     }
 
     private void doReconnect() {
