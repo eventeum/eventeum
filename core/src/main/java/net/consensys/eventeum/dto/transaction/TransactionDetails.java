@@ -14,9 +14,11 @@
 
 package net.consensys.eventeum.dto.transaction;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import net.consensys.eventeum.dto.TransactionBasedDetails;
 
 @Data
 @ToString
@@ -25,7 +27,7 @@ import lombok.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionDetails {
+public class TransactionDetails implements TransactionBasedDetails {
 
     private String hash;
     private String nonce;
@@ -41,4 +43,9 @@ public class TransactionDetails {
     private String revertReason;
 
     private TransactionStatus status;
+
+    @JsonIgnore
+    public String getTransactionHash() {
+        return hash;
+    }
 }

@@ -17,6 +17,7 @@ package net.consensys.eventeum.dto.event;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import net.consensys.eventeum.dto.TransactionBasedDetails;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
@@ -44,7 +45,7 @@ import javax.persistence.Lob;
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ContractEventDetails {
+public class ContractEventDetails implements TransactionBasedDetails {
 
     private String name;
 
