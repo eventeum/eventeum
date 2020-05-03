@@ -49,16 +49,6 @@ public class TransactionConfirmationBlockListener extends AbstractConfirmationBl
     }
 
     @Override
-    protected String getEventTransactionHash(TransactionDetails transactionDetails) {
-        return transactionDetails.getHash();
-    }
-
-    @Override
-    protected String getEventBlockHash(TransactionDetails transactionDetails) {
-        return transactionDetails.getBlockHash();
-    }
-
-    @Override
     protected String getEventIdentifier(TransactionDetails transactionDetails) {
         return transactionDetails.getHash() + transactionDetails.getBlockHash();
     }

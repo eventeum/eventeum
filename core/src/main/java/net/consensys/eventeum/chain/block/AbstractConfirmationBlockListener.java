@@ -18,13 +18,14 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
+import net.consensys.eventeum.dto.TransactionBasedDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractConfirmationBlockListener<T> extends SelfUnregisteringBlockListener {
+public abstract class AbstractConfirmationBlockListener<T extends TransactionBasedDetails> extends SelfUnregisteringBlockListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractConfirmationBlockListener.class);
 
@@ -56,7 +57,7 @@ public abstract class AbstractConfirmationBlockListener<T> extends SelfUnregiste
     @Override
     public void onBlock(Block block) {
         final TransactionReceipt receipt = blockchainService.getTransactionReceipt(
-                getEventTransactionHash(blockchainEvent));
+                blockchainEvent.getTransactionHash());
 
         if (receipt == null) {
             //Tx has disappeared...we've probably forked
@@ -68,9 +69,6 @@ public abstract class AbstractConfirmationBlockListener<T> extends SelfUnregiste
         checkEventStatus(block, receipt);
     }
 
-    protected abstract String getEventTransactionHash(T blockchainEvent);
-
-    protected abstract String getEventBlockHash(T blockchainEvent);
 
     protected abstract String getEventIdentifier(T blockchainEvent);
 
@@ -95,8 +93,8 @@ public abstract class AbstractConfirmationBlockListener<T> extends SelfUnregiste
         //and the original transaction is considered orphaned.
         String orphanReason = null;
 
-        if (!receipt.getBlockHash().equals(getEventBlockHash(blockchainEvent))) {
-            orphanReason = "Expected blockhash " + getEventBlockHash(blockchainEvent) + ", received " + receipt.getBlockHash();
+        if (!receipt.getBlockHash().equals(blockchainEvent.getBlockHash())) {
+            orphanReason = "Expected blockhash " + blockchainEvent.getBlockHash() + ", received " + receipt.getBlockHash();
         }
 
         if (orphanReason != null) {

@@ -66,16 +66,6 @@ public class EventConfirmationBlockListener extends AbstractConfirmationBlockLis
     }
 
     @Override
-    protected String getEventTransactionHash(ContractEventDetails contractEventDetails) {
-        return contractEventDetails.getTransactionHash();
-    }
-
-    @Override
-    protected String getEventBlockHash(ContractEventDetails contractEventDetails) {
-        return contractEventDetails.getBlockHash();
-    }
-
-    @Override
     protected String getEventIdentifier(ContractEventDetails contractEventDetails) {
         return contractEventDetails.getId();
     }
