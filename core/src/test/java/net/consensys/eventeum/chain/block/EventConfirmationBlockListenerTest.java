@@ -64,6 +64,7 @@ public class EventConfirmationBlockListenerTest {
         when(anotherMockLog.getLogIndex()).thenReturn(EVENT_LOG_INDEX.add(BigInteger.ONE));
 
         when(mockTransactionReceipt.getLogs()).thenReturn(Arrays.asList(anotherMockLog, mockLog));
+        when(mockTransactionReceipt.getBlockHash()).thenReturn(EVENT_BLOCK_HASH);
 
         when(mockEventDetails.getBlockNumber()).thenReturn(EVENT_BLOCK_NUMBER);
         when(mockEventDetails.getTransactionHash()).thenReturn(EVENT_TX_HASH);
