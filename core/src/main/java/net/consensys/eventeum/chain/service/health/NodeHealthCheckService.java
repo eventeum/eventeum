@@ -1,13 +1,35 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service.health;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import net.consensys.eventeum.model.LatestBlock;
+import net.consensys.eventeum.monitoring.EventeumValueMonitor;
+import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.springframework.scheduling.annotation.Scheduled;
+
+import java.math.BigInteger;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A service that constantly polls an ethereum node (getClientVersion) in order to ensure that the node
+ * A service that constantly polls an ethereum node (getCurrentBlockNumber) in order to ensure that the node
  * is currently running.  If a failure is detected, each configured NodeFailureListener is invoked.
  * This is also the case when it is detected that a node has recovered after failure.
  *
@@ -25,65 +47,86 @@ public class NodeHealthCheckService {
     private ReconnectionStrategy reconnectionStrategy;
 
     private SubscriptionService subscriptionService;
-  
+
     private boolean initiallySubscribed = false;
+
+    private AtomicLong currentBlock;
+
+    private AtomicInteger syncing;
+
+    private AtomicInteger nodeStatusGauge;
+
+    private EventStoreService eventStoreService;
+
+    private Integer syncingThreshold;
 
     public NodeHealthCheckService(BlockchainService blockchainService,
                                   ReconnectionStrategy reconnectionStrategy,
-                                  SubscriptionService subscriptionService) {
+                                  SubscriptionService subscriptionService,
+                                  EventeumValueMonitor valueMonitor,
+                                  EventStoreService eventStoreService,
+                                  Integer syncingThreshold,
+                                  ScheduledThreadPoolExecutor taskScheduler,
+                                  Long healthCheckPollInterval) {
+        this.eventStoreService = eventStoreService;
         this.blockchainService = blockchainService;
         this.reconnectionStrategy = reconnectionStrategy;
         this.subscriptionService = subscriptionService;
+        this.syncingThreshold = syncingThreshold;
         nodeStatus = NodeStatus.SUBSCRIBED;
+
+        currentBlock = valueMonitor.monitor( "currentBlock", blockchainService.getNodeName(), new
+                AtomicLong(0));
+        nodeStatusGauge = valueMonitor.monitor( "status", blockchainService.getNodeName(), new
+                AtomicInteger(NodeStatus.SUBSCRIBED.ordinal()));
+        syncing = valueMonitor.monitor("syncing", blockchainService.getNodeName(), new
+                AtomicInteger(0));
+
+        taskScheduler.scheduleWithFixedDelay(() -> this.checkHealth() ,0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
     }
 
-    @Scheduled(fixedDelayString = "${ethereum.healthcheck.pollInterval}")
     public void checkHealth() {
+        try {
+            log.trace("Checking health");
 
-        log.trace("Checking health");
+            final NodeStatus statusAtStart = nodeStatus;
 
-        //Can take a few seconds to subscribe initially so if wait until after
-        //first subscription to check health
-        if (!isSubscribed() && !initiallySubscribed) {
-            log.debug("Not initially subscribed");
-            return;
-        }
+            if (isNodeConnected() && isSubscribed()) {
+                log.trace("Node connected");
 
-        final NodeStatus statusAtStart = nodeStatus;
-
-        if (isNodeConnected()) {
-            log.trace("Node connected");
-            if (nodeStatus == NodeStatus.DOWN) {
-                log.info("Node {} has come back up.", blockchainService.getNodeName());
-
-                //We've come back up
-                doResubscribe();
-            } else {
-                if (statusAtStart != NodeStatus.SUBSCRIBED || !isSubscribed()) {
-                    log.info("Node {} not subscribed", blockchainService.getNodeName());
-                    doResubscribe();
-                } else {
-                    initiallySubscribed = true;
+                if (nodeStatus == NodeStatus.DOWN) {
+                    log.info("Node {} has come back up.", blockchainService.getNodeName());
                 }
+
+            } else {
+                log.error("Node {} is down or unsubscribed!!", blockchainService.getNodeName());
+                nodeStatus = NodeStatus.DOWN;
+
+                if (statusAtStart != NodeStatus.DOWN) {
+                    blockchainService.disconnect();
+                }
+
+                doReconnect();
             }
 
-        } else {
-            log.error("Node {} is down!!", blockchainService.getNodeName());
-            nodeStatus = NodeStatus.DOWN;
-
-            if (statusAtStart != NodeStatus.DOWN) {
-                subscriptionService.unsubscribeToAllSubscriptions(blockchainService.getNodeName());
-            }
-
-            doReconnect();
+            nodeStatusGauge.set(nodeStatus.ordinal());
+        } catch (Throwable t) {
+            log.error("An error occured during the check health / recovery process...Will retry at next poll", t);
         }
     }
 
     protected boolean isNodeConnected() {
         try {
-            blockchainService.getClientVersion();
+            currentBlock.set(blockchainService.getCurrentBlockNumber().longValue());
+
+            if(currentBlock.longValue()  <= syncingThreshold + getLatestBlockForNode().getNumber().longValue() ){
+                syncing.set(0);
+            }
+            else {
+                syncing.set(1);
+            }
         } catch(Throwable t) {
-            log.error("Get client version failed with exception on node " + blockchainService.getNodeName(), t);
+            log.error("Get latest block failed with exception on node " + blockchainService.getNodeName(), t);
 
             return false;
         }
@@ -107,7 +150,16 @@ public class NodeHealthCheckService {
     private void doResubscribe() {
         reconnectionStrategy.resubscribe();
 
-        nodeStatus = isSubscribed() ? NodeStatus.SUBSCRIBED : NodeStatus.CONNECTED;
+        nodeStatus = isSubscribed() ? NodeStatus.CONNECTED : NodeStatus.DOWN;
+    }
+
+    private LatestBlock getLatestBlockForNode() {
+        return eventStoreService.getLatestBlock(
+                blockchainService.getNodeName()).orElseGet(() -> {
+                    final LatestBlock latestBlock = new LatestBlock();
+                    latestBlock.setNumber(BigInteger.ZERO);
+                    return latestBlock;
+                });
     }
 
     private enum NodeStatus {

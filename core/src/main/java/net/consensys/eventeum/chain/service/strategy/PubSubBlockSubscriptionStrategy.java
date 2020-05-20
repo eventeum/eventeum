@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
@@ -8,7 +22,10 @@ import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
+import net.consensys.eventeum.settings.EventeumSettings;
+import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;
@@ -17,6 +34,7 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Optional;
 
 public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<NewHead> {
@@ -30,18 +48,18 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     public PubSubBlockSubscriptionStrategy(Web3j web3j,
                                            String nodeName,
                                            EventStoreService eventStoreService,
-                                           AsyncTaskService asyncService) {
-        super(web3j, nodeName, eventStoreService, asyncService);
+                                           AsyncTaskService asyncService,
+                                           EventeumSettings settings) {
+        super(web3j, nodeName, eventStoreService, asyncService, settings);
 
         this.asyncService = asyncService;
     }
 
     @Override
     public Disposable subscribe() {
-        final Optional<LatestBlock> latestBlock = getLatestBlock();
-
-        if (latestBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(latestBlock.get().getNumber());
+        final Optional<BigInteger> startBlock = getStartBlock();
+        if (startBlock.isPresent()) {
+            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock.get());
 
             //New heads can only start from latest block so we need to obtain missing blocks first
             blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true)
@@ -57,7 +75,8 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     private Disposable subscribeToNewHeads() {
         final Disposable disposable = web3j.newHeadsNotifications().subscribe(newHead -> {
             //Need to execute this is a seperate thread to workaround websocket thread deadlock
-            asyncService.execute(PUB_SUB_EXECUTOR_NAME, () -> triggerListeners(newHead.getParams().getResult()));
+            asyncService.execute(ExecutorNameFactory.build(PUB_SUB_EXECUTOR_NAME, nodeName),
+                    () -> triggerListeners(newHead.getParams().getResult()));
         });
 
         if (disposable.isDisposed()) {

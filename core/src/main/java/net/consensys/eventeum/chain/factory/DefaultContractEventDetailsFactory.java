@@ -1,7 +1,23 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.factory;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
+import net.consensys.eventeum.chain.converter.EventParameterConverter;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -24,14 +40,14 @@ import java.util.stream.IntStream;
 public class DefaultContractEventDetailsFactory implements ContractEventDetailsFactory {
 
     private EventParameterConverter<Type> parameterConverter;
-    private EventConfirmationConfig eventConfirmationConfig;
+    private Node node;
     private String networkName;
 
     public DefaultContractEventDetailsFactory(EventParameterConverter<Type> parameterConverter,
-                                       EventConfirmationConfig eventConfirmationConfig,
-                                       String networkName) {
+                                              Node node,
+                                              String networkName) {
         this.parameterConverter = parameterConverter;
-        this.eventConfirmationConfig = eventConfirmationConfig;
+        this.node = node;
         this.networkName = networkName;
     }
 
@@ -58,7 +74,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
 
         if (log.isRemoved()) {
             eventDetails.setStatus(ContractEventStatus.INVALIDATED);
-        } else if (eventConfirmationConfig.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO)) {
+        } else if (node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO)) {
             //Set to confirmed straight away if set to zero confirmations
             eventDetails.setStatus(ContractEventStatus.CONFIRMED);
         } else {
@@ -84,10 +100,13 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
             return Collections.EMPTY_LIST;
         }
 
+        List<ParameterDefinition> orderedParams = new ArrayList<>(eventSpec.getNonIndexedParameterDefinitions());
+        orderedParams.sort((p1, p2) -> p1.getPosition().compareTo(p2.getPosition()));
+
         return FunctionReturnDecoder.decode(
                 log.getData(),
                 Utils.convert(Web3jUtil.getTypeReferencesFromParameterDefinitions(
-                        eventSpec.getNonIndexedParameterDefinitions())));
+                        orderedParams)));
     }
 
     private List<Type> getIndexedParametersFromLog(ContractEventSpecification eventSpec, Log log) {

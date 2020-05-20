@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeumserver.integrationtest;
 
 import net.consensys.eventeum.chain.service.Web3jService;
@@ -11,11 +25,14 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.request.EthFilter;
 
 import java.math.BigInteger;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.eq;
 
 public class BaseFromBlockIntegrationTest extends BaseKafkaIntegrationTest {
 
@@ -37,16 +54,14 @@ public class BaseFromBlockIntegrationTest extends BaseKafkaIntegrationTest {
 
 
     protected BigInteger getFromBlockNumberForLatestRegisteredFilter() {
-        ArgumentCaptor<EthFilter> captor = ArgumentCaptor.forClass(EthFilter.class);
+        ArgumentCaptor<DefaultBlockParameter> captor = ArgumentCaptor.forClass(DefaultBlockParameter.class);
 
-        Mockito.verify(web3j).ethLogFlowable(captor.capture());
+        Mockito.verify(web3j).replayPastAndFutureBlocksFlowable(captor.capture(), eq(true));
 
-        List<EthFilter> allInvocationArgs = captor.getAllValues();
-        EthFilter lastArg = allInvocationArgs.get(allInvocationArgs.size() - 1);
+        List<DefaultBlockParameter> allInvocationArgs = captor.getAllValues();
+        DefaultBlockParameterNumber lastArg = (DefaultBlockParameterNumber)
+                allInvocationArgs.get(allInvocationArgs.size() - 1);
 
-        final DefaultBlockParameterNumber blockParameterNumber =
-                (DefaultBlockParameterNumber) lastArg.getFromBlock();
-
-        return blockParameterNumber.getBlockNumber();
+        return lastArg.getBlockNumber();
     }
 }

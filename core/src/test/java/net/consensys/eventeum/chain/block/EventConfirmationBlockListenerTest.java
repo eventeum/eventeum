@@ -1,11 +1,24 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.block;
 
-import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.chain.config.EventConfirmationConfig;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Log;
-import net.consensys.eventeum.dto.block.BlockDetails;
+import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
@@ -13,7 +26,6 @@ import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -38,7 +50,6 @@ public class EventConfirmationBlockListenerTest {
     private BlockchainService mockBlockchainService;
     private BlockchainEventBroadcaster mockEventBroadcaster;
     private TransactionReceipt mockTransactionReceipt;
-    private AsyncTaskService asyncTaskService = new DummyAsyncTaskService();
     private Log mockLog;
 
     @Before
@@ -53,6 +64,7 @@ public class EventConfirmationBlockListenerTest {
         when(anotherMockLog.getLogIndex()).thenReturn(EVENT_LOG_INDEX.add(BigInteger.ONE));
 
         when(mockTransactionReceipt.getLogs()).thenReturn(Arrays.asList(anotherMockLog, mockLog));
+        when(mockTransactionReceipt.getBlockHash()).thenReturn(EVENT_BLOCK_HASH);
 
         when(mockEventDetails.getBlockNumber()).thenReturn(EVENT_BLOCK_NUMBER);
         when(mockEventDetails.getTransactionHash()).thenReturn(EVENT_TX_HASH);
@@ -62,11 +74,14 @@ public class EventConfirmationBlockListenerTest {
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(EVENT_BLOCK_NUMBER);
         when(mockBlockchainService.getTransactionReceipt(EVENT_TX_HASH)).thenReturn(mockTransactionReceipt);
 
-        final EventConfirmationConfig eventConfirmationConfig =
-                new EventConfirmationConfig(BLOCKS_TO_WAIT, BLOCKS_TO_WAIT_MISSING, BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
+        Node node =
+                new Node();
+        node.setBlocksToWaitForConfirmation(BLOCKS_TO_WAIT);
+        node.setBlocksToWaitForMissingTx(BLOCKS_TO_WAIT_MISSING);
+        node.setBlocksToWaitBeforeInvalidating(BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
 
         underTest = new EventConfirmationBlockListener(mockEventDetails,
-                mockBlockchainService, mockEventBroadcaster, eventConfirmationConfig, asyncTaskService);
+                mockBlockchainService, mockEventBroadcaster, node);
     }
 
     @Test

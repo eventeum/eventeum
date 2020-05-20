@@ -15,12 +15,16 @@ logging:
 
 ethereum:
   nodes:
-    - name: default
-      url: ${ETHEREUM_NODE_URL:http://localhost:8545}
-#      blockStrategy: POLL
+  - name: default
+#    url: ${ETHEREUM_NODE_URL:wss://mainnet.infura.io/ws/v3/6d00f1fc08d84be7a25d76996d16550b}
+    url: ${ETHEREUM_NODE_URL:http://localhost:8545}
+    blockStrategy: POLL
+    syncingThreshold: 100
+    healthcheckInterval: 5000
   healthcheck:
-    pollInterval: 2000
+    pollInterval: 5000
   blockStrategy: POLL
+  numBlocksToReplay: 12
 
 #eventFilters:
 #  - id: CryptoKittiesTransfer
@@ -40,14 +44,9 @@ ethereum:
 #      index: 2
 
 #transactionFilters:
-#- nodeName: ${ETHEREUM_NETWORK:DefaultNetwork}
-#  type: "FROM_ADDRESS"
-#  transactionIdentifierValue: ${CONTRACT_ADDRESS_EM_TOKEN:0x0f8E7A681019Ec13EfE853a6Eca666E05b214Fd5}
-#  statuses: ['CONFIRMED']
-#- nodeName: ${ETHEREUM_NETWORK:DefaultNetwork}
+#- nodeName: ${ETHEREUM_NETWORK:default}
 #  type: "TO_ADDRESS"
-#  transactionIdentifierValue: ${CONTRACT_ADDRESS_EM_TOKEN:0xfBAB8dE62002c86986C6e070BD3bB46BF983C74e}
-#  statuses: ['FAILED']
+#  transactionIdentifierValue: "0x06012c8cf97bead5deae237070f9587f8e7a266d"
 
 eventStore:
   type: DB
@@ -89,14 +88,24 @@ spring:
     host: ${RABBIT_ADDRESS:localhost}
 
 rabbitmq:
-  exchange: ThisIsAExchange
-  routingKeyPrefix: thisIsRoutingKey
+  exchange: ${RABBIT_EXCHANGE:ThisIsAExchange}
+  routingKeyPrefix: ${RABBIT_ROUTING:thisIsRoutingKey}
 
 management:
   endpoints:
     web.base-path: /monitoring
     enabled-by-default: false
+    web.exposure.include: "*"
   endpoint:
     health:
       enabled: true
       show-details: always
+    metrics:
+      enabled: false
+    prometheus:
+      enabled: false
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+

@@ -1,14 +1,30 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.model.FilterSubscription;
 import rx.Subscription;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -68,6 +84,8 @@ public interface BlockchainService {
      */
     public Optional<Block> getBlock(String blockHash, boolean fullTransactionObjects);
 
+    List<ContractEventDetails> getEventsForFilter(ContractEventFilter filter, BigInteger blockNumber);
+
     /**
      * Obtain the transaction receipt for a specified transaction id.
      *
@@ -80,6 +98,11 @@ public interface BlockchainService {
      * Connects to the Ethereum node and starts listening for new blocks
      */
     void connect();
+
+    /**
+     * Stops listening for new blocks from the ethereum node
+     */
+    void disconnect();
 
     /**
      * Reconnects to the Ethereum node (useful after node failure)

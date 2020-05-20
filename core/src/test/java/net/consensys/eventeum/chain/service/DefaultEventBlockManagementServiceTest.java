@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service;
 
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
@@ -44,8 +58,8 @@ public class DefaultEventBlockManagementServiceTest {
         EVENT_SPEC = new ContractEventSpecification();
         EVENT_SPEC.setEventName("AnEvent");
         EVENT_SPEC.setIndexedParameterDefinitions(Arrays.asList(
-                 new ParameterDefinition(0, ParameterType.build("ADDRESS")),
-                 new ParameterDefinition(1, ParameterType.build("UINT256"))));
+                new ParameterDefinition(0, ParameterType.build("ADDRESS")),
+                new ParameterDefinition(1, ParameterType.build("UINT256"))));
 
         EVENT_FILTER = new ContractEventFilter();
         EVENT_FILTER.setNode(Constants.DEFAULT_NODE_NAME);

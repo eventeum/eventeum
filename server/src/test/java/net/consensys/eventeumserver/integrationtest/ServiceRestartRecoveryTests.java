@@ -1,5 +1,20 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeumserver.integrationtest;
 
+import com.mongodb.MongoClient;
 import junit.framework.TestCase;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -11,6 +26,7 @@ import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
+import net.consensys.eventeum.utils.JSON;
 import net.consensys.eventeumserver.integrationtest.utils.RestartingSpringRunner;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -22,6 +38,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.web3j.crypto.Hash;
+import wiremock.org.apache.commons.collections4.IterableUtils;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -48,6 +65,8 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         mongoContainer.waitingFor(Wait.forListeningPort());
         mongoContainer.withFixedExposedPort(MONGO_PORT, MONGO_PORT);
         mongoContainer.start();
+
+        waitForMongoDBToStart(30000);
     }
 
     @AfterClass
@@ -69,7 +88,12 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         List<BlockDetails> broadcastBlocks = getBroadcastBlockMessages();
 
+        System.out.println("BROADCAST BLOCKS BEFORE: " + JSON.stringify(getBroadcastBlockMessages()));
+
         final BigInteger lastBlockNumber = broadcastBlocks.get(broadcastBlocks.size() - 1).getNumber();
+
+        //Ensure latest block has been updated in eventeum
+        waitForBroadcast();
 
         getBroadcastBlockMessages().clear();
 
@@ -83,10 +107,12 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         triggerBlocks(2);
 
-        waitForBlockMessages(6);
+        waitForBlockMessages(7);
+
+        System.out.println("BROADCAST BLOCKS AFTER: " + JSON.stringify(getBroadcastBlockMessages()));
 
         //Eventeum will rebroadcast the last seen block after restart in case block
-        //wasn't fully processed
+        //wasn't fully processed (when numBlocksToReplay=0)
         assertEquals(lastBlockNumber, getBroadcastBlockMessages().get(0).getNumber());
 
         //Assert incremental blocks
@@ -119,6 +145,39 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
+    }
+
+    public void doBroadcastConfirmedEventAfter12BlocksWhenDownTest() throws Exception {
+
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        final ContractEventFilter registeredFilter = registerDummyEventFilter(emitter.getContractAddress());
+
+        restartEventeum(() -> {
+            try {
+                try {
+                    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+                    waitForBroadcast();
+
+                    triggerBlocks(12);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                TestCase.fail("Unable to emit event");
+            }
+        });
+
+        waitForContractEventMessages(2);
+
+        assertEquals(2, getBroadcastContractEvents().size());
+
+        verifyDummyEventDetails(registeredFilter,
+                getBroadcastContractEvents().get(0), ContractEventStatus.UNCONFIRMED);
+
+        verifyDummyEventDetails(registeredFilter,
+                getBroadcastContractEvents().get(1), ContractEventStatus.CONFIRMED);
     }
 
     protected void doBroadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
@@ -162,5 +221,33 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
+    }
+
+    private static void waitForMongoDBToStart(long timeToWait) {
+        final long startTime = System.currentTimeMillis();
+
+        while (true) {
+            if (System.currentTimeMillis() > startTime + timeToWait) {
+                throw new IllegalStateException("MongoDB failed to start...");
+            }
+
+            try {
+                //Check mongo is up
+                final MongoClient mongo = new MongoClient();
+                final List<String> databaseNames = IterableUtils.toList(mongo.listDatabaseNames());
+
+                if (databaseNames.size() > 0) {
+                    break;
+                }
+            } catch (Throwable t) {
+                //If an error occurs, mongoDB is not yet up
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();;
+            }
+        }
     }
 }
