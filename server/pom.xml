@@ -44,7 +44,7 @@
         <dependency>
             <groupId>net.consensys.eventeum</groupId>
             <artifactId>eventeum-core</artifactId>
-            <version>1.0.28-SNAPSHOT</version>
+            <version>0.8.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <artifactId>kotlin-stdlib</artifactId>
