@@ -16,7 +16,6 @@ package net.consensys.eventeum.service;
 
 import java.util.Collections;
 
-import io.reactivex.disposables.Disposable;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
@@ -26,8 +25,8 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
-import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
+import net.consensys.eventeum.service.catchup.EventCatchupService;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
@@ -40,7 +39,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -76,6 +74,8 @@ public class DefaultSubscriptionServiceTest {
     private ContractEventListener mockEventListener1;
     @Mock
     private ContractEventListener mockEventListener2;
+    @Mock
+    private EventCatchupService mockEventCatchupService;
 
     private RetryTemplate mockRetryTemplate;
 
@@ -104,13 +104,14 @@ public class DefaultSubscriptionServiceTest {
         underTest = new DefaultSubscriptionService(mockChainServicesContainer,
                 mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),
                 Arrays.asList(mockBlockListener1, mockBlockListener2),
-                Arrays.asList(mockEventListener1, mockEventListener2), mockRetryTemplate);
+                Arrays.asList(mockEventListener1, mockEventListener2),
+                mockRetryTemplate, mockEventCatchupService);
     }
 
     @Test
     public void testSubscribeToNewBlocksOnInit() {
 
-        underTest.init();
+        underTest.init(null);
 
         verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener1);
         verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener2);

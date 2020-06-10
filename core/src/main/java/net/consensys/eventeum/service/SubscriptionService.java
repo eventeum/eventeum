@@ -29,7 +29,7 @@ public interface SubscriptionService {
     /**
      * Initialise the subscription service
      */
-    void init();
+    void init(List<ContractEventFilter> initFilters);
 
     /**
      * Registers a new contract event filter.

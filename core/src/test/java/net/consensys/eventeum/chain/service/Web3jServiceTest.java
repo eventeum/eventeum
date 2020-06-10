@@ -15,6 +15,7 @@
 package net.consensys.eventeum.chain.service;
 
 import io.reactivex.Flowable;
+import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
@@ -30,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscriber;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -202,7 +204,8 @@ public class Web3jServiceTest {
         when(mockContractEventDetailsFactory.createEventDetails(filter, mockLog)).thenReturn(mockContractEventDetails);
 
         final ContractEventListener mockEventListener = mock(ContractEventListener.class);
-        underTest.registerEventListener(filter, mockEventListener);
+        underTest.registerEventListener(filter, mockEventListener,
+                BigInteger.ZERO, BigInteger.valueOf(9999L), null);
 
         final ArgumentCaptor<ContractEventDetails> captor = ArgumentCaptor.forClass(ContractEventDetails.class);
         verify(mockEventListener).onEvent(captor.capture());

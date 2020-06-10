@@ -51,11 +51,11 @@ public class ChainBootstrapper implements InitializingBean {
     private TransactionFilterConfiguration transactionFilterConfiguration;
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         registerTransactionsToMonitor(transactionMonitoringRepository.findAll(), true);
         registerTransactionsToMonitor(transactionFilterConfiguration.getConfiguredTransactionFilters(), true);
 
-        subscriptionService.init();
+        subscriptionService.init(filterConfiguration.getConfiguredEventFilters());
         registerFilters(filterConfiguration.getConfiguredEventFilters(), true);
         registerFilters(filterRepository.findAll(), false);
 

@@ -55,14 +55,30 @@ public interface BlockchainService {
     void removeBlockListener(BlockListener blockListener);
 
     /**
+     * Retrieves all events for a specified event filter.
+     *
+     * @param eventFilter The contract event filter that should be matched.
+     * @param startBlock The start block
+     * @param endBlock The end block
+     * @return The blockchain contract events
+     */
+    List<ContractEventDetails> retrieveEvents(ContractEventFilter eventFilter,
+                                              BigInteger startBlock,
+                                              BigInteger endBlock);
+
+    /**
      * Register a contract event listener for the specified event filter, that gets triggered when an event
      * matching the filter is emitted within the Ethereum network.
      *
-     * @param filter The contract event filter that should be matched.
+     * @param eventFilter The contract event filter that should be matched.
      * @param eventListener The listener to be triggered when a matching event is emitted
      * @return The registered subscription
      */
-    FilterSubscription registerEventListener(ContractEventFilter filter, ContractEventListener eventListener);
+    FilterSubscription registerEventListener(ContractEventFilter eventFilter,
+                                             ContractEventListener eventListener,
+                                             BigInteger startBlock,
+                                             BigInteger endBlock,
+                                             Optional<Runnable> onCompletion);
 
     /**
      *

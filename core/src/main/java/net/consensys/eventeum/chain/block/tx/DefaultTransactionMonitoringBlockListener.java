@@ -17,7 +17,7 @@ package net.consensys.eventeum.chain.block.tx;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
-import net.consensys.eventeum.chain.service.BlockCache;
+import net.consensys.eventeum.chain.service.block.BlockCache;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.Block;

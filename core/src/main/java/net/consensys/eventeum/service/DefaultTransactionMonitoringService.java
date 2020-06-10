@@ -20,7 +20,7 @@ import net.consensys.eventeum.chain.block.tx.TransactionMonitoringBlockListener;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.block.tx.criteria.factory.TransactionMatchingCriteriaFactory;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
-import net.consensys.eventeum.chain.service.BlockCache;
+import net.consensys.eventeum.chain.service.block.BlockCache;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;

@@ -16,6 +16,7 @@ package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.service.block.BlockStartNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -41,10 +42,9 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
 
     public PollingBlockSubscriptionStrategy(Web3j web3j,
                                             String nodeName,
-                                            EventStoreService eventStoreService,
                                             AsyncTaskService asyncService,
-                                            EventeumSettings settings) {
-        super(web3j, nodeName, eventStoreService, asyncService, settings);
+                                            BlockStartNumberService blockStartNumberService) {
+        super(web3j, nodeName, asyncService, blockStartNumberService);
     }
 
     @Override

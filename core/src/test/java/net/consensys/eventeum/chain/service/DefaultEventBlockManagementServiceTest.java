@@ -14,6 +14,7 @@
 
 package net.consensys.eventeum.chain.service;
 
+import net.consensys.eventeum.chain.service.block.DefaultEventBlockManagementService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.constant.Constants;

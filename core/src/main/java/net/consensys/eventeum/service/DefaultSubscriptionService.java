@@ -19,24 +19,19 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
-import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
-import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
+import net.consensys.eventeum.service.catchup.EventCatchupService;
 import net.consensys.eventeum.service.exception.NotFoundException;
-import net.consensys.eventeum.utils.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -62,9 +57,9 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private Map<String, ContractEventFilter> filterSubscriptions;
 
-    private ApplicationContext applicationContext;
-
     private RetryTemplate retryTemplate;
+
+    private EventCatchupService eventCatchupService;
 
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
@@ -73,7 +68,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
                                       AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
                                       List<ContractEventListener> contractEventListeners,
-                                      @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
+                                      @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate,
+                                      EventCatchupService eventCatchupService) {
         this.contractEventListeners = contractEventListeners;
         this.chainServices = chainServices;
         this.asyncTaskService = asyncTaskService;
@@ -81,12 +77,25 @@ public class DefaultSubscriptionService implements SubscriptionService {
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.blockListeners = blockListeners;
         this.retryTemplate = retryTemplate;
+        this.eventCatchupService = eventCatchupService;
 
         filterSubscriptions = new HashMap<>();
     }
 
 
-    public void init() {
+    public void init(List<ContractEventFilter> initFilters) {
+
+        if (initFilters != null && !initFilters.isEmpty()) {
+            final List<ContractEventFilter> filtersWithStartBlock = initFilters
+                    .stream()
+                    .filter(filter -> filter.getStartBlock() != null)
+                    .collect(Collectors.toList());
+
+            if (!filtersWithStartBlock.isEmpty()) {
+                eventCatchupService.catchup(filtersWithStartBlock);
+            }
+        }
+
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
     }

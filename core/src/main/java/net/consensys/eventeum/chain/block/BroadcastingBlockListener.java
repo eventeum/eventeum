@@ -20,6 +20,8 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.utils.Numeric;
@@ -31,6 +33,7 @@ import org.web3j.utils.Numeric;
  */
 @Component
 @AllArgsConstructor
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class BroadcastingBlockListener implements BlockListener {
 
     private BlockchainEventBroadcaster eventBroadcaster;

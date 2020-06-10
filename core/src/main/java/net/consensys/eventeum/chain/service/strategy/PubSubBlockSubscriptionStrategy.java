@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.service.strategy;
 import io.reactivex.disposables.Disposable;
 import lombok.Setter;
 import net.consensys.eventeum.chain.service.BlockchainException;
+import net.consensys.eventeum.chain.service.block.BlockStartNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.model.LatestBlock;
@@ -47,10 +48,9 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
 
     public PubSubBlockSubscriptionStrategy(Web3j web3j,
                                            String nodeName,
-                                           EventStoreService eventStoreService,
                                            AsyncTaskService asyncService,
-                                           EventeumSettings settings) {
-        super(web3j, nodeName, eventStoreService, asyncService, settings);
+                                           BlockStartNumberService blockStartNumberService) {
+        super(web3j, nodeName, asyncService, blockStartNumberService);
 
         this.asyncService = asyncService;
     }

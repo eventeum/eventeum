@@ -12,9 +12,11 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.chain.service;
+package net.consensys.eventeum.chain.service.block;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.event.ContractEventDetails;

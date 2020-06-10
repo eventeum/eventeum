@@ -169,15 +169,13 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
             }
         });
 
-        waitForContractEventMessages(2);
+        waitForContractEventMessages(1);
 
-        assertEquals(2, getBroadcastContractEvents().size());
+        assertEquals(1, getBroadcastContractEvents().size());
 
-        verifyDummyEventDetails(registeredFilter,
-                getBroadcastContractEvents().get(0), ContractEventStatus.UNCONFIRMED);
 
         verifyDummyEventDetails(registeredFilter,
-                getBroadcastContractEvents().get(1), ContractEventStatus.CONFIRMED);
+                getBroadcastContractEvents().get(0), ContractEventStatus.CONFIRMED);
     }
 
     protected void doBroadcastTransactionUnconfirmedAfterFailureTest() throws Exception {

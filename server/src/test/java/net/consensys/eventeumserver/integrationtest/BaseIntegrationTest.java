@@ -121,6 +121,8 @@ public class BaseIntegrationTest {
 
     private List<String> registeredTransactionMonitorIds = new ArrayList<>();
 
+    public static boolean shouldPersistNodeVolume = true;
+
     @BeforeClass
     public static void setupEnvironment() throws Exception {
         StubEventStoreService.start();
@@ -163,6 +165,8 @@ public class BaseIntegrationTest {
     public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
 
+
+        shouldPersistNodeVolume = true;
         stopParity();
 
         try {
@@ -366,7 +370,7 @@ public class BaseIntegrationTest {
                 eventDetails.getEventSpecificationSignature());
     }
 
-    protected byte[] stringToBytes(String string) {
+    protected static byte[] stringToBytes(String string) {
         byte[] byteValue = string.getBytes();
         byte[] byteValueLen32 = new byte[32];
         System.arraycopy(byteValue, 0, byteValueLen32, 0, byteValue.length);
@@ -516,8 +520,10 @@ public class BaseIntegrationTest {
         parityContainer.waitingFor(Wait.forListeningPort());
         parityContainer.withFixedExposedPort(8545, 8545);
         parityContainer.withFixedExposedPort(8546, 8546);
-        parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
-                "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        if (shouldPersistNodeVolume) {
+            parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
+                    "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        }
         parityContainer.addEnv("NO_BLOCKS", "true");
         parityContainer.start();
 

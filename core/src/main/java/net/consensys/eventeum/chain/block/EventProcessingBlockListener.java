@@ -20,8 +20,11 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @Component
 @Slf4j
 public class EventProcessingBlockListener implements BlockListener {

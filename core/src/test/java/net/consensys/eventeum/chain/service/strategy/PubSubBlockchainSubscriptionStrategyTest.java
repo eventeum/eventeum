@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.service.strategy;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.service.block.BlockStartNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.service.EventStoreService;
@@ -67,17 +68,15 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
     private BlockListener mockBlockListener;
 
-    private EventStoreService mockEventStoreService;
+    private BlockStartNumberService mockBlockNumberService;
 
-    private EventeumSettings mockSettings;
 
     @Before
     public void init() throws IOException {
         this.mockWeb3j = mock(Web3j.class);
 
         mockNewHeadsNotification = mock(NewHeadsNotification.class);
-        mockEventStoreService = mock(EventStoreService.class);
-        mockSettings = mock(EventeumSettings.class);
+        mockBlockNumberService = mock(BlockStartNumberService.class);
         when(mockNewHeadsNotification.getParams()).thenReturn(new NewHeadNotificationParameter());
 
         mockNewHead = mock(NewHead.class);
@@ -100,7 +99,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         when(mockRequest.send()).thenReturn(mockEthBlock);
 
         underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME,
-                mockEventStoreService, new DummyAsyncTaskService(), mockSettings);
+                new DummyAsyncTaskService(), mockBlockNumberService);
     }
 
     @Test

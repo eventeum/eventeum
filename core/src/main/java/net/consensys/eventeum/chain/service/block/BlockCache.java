@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.chain.service;
+package net.consensys.eventeum.chain.service.block;
 
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;

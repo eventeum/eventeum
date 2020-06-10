@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
+//@Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BroadcastingEventListener implements ContractEventListener {
 
