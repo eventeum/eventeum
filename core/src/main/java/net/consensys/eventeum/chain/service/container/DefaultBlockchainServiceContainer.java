@@ -19,14 +19,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+@Lazy
 @Component
-public class DefaultBlockchainServiceContainer implements ChainServicesContainer {
+public class DefaultBlockchainServiceContainer implements ChainServicesContainer, InitializingBean {
 
+    private List<NodeServices> nodeServices;
     private Map<String, NodeServices> nodeServicesMap;
 
-    public DefaultBlockchainServiceContainer(List<NodeServices> nodeServices) {
+    @Autowired
+    public DefaultBlockchainServiceContainer(@Lazy List<NodeServices> nodeServices) {
+        this.nodeServices = nodeServices;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
         nodeServicesMap = new HashMap<>();
         nodeServices.forEach(ns -> nodeServicesMap.put(ns.getNodeName(), ns));
     }

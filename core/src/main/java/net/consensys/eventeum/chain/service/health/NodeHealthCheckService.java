@@ -48,7 +48,7 @@ public class NodeHealthCheckService {
 
     private SubscriptionService subscriptionService;
 
-    private boolean initiallySubscribed = false;
+    private boolean started = false;
 
     private AtomicLong currentBlock;
 
@@ -93,20 +93,23 @@ public class NodeHealthCheckService {
 
             if (isNodeConnected() && isSubscribed()) {
                 log.trace("Node connected");
+                started = true;
 
                 if (nodeStatus == NodeStatus.DOWN) {
                     log.info("Node {} has come back up.", blockchainService.getNodeName());
                 }
 
             } else {
-                log.error("Node {} is down or unsubscribed!!", blockchainService.getNodeName());
-                nodeStatus = NodeStatus.DOWN;
+                if (started) {
+                    log.error("Node {} is down or unsubscribed!!", blockchainService.getNodeName());
+                    nodeStatus = NodeStatus.DOWN;
 
-                if (statusAtStart != NodeStatus.DOWN) {
-                    blockchainService.disconnect();
+                    if (statusAtStart != NodeStatus.DOWN) {
+                        blockchainService.disconnect();
+                    }
+
+                    doReconnect();
                 }
-
-                doReconnect();
             }
 
             nodeStatusGauge.set(nodeStatus.ordinal());

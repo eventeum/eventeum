@@ -15,24 +15,32 @@
 package net.consensys.eventeum.chain.service.block;
 
 import lombok.AllArgsConstructor;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.settings.EventeumSettings;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class DefaultBlockStartNumberService implements BlockStartNumberService {
+public class DefaultBlockNumberService implements BlockNumberService {
 
     private EventeumSettings settings;
 
     private EventStoreService eventStoreService;
 
+    private ChainServicesContainer chainServices;
+
+    private Map<String, BigInteger> defaultStartBlocks = new HashMap<>();
+
     @Override
-    public Optional<BigInteger> getStartBlockForNode(String nodeName) {
+    public BigInteger getStartBlockForNode(String nodeName) {
         final Optional<LatestBlock> latestBlock = getLatestBlock(nodeName);
 
         if (latestBlock.isPresent()) {
@@ -41,13 +49,22 @@ public class DefaultBlockStartNumberService implements BlockStartNumberService {
             final BigInteger startBlock = latestBlockNumber.subtract(settings.getNumBlocksToReplay());
 
             //Check the replay subtraction result is positive
-            return Optional.of(startBlock.signum() == 1 ? startBlock : BigInteger.ONE);
+            return startBlock.signum() == 1 ? startBlock : BigInteger.ONE;
         }
 
-        return Optional.ofNullable(settings.getInitialStartBlock());
+        return settings.getInitialStartBlock() != null ? settings.getInitialStartBlock() : getDefaultStartBlock(nodeName);
     }
 
     protected Optional<LatestBlock> getLatestBlock(String nodeName) {
         return eventStoreService.getLatestBlock(nodeName);
+    }
+
+    //We want to be consistent on the start block across the system, so get the current block once and store
+    protected BigInteger getDefaultStartBlock(String node) {
+        if (!defaultStartBlocks.containsKey(node)) {
+            defaultStartBlocks.put(node, chainServices.getNodeServices(node).getBlockchainService().getCurrentBlockNumber());
+        }
+
+        return defaultStartBlocks.get(node);
     }
 }

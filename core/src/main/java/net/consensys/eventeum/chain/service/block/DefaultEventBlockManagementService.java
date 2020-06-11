@@ -51,7 +51,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
     private EventStoreService eventStoreService;
 
     @Autowired
-    public DefaultEventBlockManagementService(@Lazy ChainServicesContainer chainServicesContainer,
+    public DefaultEventBlockManagementService(ChainServicesContainer chainServicesContainer,
                                               EventStoreService eventStoreService) {
         this.chainServicesContainer = chainServicesContainer;
         this.eventStoreService = eventStoreService;

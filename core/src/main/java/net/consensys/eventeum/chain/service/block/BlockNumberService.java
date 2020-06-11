@@ -15,9 +15,8 @@
 package net.consensys.eventeum.chain.service.block;
 
 import java.math.BigInteger;
-import java.util.Optional;
 
-public interface BlockStartNumberService {
+public interface BlockNumberService {
 
-    Optional<BigInteger> getStartBlockForNode(String nodeName);
+    BigInteger getStartBlockForNode(String nodeName);
 }

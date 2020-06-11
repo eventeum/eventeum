@@ -16,20 +16,11 @@ package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.eventeum.chain.service.block.BlockStartNumberService;
+import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
-import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.AsyncTaskService;
-import net.consensys.eventeum.service.EventStoreService;
-import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.utils.JSON;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -43,29 +34,22 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
     public PollingBlockSubscriptionStrategy(Web3j web3j,
                                             String nodeName,
                                             AsyncTaskService asyncService,
-                                            BlockStartNumberService blockStartNumberService) {
-        super(web3j, nodeName, asyncService, blockStartNumberService);
+                                            BlockNumberService blockNumberService) {
+        super(web3j, nodeName, asyncService, blockNumberService);
     }
 
     @Override
     public Disposable subscribe() {
 
-        final Optional<BigInteger> startBlock = getStartBlock();
+        final BigInteger startBlock = getStartBlock();
 
-        if (startBlock.isPresent()) {
-            final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock.get());
+        final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock);
 
-            blockSubscription = web3j
-                    .replayPastAndFutureBlocksFlowable(blockParam, true)
-                    .doOnError((error) -> onError(blockSubscription, error))
-                    .subscribe(block -> triggerListeners(block), (error) -> onError(blockSubscription, error));
+        blockSubscription = web3j
+                .replayPastAndFutureBlocksFlowable(blockParam, true)
+                .doOnError((error) -> onError(blockSubscription, error))
+                .subscribe(block -> triggerListeners(block), (error) -> onError(blockSubscription, error));
 
-        } else {
-            blockSubscription = web3j
-                    .blockFlowable(true)
-                    .doOnError((error) -> onError(blockSubscription, error))
-                    .subscribe(block -> triggerListeners(block), (error) -> onError(blockSubscription, error));
-        }
 
         return blockSubscription;
     }

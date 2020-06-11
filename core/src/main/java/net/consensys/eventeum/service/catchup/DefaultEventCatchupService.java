@@ -18,26 +18,37 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.block.BlockStartNumberService;
+import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @Slf4j
 @Service
-@AllArgsConstructor
 public class DefaultEventCatchupService implements EventCatchupService {
 
     private List<ContractEventListener> contractEventListeners;
 
     private ChainServicesContainer servicesContainer;
 
-    private BlockStartNumberService blockStartNumberService;
+    private BlockNumberService blockNumberService;
 
     private EventRetriever eventRetriever;
+
+    public DefaultEventCatchupService(List<ContractEventListener> contractEventListeners,
+                                      ChainServicesContainer servicesContainer,
+                                      BlockNumberService blockNumberService,
+                                      EventRetriever eventRetriever) {
+        this.contractEventListeners = contractEventListeners;
+        this.servicesContainer = servicesContainer;
+        this.blockNumberService = blockNumberService;
+        this.eventRetriever = eventRetriever;
+    }
 
     @Override
     public void catchup(List<ContractEventFilter> filters) {
@@ -47,7 +58,10 @@ public class DefaultEventCatchupService implements EventCatchupService {
                     .getNodeServices(filter.getNode())
                     .getBlockchainService();
 
-            eventRetriever.retrieveEvents(filter,filter.getStartBlock(), blockchainService.getCurrentBlockNumber())
+            //Should catchup to start block
+            final BigInteger endBlock = blockNumberService.getStartBlockForNode(filter.getNode());
+
+            eventRetriever.retrieveEvents(filter,filter.getStartBlock(), endBlock)
                     .forEach(contractEvent -> triggerListeners(contractEvent));
 
         });

@@ -17,10 +17,11 @@ package net.consensys.eventeum.chain.service.strategy;
 import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.service.block.BlockStartNumberService;
+import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
+import org.springframework.context.annotation.Lazy;
 import org.web3j.protocol.Web3j;
 
 import java.math.BigInteger;
@@ -39,18 +40,18 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected Web3j web3j;
     protected String nodeName;
     protected AsyncTaskService asyncService;
-    protected BlockStartNumberService blockStartNumberService;
+    protected BlockNumberService blockNumberService;
 
     private AtomicBoolean errored = new AtomicBoolean(false);
 
     public AbstractBlockSubscriptionStrategy(Web3j web3j,
                                              String nodeName,
                                              AsyncTaskService asyncService,
-                                             BlockStartNumberService blockStartNumberService) {
+                                             BlockNumberService blockNumberService) {
         this.web3j = web3j;
         this.nodeName = nodeName;
         this.asyncService = asyncService;
-        this.blockStartNumberService = blockStartNumberService;
+        this.blockNumberService = blockNumberService;
     }
 
     @Override
@@ -103,8 +104,8 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         }
     }
 
-    protected Optional<BigInteger> getStartBlock() {
-        return blockStartNumberService.getStartBlockForNode(nodeName);
+    protected BigInteger getStartBlock() {
+        return blockNumberService.getStartBlockForNode(nodeName);
     }
 
     protected void onError(Disposable disposable, Throwable error) {
