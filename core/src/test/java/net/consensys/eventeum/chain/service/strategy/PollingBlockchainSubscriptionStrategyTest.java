@@ -72,7 +72,9 @@ public class PollingBlockchainSubscriptionStrategyTest {
         when(mockEthBlock.getBlock()).thenReturn(mockBlock);
 
         blockPublishProcessor = PublishProcessor.create();
-        when(mockWeb3j.blockFlowable(true)).thenReturn(blockPublishProcessor);
+        when(mockWeb3j.replayPastAndFutureBlocksFlowable(any(), eq(true))).thenReturn(blockPublishProcessor);
+
+        when(mockBlockNumberService.getStartBlockForNode(NODE_NAME)).thenReturn(BigInteger.ONE);
 
         underTest = new PollingBlockSubscriptionStrategy(mockWeb3j,
                 NODE_NAME, new DummyAsyncTaskService(), mockBlockNumberService);

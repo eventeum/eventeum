@@ -14,6 +14,7 @@
 
 package net.consensys.eventeum.chain.service.strategy;
 
+import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
@@ -80,6 +81,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         when(mockNewHead.getHash()).thenReturn(BLOCK_HASH);
 
         blockPublishProcessor = PublishProcessor.create();
+        when(mockWeb3j.replayPastBlocksFlowable(any(), eq(true))).thenReturn(Flowable.empty());
         when(mockWeb3j.newHeadsNotifications()).thenReturn(blockPublishProcessor);
 
         mockEthBlock = mock(EthBlock.class);
@@ -95,26 +97,10 @@ public class PubSubBlockchainSubscriptionStrategyTest {
 
         when(mockRequest.send()).thenReturn(mockEthBlock);
 
+        when(mockBlockNumberService.getStartBlockForNode(NODE_NAME)).thenReturn(BigInteger.ONE);
+
         underTest = new PubSubBlockSubscriptionStrategy(mockWeb3j, NODE_NAME,
                 new DummyAsyncTaskService(), mockBlockNumberService);
-    }
-
-    @Test
-    public void testSubscribe() {
-        final Disposable returnedSubscription = underTest.subscribe();
-
-        assertEquals(false, returnedSubscription.isDisposed());
-    }
-
-    @Test
-    public void testUnsubscribe() {
-        final Disposable returnedSubscription = underTest.subscribe();
-
-        assertEquals(false, returnedSubscription.isDisposed());
-
-        underTest.unsubscribe();
-
-        assertEquals(true, returnedSubscription.isDisposed());
     }
 
     @Test

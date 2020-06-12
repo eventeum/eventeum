@@ -230,9 +230,9 @@ public class NodeHealthCheckServiceTest {
                         HEALTH_CHECK_INTERVAL
                 );
 
-        Field initiallySubscribed = NodeHealthCheckService.class.getDeclaredField("initiallySubscribed");
-        initiallySubscribed.setAccessible(true);
-        initiallySubscribed.set(healthCheckService, true);
+        Field started = NodeHealthCheckService.class.getDeclaredField("started");
+        started.setAccessible(true);
+        started.set(healthCheckService, true);
 
         return healthCheckService;
     }
