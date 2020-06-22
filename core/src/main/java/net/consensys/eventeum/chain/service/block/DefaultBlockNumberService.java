@@ -16,10 +16,9 @@ package net.consensys.eventeum.chain.service.block;
 
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.EventStoreService;
-import net.consensys.eventeum.settings.EventeumSettings;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -31,7 +30,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class DefaultBlockNumberService implements BlockNumberService {
 
-    private EventeumSettings settings;
+    private NodeSettings settings;
 
     private EventStoreService eventStoreService;
 
@@ -46,13 +45,16 @@ public class DefaultBlockNumberService implements BlockNumberService {
         if (latestBlock.isPresent()) {
             final BigInteger latestBlockNumber = latestBlock.get().getNumber();
 
-            final BigInteger startBlock = latestBlockNumber.subtract(settings.getNumBlocksToReplay());
+            final BigInteger startBlock = latestBlockNumber.subtract(
+                    settings.getNode(nodeName).getNumBlocksToReplay());
 
             //Check the replay subtraction result is positive
             return startBlock.signum() == 1 ? startBlock : BigInteger.ONE;
         }
 
-        return settings.getInitialStartBlock() != null ? settings.getInitialStartBlock() : getDefaultStartBlock(nodeName);
+        final BigInteger initialStartBlock = settings.getNode(nodeName).getInitialStartBlock();
+
+        return initialStartBlock != null ? initialStartBlock : getDefaultStartBlock(nodeName);
     }
 
     protected Optional<LatestBlock> getLatestBlock(String nodeName) {

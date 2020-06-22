@@ -45,6 +45,8 @@ public class NodeSettings {
 
     private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION = "12";
 
+    private static final String DEFAULT_NUM_BLOCKS_TO_REPLAY = "12";
+
     private static final String ATTRIBUTE_PREFIX = "ethereum";
 
     private static final String NODE_ATTRIBUTE_PREFIX = ATTRIBUTE_PREFIX + ".nodes[%s]";
@@ -87,6 +89,14 @@ public class NodeSettings {
 
     private static final String GLOBAL_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWaitForMissingTx";
 
+    private static final String INITIAL_START_BLOCK_ATTRIBUTE = "initialStartBlock";
+
+    private static final String GLOBAL_INITIAL_START_BLOCK_ATTRIBUTE = ATTRIBUTE_PREFIX + "." + INITIAL_START_BLOCK_ATTRIBUTE;
+
+    private static final String NUM_BLOCKS_TO_REPLAY_ATTRIBUTE = "numBlocksToReplay";
+
+    private static final String GLOBAL_NUM_BLOCKS_TO_REPLAY_ATTRIBUTE = ATTRIBUTE_PREFIX + "." + NUM_BLOCKS_TO_REPLAY_ATTRIBUTE;
+
     private HashMap<String, Node> nodes;
 
     private String blockStrategy;
@@ -117,13 +127,15 @@ public class NodeSettings {
                     getNodeTransactionRevertReasonProperty(environment, index),
                     getMaxIdleConnectionsProperty(environment, index),
                     getKeepAliveDurationProperty(environment, index),
-                    getConnectionTimeoutProperty(environment,index),
-                    getReadTimeoutProperty(environment,index),
+                    getConnectionTimeoutProperty(environment, index),
+                    getReadTimeoutProperty(environment, index),
                     getSyncingThresholdProperty(environment,index),
                     getNodeHealthcheckIntervalProperty(environment, index),
-                    getBlocksToWaitForConfirmationProperty(environment,index),
-                    getBlocksToWaitBeforeInvalidatingProperty(environment,index),
-                    getBlocksToWaitForMissingTxProperty(environment,index)
+                    getBlocksToWaitForConfirmationProperty(environment, index),
+                    getBlocksToWaitBeforeInvalidatingProperty(environment, index),
+                    getBlocksToWaitForMissingTxProperty(environment, index),
+                    getInitialStartBlockProperty(environment, index),
+                    getNumBlocksToReplayProperty(environment, index)
             );
 
             nodes.put(nodeName, node);
@@ -213,6 +225,7 @@ public class NodeSettings {
 
         return Integer.valueOf(syncingThreshold);
     }
+
     private BigInteger getBlocksToWaitForConfirmationProperty(Environment environment, int index) {
         String blocksToWaitForConfirmation =
                 getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE, index));
@@ -249,6 +262,28 @@ public class NodeSettings {
         return BigInteger.valueOf(Long.valueOf(blocksToWaitForMissingTx));
     }
 
+    private BigInteger getInitialStartBlockProperty(Environment environment, int index) {
+        String initialStartBlock =
+                getProperty(environment, buildNodeAttribute(INITIAL_START_BLOCK_ATTRIBUTE, index));
+
+        if (initialStartBlock == null) {
+            initialStartBlock = getProperty(environment, GLOBAL_INITIAL_START_BLOCK_ATTRIBUTE);
+        }
+
+        return initialStartBlock == null ? null : BigInteger.valueOf(Long.valueOf(initialStartBlock));
+    }
+
+    private BigInteger getNumBlocksToReplayProperty(Environment environment, int index) {
+        String numBlocksToReplay =
+                getProperty(environment, buildNodeAttribute(NUM_BLOCKS_TO_REPLAY_ATTRIBUTE, index));
+
+        if (numBlocksToReplay == null) {
+            numBlocksToReplay = getProperty(environment,
+                    GLOBAL_NUM_BLOCKS_TO_REPLAY_ATTRIBUTE, DEFAULT_NUM_BLOCKS_TO_REPLAY);
+        }
+
+        return BigInteger.valueOf(Long.valueOf(numBlocksToReplay));
+    }
 
     private String getNodeUsernameProperty(Environment environment, int index) {
         return getProperty(environment, buildNodeAttribute(NODE_USERNAME_ATTRIBUTE, index));

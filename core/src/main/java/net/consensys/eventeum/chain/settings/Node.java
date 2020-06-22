@@ -42,4 +42,6 @@ public class Node {
     private BigInteger blocksToWaitForConfirmation;
     private BigInteger blocksToWaitForMissingTx;
     private BigInteger blocksToWaitBeforeInvalidating;
+    private BigInteger initialStartBlock;
+    private BigInteger numBlocksToReplay;
 }
