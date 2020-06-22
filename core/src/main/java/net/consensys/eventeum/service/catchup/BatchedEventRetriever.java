@@ -24,22 +24,41 @@ import org.springframework.stereotype.Component;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Component
 @AllArgsConstructor
-public class BasicEventRetriever implements EventRetriever {
+public class BatchedEventRetriever implements EventRetriever {
+
+    private static final BigInteger BATCH_SIZE = BigInteger.valueOf(10000L);
 
     private ChainServicesContainer servicesContainer;
 
     @Override
-    public List<ContractEventDetails> retrieveEvents(ContractEventFilter eventFilter,
+    public void retrieveEvents(ContractEventFilter eventFilter,
                                                      BigInteger startBlock,
-                                                     BigInteger endBlock) {
+                                                     BigInteger endBlock,
+                                                     Consumer<List<ContractEventDetails>> eventConsumer) {
 
-        return servicesContainer
-                .getNodeServices(eventFilter.getNode())
-                .getBlockchainService()
-                .retrieveEvents(eventFilter, startBlock, endBlock);
+        BigInteger batchStartBlock = startBlock;
 
+        while (batchStartBlock.compareTo(endBlock) < 0) {
+            BigInteger batchEndBlock;
+
+            if (batchStartBlock.add(BATCH_SIZE).compareTo(endBlock) >= 0) {
+                batchEndBlock = endBlock;
+            } else {
+                batchEndBlock = batchStartBlock.add(BATCH_SIZE);
+            }
+
+            final List<ContractEventDetails> events = servicesContainer
+                    .getNodeServices(eventFilter.getNode())
+                    .getBlockchainService()
+                    .retrieveEvents(eventFilter, batchStartBlock, batchEndBlock);
+
+            eventConsumer.accept(events);
+
+            batchStartBlock = batchEndBlock.add(BigInteger.ONE);
+        }
     }
 }

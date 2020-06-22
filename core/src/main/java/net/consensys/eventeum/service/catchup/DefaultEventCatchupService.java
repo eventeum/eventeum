@@ -54,16 +54,12 @@ public class DefaultEventCatchupService implements EventCatchupService {
     public void catchup(List<ContractEventFilter> filters) {
 
         filters.forEach(filter -> {
-            final BlockchainService blockchainService = servicesContainer
-                    .getNodeServices(filter.getNode())
-                    .getBlockchainService();
 
             //Should catchup to start block
             final BigInteger endBlock = blockNumberService.getStartBlockForNode(filter.getNode());
 
-            eventRetriever.retrieveEvents(filter,filter.getStartBlock(), endBlock)
-                    .forEach(contractEvent -> triggerListeners(contractEvent));
-
+            eventRetriever.retrieveEvents(filter, filter.getStartBlock(), endBlock,
+                    (events) -> events.forEach(this::triggerListeners));
         });
 
     }

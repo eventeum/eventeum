@@ -21,10 +21,12 @@ import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public interface EventRetriever {
 
-    List<ContractEventDetails> retrieveEvents(ContractEventFilter eventFilter,
-                                              BigInteger startBlock,
-                                              BigInteger endBlock);
+    void retrieveEvents(ContractEventFilter eventFilter,
+                        BigInteger startBlock,
+                        BigInteger endBlock,
+                        Consumer<List<ContractEventDetails>> eventConsumer);
 }

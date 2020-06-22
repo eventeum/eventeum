@@ -40,21 +40,23 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
 
     private static final int NUM_OF_EVENTS_BEFORE_START = 30;
 
+    private static EventEmitter eventEmitter;
+
     static {
         BaseIntegrationTest.shouldPersistNodeVolume = false;
     }
 
     @BeforeClass
-    public static void doTriggerBlocks() throws Exception {
+    public static void doEmitEvents() throws Exception {
         final Web3j web3j = Web3j.build(new HttpService("http://localhost:8545"));
 
-        final EventEmitter emitter = EventEmitter.deploy(web3j, CREDS, GAS_PRICE, GAS_LIMIT).send();
+        eventEmitter = EventEmitter.deploy(web3j, CREDS, GAS_PRICE, GAS_LIMIT).send();
 
         for (int i = 0; i < NUM_OF_EVENTS_BEFORE_START; i++) {
-            emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+            eventEmitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
         }
 
-        System.setProperty("EVENT_EMITTER_CONTRACT_ADDRESS", emitter.getContractAddress());
+        System.setProperty("EVENT_EMITTER_CONTRACT_ADDRESS", eventEmitter.getContractAddress());
     }
 
     @Before
@@ -67,7 +69,7 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testEventsCatchupOnStart() {
+    public void testEventsCatchupOnStart() throws Exception {
         waitForMessages(30, getBroadcastContractEvents());
 
         final List<ContractEventDetails> events = getBroadcastContractEvents();
@@ -76,6 +78,15 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
         for (int i = 0; i < events.size(); i++) {
             assertEquals(startBlock + i, events.get(i).getBlockNumber().intValue());
         }
+
+        getBroadcastContractEvents().clear();
+
+        eventEmitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+
+        waitForBlockMessages(1);
+
+        final ContractEventDetails event = getBroadcastContractEvents().get(0);
+        assertEquals(startBlock + NUM_OF_EVENTS_BEFORE_START + 1, event.getBlockNumber().intValue());
     }
 
     @Override
