@@ -23,7 +23,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
-import net.consensys.eventeum.service.catchup.EventCatchupService;
+import net.consensys.eventeum.service.sync.EventSyncService;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,7 +59,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private RetryTemplate retryTemplate;
 
-    private EventCatchupService eventCatchupService;
+    private EventSyncService eventSyncService;
 
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
@@ -69,7 +69,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
                                       List<BlockListener> blockListeners,
                                       List<ContractEventListener> contractEventListeners,
                                       @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate,
-                                      EventCatchupService eventCatchupService) {
+                                      EventSyncService eventSyncService) {
         this.contractEventListeners = contractEventListeners;
         this.chainServices = chainServices;
         this.asyncTaskService = asyncTaskService;
@@ -77,7 +77,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.blockListeners = blockListeners;
         this.retryTemplate = retryTemplate;
-        this.eventCatchupService = eventCatchupService;
+        this.eventSyncService = eventSyncService;
 
         filterSubscriptions = new HashMap<>();
     }
@@ -92,7 +92,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
                     .collect(Collectors.toList());
 
             if (!filtersWithStartBlock.isEmpty()) {
-                eventCatchupService.catchup(filtersWithStartBlock);
+                eventSyncService.catchup(filtersWithStartBlock);
             }
         }
 

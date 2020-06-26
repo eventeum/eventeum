@@ -14,12 +14,18 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
+import com.google.common.collect.Lists;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.model.EventFilterSyncStatus;
+import net.consensys.eventeum.model.SyncStatus;
+import net.consensys.eventeum.repository.EventFilterSyncStatusRepository;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.bouncycastle.util.test.TestFailedException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
@@ -28,6 +34,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +52,9 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
     static {
         BaseIntegrationTest.shouldPersistNodeVolume = false;
     }
+
+    @Autowired
+    private EventFilterSyncStatusRepository syncStatusRepository;
 
     @BeforeClass
     public static void doEmitEvents() throws Exception {
@@ -78,6 +88,12 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
         for (int i = 0; i < events.size(); i++) {
             assertEquals(startBlock + i, events.get(i).getBlockNumber().intValue());
         }
+
+        final EventFilterSyncStatus syncStatus = syncStatusRepository.findById("DummyEvent")
+                .orElseThrow(() -> new RuntimeException("No sync status in db"));
+
+        assertEquals(SyncStatus.SYNCED, syncStatus.getSyncStatus());
+        assertEquals(events.get(events.size() - 1).getBlockNumber(), syncStatus.getLastBlockNumber());
 
         getBroadcastContractEvents().clear();
 

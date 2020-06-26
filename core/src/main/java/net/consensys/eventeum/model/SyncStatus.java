@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeumserver.integrationtest;
+package net.consensys.eventeum.model;
 
-import org.springframework.test.context.TestPropertySource;
+public enum SyncStatus {
 
-@TestPropertySource(locations="classpath:application-test-ws-event-catchup.properties")
-public class WSEventCatchupIT extends BaseKafkaIntegrationTest {
+    NOT_SYNCED,
 
+    SYNCED
 }

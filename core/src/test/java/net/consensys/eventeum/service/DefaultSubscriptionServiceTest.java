@@ -26,7 +26,7 @@ import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
-import net.consensys.eventeum.service.catchup.EventCatchupService;
+import net.consensys.eventeum.service.sync.EventSyncService;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
@@ -75,7 +75,7 @@ public class DefaultSubscriptionServiceTest {
     @Mock
     private ContractEventListener mockEventListener2;
     @Mock
-    private EventCatchupService mockEventCatchupService;
+    private EventSyncService mockEventSyncService;
 
     private RetryTemplate mockRetryTemplate;
 
@@ -105,7 +105,7 @@ public class DefaultSubscriptionServiceTest {
                 mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),
                 Arrays.asList(mockBlockListener1, mockBlockListener2),
                 Arrays.asList(mockEventListener1, mockEventListener2),
-                mockRetryTemplate, mockEventCatchupService);
+                mockRetryTemplate, mockEventSyncService);
     }
 
     @Test

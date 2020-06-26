@@ -12,14 +12,11 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.service.catchup;
+package net.consensys.eventeumserver.integrationtest;
 
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import org.springframework.test.context.TestPropertySource;
 
-import java.util.List;
-
-public interface EventCatchupService {
-
-    void catchup(List<ContractEventFilter> filters);
+@TestPropertySource(locations="classpath:application-test-ws-event-sync.properties")
+public class WSEventSyncIT extends BaseKafkaIntegrationTest {
 
 }

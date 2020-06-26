@@ -12,15 +12,13 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.service.catchup;
+package net.consensys.eventeum.service.sync;
 
-import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public interface EventRetriever {

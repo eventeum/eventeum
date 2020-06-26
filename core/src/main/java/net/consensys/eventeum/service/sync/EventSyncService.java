@@ -12,11 +12,14 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeumserver.integrationtest;
+package net.consensys.eventeum.service.sync;
 
-import org.springframework.test.context.TestPropertySource;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
-@TestPropertySource(locations="classpath:application-test-event-catchup.properties")
-public class HttpEventCatchupIT extends BaseEventCatchupTest {
+import java.util.List;
+
+public interface EventSyncService {
+
+    void catchup(List<ContractEventFilter> filters);
 
 }

@@ -12,10 +12,9 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.service.catchup;
+package net.consensys.eventeum.service.sync;
 
 import lombok.AllArgsConstructor;
-import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 @Component
