@@ -65,6 +65,7 @@ public class NodeHealthCheckServiceTest {
 
         mockReconnectionStrategy = mock(ReconnectionStrategy.class);
         mockSubscriptionService = mock(SubscriptionService.class);
+        when(mockSubscriptionService.getState()).thenReturn(SubscriptionService.SubscriptionServiceState.SUBSCRIBED);
 
         mockEventStoreService = mock(EventStoreService.class);
         LatestBlock latestBlock = new LatestBlock();
@@ -229,10 +230,6 @@ public class NodeHealthCheckServiceTest {
                         mockTaskScheduler,
                         HEALTH_CHECK_INTERVAL
                 );
-
-        Field started = NodeHealthCheckService.class.getDeclaredField("started");
-        started.setAccessible(true);
-        started.set(healthCheckService, true);
 
         return healthCheckService;
     }
