@@ -26,8 +26,11 @@ public class EventeumSettings {
 
     private boolean bytesToAscii;
 
+    private BigInteger syncBatchSize;
 
-    public EventeumSettings(@Value("${broadcaster.bytesToAscii:false}") boolean bytesToAscii) {
+    public EventeumSettings(@Value("${broadcaster.bytesToAscii:false}") boolean bytesToAscii,
+                            @Value("${ethereum.sync.batchSize:100000}") String syncBatchSize) {
         this.bytesToAscii = bytesToAscii;
+        this.syncBatchSize = new BigInteger(syncBatchSize);
     }
 }

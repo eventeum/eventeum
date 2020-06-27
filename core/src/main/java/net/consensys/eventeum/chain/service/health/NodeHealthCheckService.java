@@ -21,6 +21,8 @@ import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 
 import java.math.BigInteger;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -48,8 +50,6 @@ public class NodeHealthCheckService {
 
     private SubscriptionService subscriptionService;
 
-    private boolean started = false;
-
     private AtomicLong currentBlock;
 
     private AtomicInteger syncing;
@@ -59,6 +59,10 @@ public class NodeHealthCheckService {
     private EventStoreService eventStoreService;
 
     private Integer syncingThreshold;
+
+    private ScheduledThreadPoolExecutor taskScheduler;
+
+    private Long healthCheckPollInterval;
 
     public NodeHealthCheckService(BlockchainService blockchainService,
                                   ReconnectionStrategy reconnectionStrategy,
@@ -73,6 +77,8 @@ public class NodeHealthCheckService {
         this.reconnectionStrategy = reconnectionStrategy;
         this.subscriptionService = subscriptionService;
         this.syncingThreshold = syncingThreshold;
+        this.taskScheduler = taskScheduler;
+        this.healthCheckPollInterval = healthCheckPollInterval;
         nodeStatus = NodeStatus.SUBSCRIBED;
 
         currentBlock = valueMonitor.monitor( "currentBlock", blockchainService.getNodeName(), new
@@ -82,6 +88,11 @@ public class NodeHealthCheckService {
         syncing = valueMonitor.monitor("syncing", blockchainService.getNodeName(), new
                 AtomicInteger(0));
 
+    }
+
+    @EventListener
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        log.info("Starting healthcheck scheduler");
         taskScheduler.scheduleWithFixedDelay(() -> this.checkHealth() ,0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
     }
 
@@ -91,16 +102,15 @@ public class NodeHealthCheckService {
 
             final NodeStatus statusAtStart = nodeStatus;
 
-            if (isNodeConnected() && isSubscribed()) {
+            if (isNodeConnected() && (isSubscribed()
+                    || subscriptionService.getState() == SubscriptionService.SubscriptionServiceState.SYNCING_EVENTS)) {
                 log.trace("Node connected");
-                started = true;
 
                 if (nodeStatus == NodeStatus.DOWN) {
                     log.info("Node {} has come back up.", blockchainService.getNodeName());
                 }
 
-            } else {
-                if (started) {
+            } else if (subscriptionService.getState() == SubscriptionService.SubscriptionServiceState.SUBSCRIBED) {
                     log.error("Node {} is down or unsubscribed!!", blockchainService.getNodeName());
                     nodeStatus = NodeStatus.DOWN;
 
@@ -108,8 +118,12 @@ public class NodeHealthCheckService {
                         blockchainService.disconnect();
                     }
 
-                    doReconnect();
-                }
+                    doReconnectAndSubscribe();
+            } else if (subscriptionService.getState() == SubscriptionService.SubscriptionServiceState.SYNCING_EVENTS) {
+                log.error("Node {} is down!!", blockchainService.getNodeName());
+                nodeStatus = NodeStatus.DOWN;
+
+                doReconnect();
             }
 
             nodeStatusGauge.set(nodeStatus.ordinal());
@@ -142,6 +156,10 @@ public class NodeHealthCheckService {
     }
 
     private void doReconnect() {
+        reconnectionStrategy.reconnect();
+    }
+
+    private void doReconnectAndSubscribe() {
         reconnectionStrategy.reconnect();
 
         if (isNodeConnected()) {

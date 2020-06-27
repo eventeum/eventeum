@@ -43,7 +43,7 @@ public class DefaultEventSyncService implements EventSyncService {
     private EventFilterSyncStatusRepository syncStatusRepository;
 
     @Override
-    public void catchup(List<ContractEventFilter> filters) {
+    public void sync(List<ContractEventFilter> filters) {
 
         filters.forEach(filter -> {
 
@@ -52,7 +52,7 @@ public class DefaultEventSyncService implements EventSyncService {
             if (!syncStatus.isPresent() || syncStatus.get().getSyncStatus() == SyncStatus.NOT_SYNCED) {
                 log.info("Syncing event filter with id {}", filter.getId());
 
-                //Should catchup to start block
+                //Should sync to start block
                 final BigInteger endBlock = blockNumberService.getStartBlockForNode(filter.getNode());
 
                 eventRetriever.retrieveEvents(filter, getStartBlock(filter, syncStatus), endBlock,

@@ -25,6 +25,8 @@ ethereum:
     pollInterval: 5000
   blockStrategy: POLL
   numBlocksToReplay: 12
+  sync:
+    batchSize: 100000
 
 #eventFilters:
 #  - id: CryptoKittiesTransfer
@@ -42,6 +44,7 @@ ethereum:
 #    correlationId:
 #      type: NON_INDEXED_PARAMETER
 #      index: 2
+#    startBlock: 10330000
 
 #transactionFilters:
 #- nodeName: ${ETHEREUM_NETWORK:default}

@@ -19,7 +19,6 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
@@ -61,6 +60,8 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private EventSyncService eventSyncService;
 
+    private SubscriptionServiceState state = SubscriptionServiceState.UNINITIALISED;
+
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
                                       ContractEventFilterRepository eventFilterRepository,
@@ -92,12 +93,15 @@ public class DefaultSubscriptionService implements SubscriptionService {
                     .collect(Collectors.toList());
 
             if (!filtersWithStartBlock.isEmpty()) {
-                eventSyncService.catchup(filtersWithStartBlock);
+                state = SubscriptionServiceState.SYNCING_EVENTS;
+                eventSyncService.sync(filtersWithStartBlock);
             }
         }
 
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
+
+        state = SubscriptionServiceState.SUBSCRIBED;
     }
 
     /**
@@ -162,6 +166,14 @@ public class DefaultSubscriptionService implements SubscriptionService {
                 .removeIf(entry -> entry.getValue().getNode().equals(nodeName));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubscriptionServiceState getState() {
+        return state;
+    }
+
     private ContractEventFilter doRegisterContractEventFilter(ContractEventFilter filter, boolean broadcast) {
         try {
             populateIdIfMissing(filter);
@@ -193,15 +205,6 @@ public class DefaultSubscriptionService implements SubscriptionService {
         blockListeners.forEach(listener -> blockchainService.addBlockListener(listener));
 
         blockchainService.connect();
-    }
-
-    private void triggerListener(ContractEventListener listener, ContractEventDetails contractEventDetails) {
-        try {
-            listener.onEvent(contractEventDetails);
-        } catch (Throwable t) {
-            log.error(String.format(
-                    "An error occurred when processing contractEvent with id %s", contractEventDetails.getId()), t);
-        }
     }
 
     private ContractEventFilter saveContractEventFilter(ContractEventFilter contractEventFilter) {

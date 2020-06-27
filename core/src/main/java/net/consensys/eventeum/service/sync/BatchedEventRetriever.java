@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.settings.EventeumSettings;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
@@ -28,25 +29,26 @@ import java.util.function.Consumer;
 @AllArgsConstructor
 public class BatchedEventRetriever implements EventRetriever {
 
-    private static final BigInteger BATCH_SIZE = BigInteger.valueOf(10000L);
 
     private ChainServicesContainer servicesContainer;
 
+    private EventeumSettings settings;
+
     @Override
     public void retrieveEvents(ContractEventFilter eventFilter,
-                                                     BigInteger startBlock,
-                                                     BigInteger endBlock,
-                                                     Consumer<List<ContractEventDetails>> eventConsumer) {
+                               BigInteger startBlock,
+                               BigInteger endBlock,
+                               Consumer<List<ContractEventDetails>> eventConsumer) {
 
         BigInteger batchStartBlock = startBlock;
 
         while (batchStartBlock.compareTo(endBlock) < 0) {
             BigInteger batchEndBlock;
 
-            if (batchStartBlock.add(BATCH_SIZE).compareTo(endBlock) >= 0) {
+            if (batchStartBlock.add(settings.getSyncBatchSize()).compareTo(endBlock) >= 0) {
                 batchEndBlock = endBlock;
             } else {
-                batchEndBlock = batchStartBlock.add(BATCH_SIZE);
+                batchEndBlock = batchStartBlock.add(settings.getSyncBatchSize());
             }
 
             final List<ContractEventDetails> events = servicesContainer

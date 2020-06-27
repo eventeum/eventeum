@@ -83,4 +83,18 @@ public interface SubscriptionService {
      */
     void unsubscribeToAllSubscriptions(String nodeName);
 
+    /**
+     *
+     * @return the state of the service
+     */
+    SubscriptionServiceState getState();
+
+    enum SubscriptionServiceState {
+        UNINITIALISED,
+
+        SYNCING_EVENTS,
+
+        SUBSCRIBED
+    }
+
 }

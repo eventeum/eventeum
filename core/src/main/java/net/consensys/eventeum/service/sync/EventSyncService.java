@@ -20,6 +20,6 @@ import java.util.List;
 
 public interface EventSyncService {
 
-    void catchup(List<ContractEventFilter> filters);
+    void sync(List<ContractEventFilter> filters);
 
 }
