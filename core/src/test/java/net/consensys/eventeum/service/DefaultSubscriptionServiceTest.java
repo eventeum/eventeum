@@ -14,9 +14,9 @@
 
 package net.consensys.eventeum.service;
 
-import java.util.Collections;
-
+import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.constant.Constants;
@@ -26,11 +26,8 @@ import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
-import net.consensys.eventeum.service.sync.EventSyncService;
 import net.consensys.eventeum.service.exception.NotFoundException;
-import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.testutils.DummyAsyncTaskService;
+import net.consensys.eventeum.service.sync.EventSyncService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +36,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -102,9 +100,7 @@ public class DefaultSubscriptionServiceTest {
         mockRetryTemplate = new RetryTemplate();
 
         underTest = new DefaultSubscriptionService(mockChainServicesContainer,
-                mockRepo, mockFilterBroadcaster, new DummyAsyncTaskService(),
-                Arrays.asList(mockBlockListener1, mockBlockListener2),
-                Arrays.asList(mockEventListener1, mockEventListener2),
+                mockRepo, mockFilterBroadcaster, Arrays.asList(mockBlockListener1, mockBlockListener2),
                 mockRetryTemplate, mockEventSyncService);
     }
 

@@ -48,8 +48,14 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
 
             contractEventFilters
                     .forEach(filter -> processLogsForFilter(filter, block, blockchainService));
-        })
-        .join();
+        }).join();
+    }
+
+    @Override
+    public void processContractEvent(ContractEventDetails contractEventDetails) {
+        asyncTaskService.executeWithCompletableFuture(
+                ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, contractEventDetails.getNodeName()),
+                () -> triggerListeners(contractEventDetails)).join();
     }
 
     private void processLogsForFilter(ContractEventFilter filter,
@@ -85,6 +91,7 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
         } catch (Throwable t) {
             log.error(String.format(
                     "An error occurred when processing contractEvent with id %s", contractEventDetails.getId()), t);
+            throw t;
         }
     }
 }

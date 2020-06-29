@@ -14,15 +14,16 @@
 
 package net.consensys.eventeum.service.sync;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.eventeum.chain.contract.ContractEventListener;
+import net.consensys.eventeum.chain.contract.ContractEventProcessor;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.model.EventFilterSyncStatus;
 import net.consensys.eventeum.model.SyncStatus;
 import net.consensys.eventeum.repository.EventFilterSyncStatusRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -31,10 +32,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@AllArgsConstructor
 public class DefaultEventSyncService implements EventSyncService {
-
-    private List<ContractEventListener> contractEventListeners;
 
     private BlockNumberService blockNumberService;
 
@@ -42,37 +40,57 @@ public class DefaultEventSyncService implements EventSyncService {
 
     private EventFilterSyncStatusRepository syncStatusRepository;
 
+    private ContractEventProcessor contractEventProcessor;
+
+    private RetryTemplate retryTemplate;
+
+    public DefaultEventSyncService(BlockNumberService blockNumberService,
+                                   EventRetriever eventRetriever,
+                                   EventFilterSyncStatusRepository syncStatusRepository,
+                                   ContractEventProcessor contractEventProcessor,
+                                   @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
+        this.blockNumberService = blockNumberService;
+        this.eventRetriever = eventRetriever;
+        this.syncStatusRepository = syncStatusRepository;
+        this.contractEventProcessor = contractEventProcessor;
+        this.retryTemplate = retryTemplate;
+    }
+
     @Override
     public void sync(List<ContractEventFilter> filters) {
 
-        filters.forEach(filter -> {
+        filters.forEach(filter -> retryTemplate.execute((context) -> {
+            syncFilter(filter);
+            return null;
+        }));
+    }
 
-            final Optional<EventFilterSyncStatus> syncStatus = syncStatusRepository.findById(filter.getId());
+    private void syncFilter(ContractEventFilter filter) {
+        final Optional<EventFilterSyncStatus> syncStatus = syncStatusRepository.findById(filter.getId());
 
-            if (!syncStatus.isPresent() || syncStatus.get().getSyncStatus() == SyncStatus.NOT_SYNCED) {
-                log.info("Syncing event filter with id {}", filter.getId());
+        if (!syncStatus.isPresent() || syncStatus.get().getSyncStatus() == SyncStatus.NOT_SYNCED) {
+            final BigInteger startBlock = getStartBlock(filter, syncStatus);
+            //Should sync to block start block number
+            final BigInteger endBlock = blockNumberService.getStartBlockForNode(filter.getNode());
 
-                //Should sync to start block
-                final BigInteger endBlock = blockNumberService.getStartBlockForNode(filter.getNode());
+            log.info("Syncing event filter with id {} from block {} to {}", filter.getId(), startBlock, endBlock);
 
-                eventRetriever.retrieveEvents(filter, getStartBlock(filter, syncStatus), endBlock,
-                        (events) -> events.forEach(this::processEvent));
+            eventRetriever.retrieveEvents(filter, startBlock, endBlock,
+                    (events) -> events.forEach(this::processEvent));
 
-                final EventFilterSyncStatus finalSyncStatus = getEventSyncStatus(filter.getId());
-                finalSyncStatus.setSyncStatus(SyncStatus.SYNCED);
-                syncStatusRepository.save(finalSyncStatus);
+            final EventFilterSyncStatus finalSyncStatus = getEventSyncStatus(filter.getId());
+            finalSyncStatus.setSyncStatus(SyncStatus.SYNCED);
+            syncStatusRepository.save(finalSyncStatus);
 
-                log.info("Event filter with id {} has completed syncing", filter.getId());
+            log.info("Event filter with id {} has completed syncing", filter.getId());
 
-            } else {
-                log.info("Event filter with id {} already synced", filter.getId());
-            }
-        });
-
+        } else {
+            log.info("Event filter with id {} already synced", filter.getId());
+        }
     }
 
     private void processEvent(ContractEventDetails contractEvent) {
-        triggerListeners(contractEvent);
+        contractEventProcessor.processContractEvent(contractEvent);
 
         final EventFilterSyncStatus syncStatus = getEventSyncStatus(contractEvent.getFilterId());
 
@@ -87,20 +105,6 @@ public class DefaultEventSyncService implements EventSyncService {
                         .filterId(id)
                         .syncStatus(SyncStatus.NOT_SYNCED)
                         .build());
-    }
-
-    private void triggerListeners(ContractEventDetails contractEvent) {
-        contractEventListeners.forEach(
-                listener -> triggerListener(listener, contractEvent));
-    }
-
-    private void triggerListener(ContractEventListener listener, ContractEventDetails contractEventDetails) {
-        try {
-            listener.onEvent(contractEventDetails);
-        } catch (Throwable t) {
-            log.error(String.format(
-                    "An error occurred when processing contractEvent with id %s", contractEventDetails.getId()), t);
-        }
     }
 
     private BigInteger getStartBlock(ContractEventFilter contractEventFilter,
