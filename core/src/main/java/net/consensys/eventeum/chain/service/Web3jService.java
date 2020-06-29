@@ -317,8 +317,4 @@ public class Web3jService implements BlockchainService {
     private void unregisterBlockSubscription() {
         blockSubscriptionStrategy.unsubscribe();
     }
-
-    private BigInteger getStartBlockForEventFilter(ContractEventFilter filter) {
-        return blockManagement.getLatestBlockForEvent(filter);
-    }
 }
