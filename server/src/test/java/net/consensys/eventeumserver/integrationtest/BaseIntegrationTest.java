@@ -539,6 +539,8 @@ public class BaseIntegrationTest {
         builder.append("Expected message count: " + expectedMessageCount);
         builder.append(", received: " + messages.size());
         builder.append("\n\n");
+        builder.append("Messages received: " + JSON.stringify(messages));
+        builder.append("\n\n");
         builder.append("Registered filters:");
         builder.append("\n\n");
         builder.append(JSON.stringify(IterableUtils.toList(getFilterRepo().findAll())));
