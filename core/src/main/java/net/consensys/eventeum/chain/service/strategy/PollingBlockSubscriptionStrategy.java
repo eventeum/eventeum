@@ -43,6 +43,8 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
 
         final BigInteger startBlock = getStartBlock();
 
+        log.info("Starting block polling, from block {}", startBlock);
+
         final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock);
 
         blockSubscription = web3j

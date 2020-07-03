@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A contract event listener that saves the ContractEventDetails to a SaveableEventStore.
+ * A block listener that saves the ContractEventDetails to a SaveableEventStore.
  *
  * Only gets registered if a SaveableEventStore exists in the context.
  *
