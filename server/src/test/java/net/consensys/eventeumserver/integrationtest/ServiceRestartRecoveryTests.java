@@ -107,7 +107,10 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         triggerBlocks(2);
 
-        waitForBlockMessages(7);
+        Thread.sleep(2000);
+        triggerBlocks(1);
+
+        waitForBlockMessages(8);
 
         System.out.println("BROADCAST BLOCKS AFTER: " + JSON.stringify(getBroadcastBlockMessages()));
 
