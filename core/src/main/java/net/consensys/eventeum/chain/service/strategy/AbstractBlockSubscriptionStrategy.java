@@ -88,8 +88,6 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     protected void triggerListeners(T blockObject) {
         final Block eventeumBlock = convertToEventeumBlock(blockObject);
 
-        log.debug("In triggerListeners for block: {}", JSON.stringify(eventeumBlock));
-
         if (eventeumBlock != null) {
             triggerListeners(eventeumBlock);
         }
