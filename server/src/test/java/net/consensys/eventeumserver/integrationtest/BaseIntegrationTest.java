@@ -495,7 +495,9 @@ public class BaseIntegrationTest {
         Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
         assertEquals(registeredFilter, saved.get());
 
+        Thread.sleep(1000);
         unregisterDummyEventFilter();
+        Thread.sleep(1000);
 
         saved = getFilterRepo().findById(getDummyEventFilterId());
         assertFalse(saved.isPresent());
