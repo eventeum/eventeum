@@ -127,7 +127,6 @@ public class NodeBeanRegistrationStrategy {
         builder.addConstructorArgValue(node.getName())
                 .addConstructorArgValue(web3j)
                 .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()))
-                .addConstructorArgReference("defaultEventBlockManagementService")
                 .addConstructorArgReference(blockSubStrategyBeanName);
 
         final String beanName = String.format(WEB3J_SERVICE_BEAN_NAME, node.getName());

@@ -67,8 +67,6 @@ public class Web3jServiceTest {
 
     private Web3j mockWeb3j;
 
-    private EventBlockManagementService mockBlockManagement;
-
     private ContractEventDetailsFactory mockContractEventDetailsFactory;
 
     private ContractEventDetails mockContractEventDetails;
@@ -78,12 +76,9 @@ public class Web3jServiceTest {
     @Before
     public void init() throws IOException {
         mockWeb3j = mock(Web3j.class);
-        mockBlockManagement = mock(EventBlockManagementService.class);
         mockContractEventDetailsFactory = mock(ContractEventDetailsFactory.class);
         mockContractEventDetails = mock(ContractEventDetails.class);
         mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
-
-        when(mockBlockManagement.getLatestBlockForEvent(any(ContractEventFilter.class))).thenReturn(BLOCK_NUMBER);
 
         //Wire up getBlockNumber
         final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
@@ -93,7 +88,7 @@ public class Web3jServiceTest {
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
 
         underTest = new Web3jService("test", mockWeb3j, mockContractEventDetailsFactory,
-                mockBlockManagement, mockBlockSubscriptionStrategy, new DummyAsyncTaskService());
+                mockBlockSubscriptionStrategy, new DummyAsyncTaskService());
     }
 
     @Test

@@ -66,7 +66,6 @@ public class Web3jService implements BlockchainService {
     @Setter
     private Web3j web3j;
     private ContractEventDetailsFactory eventDetailsFactory;
-    private EventBlockManagementService blockManagement;
     private AsyncTaskService asyncTaskService;
 
     private BlockSubscriptionStrategy blockSubscriptionStrategy;
@@ -74,13 +73,11 @@ public class Web3jService implements BlockchainService {
     public Web3jService(String nodeName,
                         Web3j web3j,
                         ContractEventDetailsFactory eventDetailsFactory,
-                        EventBlockManagementService blockManagement,
                         BlockSubscriptionStrategy blockSubscriptionStrategy,
                         AsyncTaskService asyncTaskService) {
         this.nodeName = nodeName;
         this.web3j = web3j;
         this.eventDetailsFactory = eventDetailsFactory;
-        this.blockManagement = blockManagement;
         this.blockSubscriptionStrategy = blockSubscriptionStrategy;
         this.asyncTaskService = asyncTaskService;
     }
