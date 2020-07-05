@@ -42,7 +42,7 @@ import java.math.BigInteger;
 @Component
 @AllArgsConstructor
 @Slf4j
-public class ConfirmationCheckInitialiser implements ContractEventListener {
+public class BroadcastAndInitialiseConfirmationListener implements ContractEventListener {
 
     private ChainServicesContainer chainServicesContainer;
     private BlockchainEventBroadcaster eventBroadcaster;
@@ -65,6 +65,8 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
             log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
             blockchainService.addBlockListener(createEventConfirmationBlockListener(eventDetails, node));
         }
+
+        eventBroadcaster.broadcastContractEvent(eventDetails);
     }
 
     protected BlockListener createEventConfirmationBlockListener(ContractEventDetails eventDetails,Node node) {

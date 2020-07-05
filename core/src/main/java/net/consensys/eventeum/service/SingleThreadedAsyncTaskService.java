@@ -26,7 +26,7 @@ import java.util.concurrent.*;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Component
+@Component("asyncTaskService")
 public class SingleThreadedAsyncTaskService implements AsyncTaskService {
 
     private Map<String, ExecutorService> executorServices = new HashMap<>();

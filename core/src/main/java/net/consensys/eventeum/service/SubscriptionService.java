@@ -29,7 +29,7 @@ public interface SubscriptionService {
     /**
      * Initialise the subscription service
      */
-    void init();
+    void init(List<ContractEventFilter> initFilters);
 
     /**
      * Registers a new contract event filter.
@@ -82,5 +82,19 @@ public interface SubscriptionService {
      * Unsubscribe all active listeners
      */
     void unsubscribeToAllSubscriptions(String nodeName);
+
+    /**
+     *
+     * @return the state of the service
+     */
+    SubscriptionServiceState getState();
+
+    enum SubscriptionServiceState {
+        UNINITIALISED,
+
+        SYNCING_EVENTS,
+
+        SUBSCRIBED
+    }
 
 }

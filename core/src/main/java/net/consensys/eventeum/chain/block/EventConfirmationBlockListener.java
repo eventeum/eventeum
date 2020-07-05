@@ -23,9 +23,12 @@ import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import java.util.Optional;
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class EventConfirmationBlockListener extends AbstractConfirmationBlockListener<ContractEventDetails> {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventConfirmationBlockListener.class);

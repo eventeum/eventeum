@@ -39,7 +39,7 @@ public class ConfirmationCheckInitialiserTest {
      private static final String TX_HASH = "0x05ba7cdf9f35579c9e2332804a3a98bf2231572e8bfe57b3e31ed0240ae7f582";
      private static final String BLOCK_HASH = "0xb9f2b107229b1f49547a7d0d446d018adef30b83ae8a69738c2f38375b28f4dc";
 
-     private ConfirmationCheckInitialiser underTest;
+     private BroadcastAndInitialiseConfirmationListener underTest;
 
      private BlockchainService mockBlockchainService;
      private BlockListener mockBlockListener;
@@ -116,7 +116,7 @@ public class ConfirmationCheckInitialiserTest {
          return eventDetails;
      }
 
-     private class ConfirmationCheckInitialiserForTest extends ConfirmationCheckInitialiser {
+     private class ConfirmationCheckInitialiserForTest extends BroadcastAndInitialiseConfirmationListener {
 
          public ConfirmationCheckInitialiserForTest(ChainServicesContainer chainServicesContainer,
                                                     BlockchainEventBroadcaster eventBroadcaster,

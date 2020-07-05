@@ -18,6 +18,8 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @Component
 public class LoggingBlockListener implements BlockListener {
 

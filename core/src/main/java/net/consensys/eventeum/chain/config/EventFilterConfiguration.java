@@ -59,7 +59,10 @@ public class EventFilterConfiguration {
                 final ContractEventFilter contractEventFilter = new ContractEventFilter();
                 mapper.map(configFilter, contractEventFilter);
                 contractEventFilter.setContractAddress(Keys.toChecksumAddress(contractEventFilter.getContractAddress()));
-                contractEventFilter.setCorrelationIdStrategy(configFilter.getCorrelationId().toStrategy());
+
+                if (configFilter.getCorrelationId() != null) {
+                    contractEventFilter.setCorrelationIdStrategy(configFilter.getCorrelationId().toStrategy());
+                }
                 contractEventFilter.setContractAddress(Keys.toChecksumAddress(contractEventFilter.getContractAddress()));
                 filtersToReturn.add(contractEventFilter);
             });

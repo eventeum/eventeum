@@ -25,6 +25,8 @@ import net.consensys.eventeum.service.TransactionMonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +41,7 @@ import java.util.Optional;
  */
 @Service
 @AllArgsConstructor
-public class ChainBootstrapper implements InitializingBean {
+public class ChainBootstrapper {
     private final Logger LOG = LoggerFactory.getLogger(ChainBootstrapper.class);
 
     private SubscriptionService subscriptionService;
@@ -50,12 +52,12 @@ public class ChainBootstrapper implements InitializingBean {
     private Optional<List<ContractEventFilterFactory>> contractEventFilterFactories;
     private TransactionFilterConfiguration transactionFilterConfiguration;
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    @EventListener
+    public void onApplicationEvent(ContextRefreshedEvent event) {
         registerTransactionsToMonitor(transactionMonitoringRepository.findAll(), true);
         registerTransactionsToMonitor(transactionFilterConfiguration.getConfiguredTransactionFilters(), true);
 
-        subscriptionService.init();
+        subscriptionService.init(filterConfiguration.getConfiguredEventFilters());
         registerFilters(filterConfiguration.getConfiguredEventFilters(), true);
         registerFilters(filterRepository.findAll(), false);
 

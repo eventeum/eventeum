@@ -17,10 +17,8 @@ package net.consensys.eventeum.chain.service.strategy;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.service.Web3jService;
+import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
-import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
@@ -55,7 +53,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private BlockListener mockBlockListener;
 
-    private EventStoreService mockEventStoreService;
+    private BlockNumberService mockBlockNumberService;
 
     private EventeumSettings mockSettings;
 
@@ -64,7 +62,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
         this.mockWeb3j = mock(Web3j.class);
 
         mockEthBlock = mock(EthBlock.class);
-        mockEventStoreService = mock(EventStoreService.class);
+        mockBlockNumberService = mock(BlockNumberService.class);
         mockSettings = mock(EventeumSettings.class);
         final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
 
@@ -74,10 +72,12 @@ public class PollingBlockchainSubscriptionStrategyTest {
         when(mockEthBlock.getBlock()).thenReturn(mockBlock);
 
         blockPublishProcessor = PublishProcessor.create();
-        when(mockWeb3j.blockFlowable(true)).thenReturn(blockPublishProcessor);
+        when(mockWeb3j.replayPastAndFutureBlocksFlowable(any(), eq(true))).thenReturn(blockPublishProcessor);
+
+        when(mockBlockNumberService.getStartBlockForNode(NODE_NAME)).thenReturn(BigInteger.ONE);
 
         underTest = new PollingBlockSubscriptionStrategy(mockWeb3j,
-                NODE_NAME, mockEventStoreService, new DummyAsyncTaskService(), mockSettings);
+                NODE_NAME, new DummyAsyncTaskService(), mockBlockNumberService);
     }
 
     @Test

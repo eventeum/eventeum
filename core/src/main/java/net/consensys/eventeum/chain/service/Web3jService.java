@@ -22,26 +22,21 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
+import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.util.Web3jUtil;
-import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
-import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
-import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.contract.ContractEventListener;
-import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.filters.FilterException;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -53,8 +48,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -73,7 +66,6 @@ public class Web3jService implements BlockchainService {
     @Setter
     private Web3j web3j;
     private ContractEventDetailsFactory eventDetailsFactory;
-    private EventBlockManagementService blockManagement;
     private AsyncTaskService asyncTaskService;
 
     private BlockSubscriptionStrategy blockSubscriptionStrategy;
@@ -81,13 +73,11 @@ public class Web3jService implements BlockchainService {
     public Web3jService(String nodeName,
                         Web3j web3j,
                         ContractEventDetailsFactory eventDetailsFactory,
-                        EventBlockManagementService blockManagement,
                         BlockSubscriptionStrategy blockSubscriptionStrategy,
                         AsyncTaskService asyncTaskService) {
         this.nodeName = nodeName;
         this.web3j = web3j;
         this.eventDetailsFactory = eventDetailsFactory;
-        this.blockManagement = blockManagement;
         this.blockSubscriptionStrategy = blockSubscriptionStrategy;
         this.asyncTaskService = asyncTaskService;
     }
@@ -108,27 +98,59 @@ public class Web3jService implements BlockchainService {
         blockSubscriptionStrategy.removeBlockListener(blockListener);
     }
 
-    /**
-     * {inheritDoc}
-     */
     @Override
-    public FilterSubscription registerEventListener(
-            ContractEventFilter eventFilter, ContractEventListener eventListener) {
-        log.debug("Registering event filter for event: {}", eventFilter.getId());
+    public List<ContractEventDetails> retrieveEvents(ContractEventFilter eventFilter,
+                                                     BigInteger startBlock,
+                                                     BigInteger endBlock) {
         final ContractEventSpecification eventSpec = eventFilter.getEventSpecification();
 
-        final BigInteger startBlock = getStartBlockForEventFilter(eventFilter);
-
-        final EthFilter ethFilter = new EthFilter(
-                new DefaultBlockParameterNumber(startBlock),
-                DefaultBlockParameterName.LATEST, eventFilter.getContractAddress());
+        final EthFilter ethFilter = new EthFilter(new DefaultBlockParameterNumber(startBlock),
+                new DefaultBlockParameterNumber(endBlock), eventFilter.getContractAddress());
 
 
         if (eventFilter.getEventSpecification() != null) {
             ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
         }
 
-        final Flowable<Log> flowable = web3j.ethLogFlowable(ethFilter);
+        try {
+            final EthLog logs = web3j.ethGetLogs(ethFilter).send();
+            return logs.getLogs()
+                    .stream()
+                    .map(logResult -> eventDetailsFactory.createEventDetails(eventFilter, (Log) logResult.get()))
+                    .collect(Collectors.toList());
+
+        } catch (IOException e) {
+            throw new BlockchainException("Error obtaining logs", e);
+        }
+    }
+
+    /**
+     * {inheritDoc}
+     */
+    @Override
+    public FilterSubscription registerEventListener(ContractEventFilter eventFilter,
+                                                    ContractEventListener eventListener,
+                                                    BigInteger startBlock,
+                                                    BigInteger endBlock,
+                                                    Optional<Runnable> onCompletion) {
+        log.debug("Registering event filter for event: {}", eventFilter.getId());
+        final ContractEventSpecification eventSpec = eventFilter.getEventSpecification();
+
+        final EthFilter ethFilter = new EthFilter(new DefaultBlockParameterNumber(startBlock),
+                new DefaultBlockParameterNumber(endBlock), eventFilter.getContractAddress());
+
+
+        if (eventFilter.getEventSpecification() != null) {
+            ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
+        }
+
+        final Flowable<Log> flowable = web3j
+                .ethLogFlowable(ethFilter)
+                .doOnComplete(() -> {
+                    if (onCompletion.isPresent()) {
+                        onCompletion.get().run();
+                    }
+                });
 
         final Disposable sub = flowable.subscribe(theLog -> {
             asyncTaskService.execute(ExecutorNameFactory.build(EVENT_EXECUTOR_NAME, eventFilter.getNode()), () -> {
@@ -291,9 +313,5 @@ public class Web3jService implements BlockchainService {
     @PreDestroy
     private void unregisterBlockSubscription() {
         blockSubscriptionStrategy.unsubscribe();
-    }
-
-    private BigInteger getStartBlockForEventFilter(ContractEventFilter filter) {
-        return blockManagement.getLatestBlockForEvent(filter);
     }
 }

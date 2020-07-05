@@ -16,27 +16,20 @@ package net.consensys.eventeum.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
-import net.consensys.eventeum.chain.service.container.NodeServices;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
-import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
-import net.consensys.eventeum.utils.JSON;
+import net.consensys.eventeum.service.sync.EventSyncService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -54,41 +47,52 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private EventeumEventBroadcaster eventeumEventBroadcaster;
 
-    private AsyncTaskService asyncTaskService;
-
-    private List<ContractEventListener> contractEventListeners;
-
     private List<BlockListener> blockListeners;
 
     private Map<String, ContractEventFilter> filterSubscriptions;
 
-    private ApplicationContext applicationContext;
-
     private RetryTemplate retryTemplate;
+
+    private EventSyncService eventSyncService;
+
+    private SubscriptionServiceState state = SubscriptionServiceState.UNINITIALISED;
 
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
                                       ContractEventFilterRepository eventFilterRepository,
                                       EventeumEventBroadcaster eventeumEventBroadcaster,
-                                      AsyncTaskService asyncTaskService,
                                       List<BlockListener> blockListeners,
-                                      List<ContractEventListener> contractEventListeners,
-                                      @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
-        this.contractEventListeners = contractEventListeners;
+                                      @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate,
+                                      EventSyncService eventSyncService) {
         this.chainServices = chainServices;
-        this.asyncTaskService = asyncTaskService;
         this.eventFilterRepository = eventFilterRepository;
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
         this.blockListeners = blockListeners;
         this.retryTemplate = retryTemplate;
+        this.eventSyncService = eventSyncService;
 
         filterSubscriptions = new HashMap<>();
     }
 
 
-    public void init() {
+    public void init(List<ContractEventFilter> initFilters) {
+
+        if (initFilters != null && !initFilters.isEmpty()) {
+            final List<ContractEventFilter> filtersWithStartBlock = initFilters
+                    .stream()
+                    .filter(filter -> filter.getStartBlock() != null)
+                    .collect(Collectors.toList());
+
+            if (!filtersWithStartBlock.isEmpty()) {
+                state = SubscriptionServiceState.SYNCING_EVENTS;
+                eventSyncService.sync(filtersWithStartBlock);
+            }
+        }
+
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
                 chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
+
+        state = SubscriptionServiceState.SUBSCRIBED;
     }
 
     /**
@@ -153,6 +157,14 @@ public class DefaultSubscriptionService implements SubscriptionService {
                 .removeIf(entry -> entry.getValue().getNode().equals(nodeName));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SubscriptionServiceState getState() {
+        return state;
+    }
+
     private ContractEventFilter doRegisterContractEventFilter(ContractEventFilter filter, boolean broadcast) {
         try {
             populateIdIfMissing(filter);
@@ -184,15 +196,6 @@ public class DefaultSubscriptionService implements SubscriptionService {
         blockListeners.forEach(listener -> blockchainService.addBlockListener(listener));
 
         blockchainService.connect();
-    }
-
-    private void triggerListener(ContractEventListener listener, ContractEventDetails contractEventDetails) {
-        try {
-            listener.onEvent(contractEventDetails);
-        } catch (Throwable t) {
-            log.error(String.format(
-                    "An error occurred when processing contractEvent with id %s", contractEventDetails.getId()), t);
-        }
     }
 
     private ContractEventFilter saveContractEventFilter(ContractEventFilter contractEventFilter) {

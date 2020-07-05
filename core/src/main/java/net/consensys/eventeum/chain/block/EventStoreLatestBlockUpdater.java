@@ -22,18 +22,21 @@ import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A contract event listener that saves the ContractEventDetails to a SaveableEventStore.
+ * A block listener that saves the ContractEventDetails to a SaveableEventStore.
  *
  * Only gets registered if a SaveableEventStore exists in the context.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class EventStoreLatestBlockUpdater implements BlockListener {
 
     private SaveableEventStore saveableEventStore;

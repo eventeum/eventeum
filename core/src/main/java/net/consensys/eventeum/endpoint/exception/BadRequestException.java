@@ -12,10 +12,15 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeumserver.integrationtest;
+package net.consensys.eventeum.endpoint.exception;
 
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-@TestPropertySource(locations="classpath:application-test-start-block.properties")
-public class HttpStartBlockTest extends BaseStartBlockTest {
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public class BadRequestException extends RuntimeException {
+
+    public BadRequestException(String message) {
+        super(message);
+    }
 }

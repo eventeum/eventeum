@@ -12,16 +12,11 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.chain.service;
+package net.consensys.eventeumserver.integrationtest;
 
-import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
+import org.springframework.test.context.TestPropertySource;
 
-import java.util.Set;
+@TestPropertySource(locations="classpath:application-test-ws-event-sync.properties")
+public class WSEventSyncIT extends BaseKafkaIntegrationTest {
 
-public interface BlockCache {
-
-    void add(Block block);
-
-    Set<Block> getCachedBlocks();
 }

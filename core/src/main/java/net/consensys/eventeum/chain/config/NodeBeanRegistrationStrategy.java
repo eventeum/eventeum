@@ -127,7 +127,6 @@ public class NodeBeanRegistrationStrategy {
         builder.addConstructorArgValue(node.getName())
                 .addConstructorArgValue(web3j)
                 .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()))
-                .addConstructorArgReference("defaultEventBlockManagementService")
                 .addConstructorArgReference(blockSubStrategyBeanName);
 
         final String beanName = String.format(WEB3J_SERVICE_BEAN_NAME, node.getName());
@@ -184,7 +183,8 @@ public class NodeBeanRegistrationStrategy {
                     .getBeanDefinition();
         }
 
-        beanDefinition.getConstructorArgumentValues()
+        beanDefinition
+                .getConstructorArgumentValues()
                 .addIndexedArgumentValue(1, new RuntimeBeanReference(blockchainServiceBeanName));
 
 
@@ -268,7 +268,8 @@ public class NodeBeanRegistrationStrategy {
 
         builder.addConstructorArgValue(web3j)
                 .addConstructorArgValue(node.getName())
-                .addConstructorArgReference("defaultEventStoreService");
+                .addConstructorArgReference("asyncTaskService")
+                .addConstructorArgReference("defaultBlockNumberService");
 
         final String beanName = String.format(NODE_BLOCK_SUB_STRATEGY_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());

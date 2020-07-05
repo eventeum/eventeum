@@ -12,10 +12,16 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeumserver.integrationtest;
+package net.consensys.eventeum.chain.service.block;
 
-import org.springframework.test.context.TestPropertySource;
+import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.dto.block.BlockDetails;
 
-@TestPropertySource(locations="classpath:application-test-ws-start-block.properties")
-public class WSStartBlockTest extends BaseStartBlockTest {
+import java.util.Set;
+
+public interface BlockCache {
+
+    void add(Block block);
+
+    Set<Block> getCachedBlocks();
 }

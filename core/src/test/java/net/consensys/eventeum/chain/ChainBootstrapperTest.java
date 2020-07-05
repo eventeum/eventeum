@@ -126,6 +126,6 @@ public class ChainBootstrapperTest {
      }
 
     private void doBootstrap() throws Exception {
-        underTest.afterPropertiesSet();
+        underTest.onApplicationEvent(null);
     }
 }

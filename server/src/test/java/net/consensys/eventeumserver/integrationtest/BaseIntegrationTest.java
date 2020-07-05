@@ -121,6 +121,8 @@ public class BaseIntegrationTest {
 
     private List<String> registeredTransactionMonitorIds = new ArrayList<>();
 
+    public static boolean shouldPersistNodeVolume = true;
+
     @BeforeClass
     public static void setupEnvironment() throws Exception {
         StubEventStoreService.start();
@@ -163,6 +165,8 @@ public class BaseIntegrationTest {
     public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
 
+
+        shouldPersistNodeVolume = true;
         stopParity();
 
         try {
@@ -366,7 +370,7 @@ public class BaseIntegrationTest {
                 eventDetails.getEventSpecificationSignature());
     }
 
-    protected byte[] stringToBytes(String string) {
+    protected static byte[] stringToBytes(String string) {
         byte[] byteValue = string.getBytes();
         byte[] byteValueLen32 = new byte[32];
         System.arraycopy(byteValue, 0, byteValueLen32, 0, byteValue.length);
@@ -491,7 +495,9 @@ public class BaseIntegrationTest {
         Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
         assertEquals(registeredFilter, saved.get());
 
+        Thread.sleep(1000);
         unregisterDummyEventFilter();
+        Thread.sleep(1000);
 
         saved = getFilterRepo().findById(getDummyEventFilterId());
         assertFalse(saved.isPresent());
@@ -506,7 +512,6 @@ public class BaseIntegrationTest {
         contractEventFilter.setId(id);
         contractEventFilter.setContractAddress(contractAddress);
         contractEventFilter.setEventSpecification(eventSpec);
-        contractEventFilter.setStartBlock(BigInteger.ONE);
 
         return contractEventFilter;
     }
@@ -516,8 +521,10 @@ public class BaseIntegrationTest {
         parityContainer.waitingFor(Wait.forListeningPort());
         parityContainer.withFixedExposedPort(8545, 8545);
         parityContainer.withFixedExposedPort(8546, 8546);
-        parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
-                "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        if (shouldPersistNodeVolume) {
+            parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
+                    "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        }
         parityContainer.addEnv("NO_BLOCKS", "true");
         parityContainer.start();
 
@@ -533,6 +540,8 @@ public class BaseIntegrationTest {
         builder.append("\n");
         builder.append("Expected message count: " + expectedMessageCount);
         builder.append(", received: " + messages.size());
+        builder.append("\n\n");
+        builder.append("Messages received: " + JSON.stringify(messages));
         builder.append("\n\n");
         builder.append("Registered filters:");
         builder.append("\n\n");

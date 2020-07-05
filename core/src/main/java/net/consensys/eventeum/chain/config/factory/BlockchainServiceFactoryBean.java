@@ -16,7 +16,7 @@ package net.consensys.eventeum.chain.config.factory;
 
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.EventBlockManagementService;
+import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
 import net.consensys.eventeum.chain.service.Web3jService;
 import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
@@ -31,14 +31,13 @@ public class BlockchainServiceFactoryBean implements FactoryBean<BlockchainServi
     private Node node;
     private Web3j web3j;
     private ContractEventDetailsFactory contractEventDetailsFactory;
-    private EventBlockManagementService eventBlockManagementService;
     private BlockSubscriptionStrategy blockSubscriptionStrategy;
     private AsyncTaskService asyncTaskService;
 
     @Override
     public BlockchainService getObject() throws Exception {
         return new Web3jService(node.getName(), web3j,
-                contractEventDetailsFactory, eventBlockManagementService, blockSubscriptionStrategy, asyncTaskService);
+                contractEventDetailsFactory, blockSubscriptionStrategy, asyncTaskService);
     }
 
     @Override

@@ -14,7 +14,7 @@
 
 package net.consensys.eventeum.chain.contract;
 
-import net.consensys.eventeum.chain.service.EventBlockManagementService;
+import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
