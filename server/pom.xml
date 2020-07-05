@@ -45,6 +45,12 @@
             <groupId>net.consensys.eventeum</groupId>
             <artifactId>eventeum-core</artifactId>
             <version>0.8.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>kotlin-stdlib</artifactId>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -100,6 +106,11 @@
             <artifactId>mssqlserver</artifactId>
             <version>1.14.3</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>1.3.70</version>
         </dependency>
     </dependencies>
 

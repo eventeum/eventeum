@@ -26,6 +26,7 @@ import net.consensys.eventeum.chain.service.strategy.PubSubBlockSubscriptionStra
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import okhttp3.ConnectionPool;
+import okhttp3.JavaNetCookieJar;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -40,9 +41,7 @@ import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.utils.Async;
 
 import javax.xml.bind.DatatypeConverter;
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -224,9 +223,13 @@ public class NodeBeanRegistrationStrategy {
             web3jService = wsService;
         } else {
 
+            CookieManager cookieManager = new CookieManager();
+            cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+
             ConnectionPool pool = new ConnectionPool(node.getMaxIdleConnections(), node.getKeepAliveDuration(), TimeUnit.MILLISECONDS);
             OkHttpClient client = globalOkHttpClient.newBuilder()
                     .connectionPool(pool)
+                    . cookieJar(new JavaNetCookieJar(cookieManager))
                     .readTimeout(node.getReadTimeout(),TimeUnit.MILLISECONDS)
                     .connectTimeout(node.getConnectionTimeout(),TimeUnit.MILLISECONDS)
                     .build();
