@@ -66,7 +66,10 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
                 && isEventFilterInBloomFilter(filter, block.getLogsBloom())) {
             blockchainService
                     .getEventsForFilter(filter, block.getNumber())
-                    .forEach(event -> triggerListeners(event));
+                    .forEach(event -> {
+                        event.setTimestamp(block.getTimestamp());
+                        triggerListeners(event);
+                    });
         }
     }
 

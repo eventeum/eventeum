@@ -156,6 +156,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
         assertEquals(txHash, txDetails.getHash());
         assertEquals(expectedStatus, txDetails.getStatus());
+        assertNotNull(txDetails.getTimestamp());
 
         return txHash;
     }

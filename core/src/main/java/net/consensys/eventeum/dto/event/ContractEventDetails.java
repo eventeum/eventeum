@@ -78,6 +78,8 @@ public class ContractEventDetails implements TransactionBasedDetails {
 
     private String networkName;
 
+    private BigInteger timestamp;
+
     public String getId() {
         return transactionHash + "-" + blockHash + "-" + logIndex;
     }
