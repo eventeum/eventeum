@@ -117,7 +117,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                     .getCachedBlocks()
                     .forEach(block -> {
                         block.getTransactions().forEach(tx ->
-                                broadcastIfMatched(tx, nodeName, Collections.singletonList(matchingCriteria)));
+                                broadcastIfMatched(tx, block, Collections.singletonList(matchingCriteria)));
                     });
         } finally {
             lock.unlock();
@@ -131,13 +131,13 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
     private void processBlock(Block block) {
         block.getTransactions()
-                .forEach(tx -> broadcastIfMatched(tx, block.getNodeName()));
+                .forEach(tx -> broadcastIfMatched(tx, block));
     }
 
-    private void broadcastIfMatched(Transaction tx, String nodeName, List<TransactionMatchingCriteria> criteriaToCheck) {
+    private void broadcastIfMatched(Transaction tx, Block block, List<TransactionMatchingCriteria> criteriaToCheck) {
 
         final TransactionDetails txDetails = transactionDetailsFactory.createTransactionDetails(
-                tx, TransactionStatus.CONFIRMED, nodeName);
+                tx, TransactionStatus.CONFIRMED, block);
 
         //Only broadcast once, even if multiple matching criteria apply
         criteriaToCheck
@@ -147,9 +147,9 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                 .ifPresent(matcher -> onTransactionMatched(txDetails, matcher));
     }
 
-    private void broadcastIfMatched(Transaction tx, String nodeName) {
-        if (criteria.containsKey(nodeName)) {
-            broadcastIfMatched(tx, nodeName, criteria.get(nodeName));
+    private void broadcastIfMatched(Transaction tx, Block block) {
+        if (criteria.containsKey(block.getNodeName())) {
+            broadcastIfMatched(tx, block, criteria.get(block.getNodeName()));
         }
     }
 

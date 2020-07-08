@@ -18,7 +18,6 @@ import java.io.File;
 import java.util.*;
 
 import junit.framework.TestCase;
-import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -28,7 +27,6 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
@@ -39,7 +37,6 @@ import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -67,8 +64,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class BaseIntegrationTest {
 
@@ -368,6 +364,7 @@ public class BaseIntegrationTest {
         assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
+        assertNotNull(eventDetails.getTimestamp());
     }
 
     protected static byte[] stringToBytes(String string) {

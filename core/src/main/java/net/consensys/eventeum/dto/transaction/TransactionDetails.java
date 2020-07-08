@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import net.consensys.eventeum.dto.TransactionBasedDetails;
 
+import java.math.BigInteger;
+
 @Data
 @ToString
 @EqualsAndHashCode
@@ -41,6 +43,7 @@ public class TransactionDetails implements TransactionBasedDetails {
     private String contractAddress;
     private String input;
     private String revertReason;
+    private BigInteger timestamp;
 
     private TransactionStatus status;
 
