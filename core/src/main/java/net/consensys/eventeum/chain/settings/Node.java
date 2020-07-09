@@ -44,4 +44,5 @@ public class Node {
     private BigInteger blocksToWaitBeforeInvalidating;
     private BigInteger initialStartBlock;
     private BigInteger numBlocksToReplay;
+    private BigInteger maxBlocksToSync;
 }
