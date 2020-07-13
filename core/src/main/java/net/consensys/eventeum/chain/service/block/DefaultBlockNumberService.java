@@ -65,7 +65,7 @@ public class DefaultBlockNumberService implements BlockNumberService {
                 if (currentBlock.subtract(startBlock).compareTo(maxBlocksToSync) > 0) {
                     log.info("maxBlocksToSync for node {}: {}", nodeName, maxBlocksToSync);
                     //Difference between current block and start block is over max.
-                    startBlock = currentBlock.subtract(maxBlocksToSync);
+                    startBlock = currentBlock.add(BigInteger.ONE).subtract(maxBlocksToSync);
                 }
             }
 
