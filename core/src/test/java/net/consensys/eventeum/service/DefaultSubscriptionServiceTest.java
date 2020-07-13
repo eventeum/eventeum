@@ -98,7 +98,6 @@ public class DefaultSubscriptionServiceTest {
                 Constants.DEFAULT_NODE_NAME)).thenReturn(mockNodeServices);
         when(mockChainServicesContainer.getNodeNames()).thenReturn(
                 Collections.singletonList(Constants.DEFAULT_NODE_NAME));
-        when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
         when(mockNodeServices.getBlockSubscriptionStrategy()).thenReturn(mockBlockSubscriptionStrategy);
 
         mockRetryTemplate = new RetryTemplate();

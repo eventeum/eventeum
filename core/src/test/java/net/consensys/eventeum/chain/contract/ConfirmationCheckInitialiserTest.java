@@ -59,6 +59,7 @@ public class ConfirmationCheckInitialiserTest {
          mockBlockListener = mock(BlockListener.class);
          mockChainServicesContainer = mock(ChainServicesContainer.class);
          mockNodeServices = mock(NodeServices.class);
+         mockNodeSettings = mock(NodeSettings.class);
 
          when(mockChainServicesContainer.getNodeServices(Constants.DEFAULT_NODE_NAME))
                  .thenReturn(mockNodeServices);
@@ -66,8 +67,7 @@ public class ConfirmationCheckInitialiserTest {
          when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
          when(mockNodeServices.getBlockSubscriptionStrategy()).thenReturn(mockBlockSubscriptionStrategy);
          when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(currentBlock);
-         Node node =
-                 new Node();
+         Node node = new Node();
          node.setBlocksToWaitForConfirmation(BigInteger.valueOf(10));
          node.setBlocksToWaitForMissingTx(BigInteger.valueOf(100));
          node.setBlocksToWaitBeforeInvalidating(BigInteger.valueOf(5));
