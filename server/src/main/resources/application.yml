@@ -21,6 +21,7 @@ ethereum:
     blockStrategy: POLL
     syncingThreshold: 100
     healthcheckInterval: 5000
+    maxBlocksToSync: 0
   healthcheck:
     pollInterval: 5000
   blockStrategy: POLL

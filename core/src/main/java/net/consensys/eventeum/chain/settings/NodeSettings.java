@@ -47,6 +47,8 @@ public class NodeSettings {
 
     private static final String DEFAULT_NUM_BLOCKS_TO_REPLAY = "12";
 
+    private static final String DEFAULT_MAX_BLOCKS_TO_SYNC = "0";
+
     private static final String ATTRIBUTE_PREFIX = "ethereum";
 
     private static final String NODE_ATTRIBUTE_PREFIX = ATTRIBUTE_PREFIX + ".nodes[%s]";
@@ -97,6 +99,10 @@ public class NodeSettings {
 
     private static final String GLOBAL_NUM_BLOCKS_TO_REPLAY_ATTRIBUTE = ATTRIBUTE_PREFIX + "." + NUM_BLOCKS_TO_REPLAY_ATTRIBUTE;
 
+    private static final String MAX_BLOCKS_TO_SYNC_ATTRIBUTE = "maxBlocksToSync";
+
+    private static final String GLOBAL_MAX_BLOCKS_TO_SYNC_ATTRIBUTE = ATTRIBUTE_PREFIX + "." + MAX_BLOCKS_TO_SYNC_ATTRIBUTE;
+
     private HashMap<String, Node> nodes;
 
     private String blockStrategy;
@@ -135,7 +141,8 @@ public class NodeSettings {
                     getBlocksToWaitBeforeInvalidatingProperty(environment, index),
                     getBlocksToWaitForMissingTxProperty(environment, index),
                     getInitialStartBlockProperty(environment, index),
-                    getNumBlocksToReplayProperty(environment, index)
+                    getNumBlocksToReplayProperty(environment, index),
+                    getMaxBlocksToSyncProperty(environment, index)
             );
 
             nodes.put(nodeName, node);
@@ -283,6 +290,18 @@ public class NodeSettings {
         }
 
         return BigInteger.valueOf(Long.valueOf(numBlocksToReplay));
+    }
+
+    private BigInteger getMaxBlocksToSyncProperty(Environment environment, int index) {
+        String maxBlocksToSync =
+                getProperty(environment, buildNodeAttribute(MAX_BLOCKS_TO_SYNC_ATTRIBUTE, index));
+
+        if (maxBlocksToSync == null) {
+            maxBlocksToSync = getProperty(environment,
+                    GLOBAL_MAX_BLOCKS_TO_SYNC_ATTRIBUTE, DEFAULT_MAX_BLOCKS_TO_SYNC);
+        }
+
+        return BigInteger.valueOf(Long.valueOf(maxBlocksToSync));
     }
 
     private String getNodeUsernameProperty(Environment environment, int index) {
