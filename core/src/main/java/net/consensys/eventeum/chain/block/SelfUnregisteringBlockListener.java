@@ -15,6 +15,7 @@
 package net.consensys.eventeum.chain.block;
 
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 
 /**
  * An abstract implementation of a block listener that can unregister itself from the system.
@@ -23,13 +24,13 @@ import net.consensys.eventeum.chain.service.BlockchainService;
  */
 public abstract class SelfUnregisteringBlockListener implements BlockListener {
 
-    private BlockchainService blockchainService;
+    private BlockSubscriptionStrategy blockSubscriptionStrategy;
 
-    protected SelfUnregisteringBlockListener(BlockchainService blockchainService) {
-        this.blockchainService = blockchainService;
+    protected SelfUnregisteringBlockListener(BlockSubscriptionStrategy blockSubscriptionStrategy) {
+        this.blockSubscriptionStrategy = blockSubscriptionStrategy;
     }
 
     protected void unregister() {
-        blockchainService.removeBlockListener(this);
+        blockSubscriptionStrategy.removeBlockListener(this);
     }
 }

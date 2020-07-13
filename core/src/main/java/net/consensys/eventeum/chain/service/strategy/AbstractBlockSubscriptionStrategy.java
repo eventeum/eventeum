@@ -60,6 +60,11 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     @Override
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    @Override
     public void unsubscribe() {
         try {
             if (blockSubscription != null) {

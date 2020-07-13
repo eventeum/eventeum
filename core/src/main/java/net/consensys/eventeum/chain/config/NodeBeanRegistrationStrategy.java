@@ -75,26 +75,34 @@ public class NodeBeanRegistrationStrategy {
         registerContractEventDetailsFactoryBean(node, registry);
 
         final Web3jService web3jService = buildWeb3jService(node);
+
         final Web3j web3j = buildWeb3j(node, web3jService);
+
         final String blockchainServiceBeanName = registerBlockchainServiceBean(node, web3j, registry);
-        registerNodeServicesBean(node, web3j, blockchainServiceBeanName, registry);
+
+        final String blockSubStrategyBeanName = registerBlockSubscriptionStrategyBean(node, web3j, registry);
+
+        registerNodeServicesBean(node, web3j, blockchainServiceBeanName, blockSubStrategyBeanName, registry);
+
         final String nodeFailureListenerBeanName =
-                registerNodeFailureListener(node, blockchainServiceBeanName, web3jService, registry);
-        registerNodeHealthCheckBean(node, blockchainServiceBeanName, web3jService, nodeFailureListenerBeanName, registry);
+                registerNodeFailureListener(node, blockSubStrategyBeanName, web3jService, registry);
 
-
+        registerNodeHealthCheckBean(node, blockchainServiceBeanName,
+                blockSubStrategyBeanName, web3jService, nodeFailureListenerBeanName, registry);
     }
 
     private String registerNodeServicesBean(Node node,
                                             Web3j web3j,
                                             String web3jServiceBeanName,
+                                            String blockSubStrategyBeanName,
                                             BeanDefinitionRegistry registry) {
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 NodeServices.class);
 
         builder.addPropertyValue("nodeName", node.getName())
                 .addPropertyValue("web3j", web3j)
-                .addPropertyReference("blockchainService", web3jServiceBeanName);
+                .addPropertyReference("blockchainService", web3jServiceBeanName)
+                .addPropertyReference("blockSubscriptionStrategy", blockSubStrategyBeanName);
 
         final String beanName = String.format(NODE_SERVICES_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
@@ -118,15 +126,13 @@ public class NodeBeanRegistrationStrategy {
     }
 
     private String registerBlockchainServiceBean(Node node, Web3j web3j, BeanDefinitionRegistry registry) {
-        final String blockSubStrategyBeanName = registerBlockSubscriptionStrategyBean(node, web3j, registry);
 
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 net.consensys.eventeum.chain.service.Web3jService.class);
 
         builder.addConstructorArgValue(node.getName())
                 .addConstructorArgValue(web3j)
-                .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()))
-                .addConstructorArgReference(blockSubStrategyBeanName);
+                .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()));
 
         final String beanName = String.format(WEB3J_SERVICE_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
@@ -136,6 +142,7 @@ public class NodeBeanRegistrationStrategy {
 
     private String registerNodeHealthCheckBean(Node node,
                                                String blockchainServiceBeanName,
+                                               String blockSubStrategyBeanName,
                                                Web3jService web3jService,
                                                String nodeFailureListenerBeanName,
                                                BeanDefinitionRegistry registry) {
@@ -149,6 +156,7 @@ public class NodeBeanRegistrationStrategy {
         }
 
         builder.addConstructorArgReference(blockchainServiceBeanName);
+        builder.addConstructorArgReference(blockSubStrategyBeanName);
         builder.addConstructorArgReference(nodeFailureListenerBeanName);
         builder.addConstructorArgReference("defaultSubscriptionService");
         builder.addConstructorArgReference("eventeumValueMonitor");
@@ -164,7 +172,7 @@ public class NodeBeanRegistrationStrategy {
     }
 
     private String registerNodeFailureListener(Node node,
-                                               String blockchainServiceBeanName,
+                                               String blockSubStrategyBeanName,
                                                Web3jService web3jService,
                                                BeanDefinitionRegistry registry) {
         final BeanDefinition beanDefinition;
@@ -184,7 +192,7 @@ public class NodeBeanRegistrationStrategy {
 
         beanDefinition
                 .getConstructorArgumentValues()
-                .addIndexedArgumentValue(1, new RuntimeBeanReference(blockchainServiceBeanName));
+                .addIndexedArgumentValue(1, new RuntimeBeanReference(blockSubStrategyBeanName));
 
 
         final String beanName = String.format(NODE_FAILURE_LISTENER_BEAN_NAME, node.getName());

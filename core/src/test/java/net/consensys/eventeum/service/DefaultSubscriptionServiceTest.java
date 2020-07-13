@@ -19,6 +19,7 @@ import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
@@ -61,6 +62,8 @@ public class DefaultSubscriptionServiceTest {
     @Mock
     private BlockchainService mockBlockchainService;
     @Mock
+    private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
+    @Mock
     private ContractEventFilterRepository mockRepo;
     @Mock
     private EventeumEventBroadcaster mockFilterBroadcaster;
@@ -96,6 +99,7 @@ public class DefaultSubscriptionServiceTest {
         when(mockChainServicesContainer.getNodeNames()).thenReturn(
                 Collections.singletonList(Constants.DEFAULT_NODE_NAME));
         when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
+        when(mockNodeServices.getBlockSubscriptionStrategy()).thenReturn(mockBlockSubscriptionStrategy);
 
         mockRetryTemplate = new RetryTemplate();
 
@@ -109,8 +113,8 @@ public class DefaultSubscriptionServiceTest {
 
         underTest.init(null);
 
-        verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener1);
-        verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener2);
+        verify(mockBlockSubscriptionStrategy, times(1)).addBlockListener(mockBlockListener1);
+        verify(mockBlockSubscriptionStrategy, times(1)).addBlockListener(mockBlockListener2);
     }
 
     @Test

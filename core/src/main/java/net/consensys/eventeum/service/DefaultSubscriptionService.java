@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
@@ -90,7 +91,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
         }
 
         chainServices.getNodeNames().forEach(nodeName -> subscribeToNewBlockEvents(
-                chainServices.getNodeServices(nodeName).getBlockchainService(), blockListeners));
+                chainServices.getNodeServices(nodeName).getBlockSubscriptionStrategy(), blockListeners));
 
         state = SubscriptionServiceState.SUBSCRIBED;
     }
@@ -192,10 +193,10 @@ public class DefaultSubscriptionService implements SubscriptionService {
     }
 
     private void subscribeToNewBlockEvents(
-            BlockchainService blockchainService, List<BlockListener> blockListeners) {
-        blockListeners.forEach(listener -> blockchainService.addBlockListener(listener));
+            BlockSubscriptionStrategy subscriptionStrategy, List<BlockListener> blockListeners) {
+        blockListeners.forEach(listener -> subscriptionStrategy.addBlockListener(listener));
 
-        blockchainService.connect();
+        subscriptionStrategy.subscribe();
     }
 
     private ContractEventFilter saveContractEventFilter(ContractEventFilter contractEventFilter) {

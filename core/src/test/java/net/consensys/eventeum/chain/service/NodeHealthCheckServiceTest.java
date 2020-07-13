@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.service;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.model.LatestBlock;
@@ -48,6 +49,8 @@ public class NodeHealthCheckServiceTest {
 
     private BlockchainService mockBlockchainService;
 
+    private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
+
     private ReconnectionStrategy mockReconnectionStrategy;
 
     private SubscriptionService mockSubscriptionService;
@@ -62,6 +65,8 @@ public class NodeHealthCheckServiceTest {
     public void init() throws Exception {
         mockBlockchainService = mock(BlockchainService.class);
         when(mockBlockchainService.getNodeName()).thenReturn(Constants.DEFAULT_NODE_NAME);
+        mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
+        when(mockBlockSubscriptionStrategy.getNodeName()).thenReturn(Constants.DEFAULT_NODE_NAME);
 
         mockReconnectionStrategy = mock(ReconnectionStrategy.class);
         mockSubscriptionService = mock(SubscriptionService.class);
@@ -180,13 +185,13 @@ public class NodeHealthCheckServiceTest {
 
     private void wireBlockchainServiceUp(boolean isSubscribed) {
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(BLOCK_NUMBER);
-        when(mockBlockchainService.isConnected()).thenReturn(isSubscribed);
+        when(mockBlockSubscriptionStrategy.isSubscribed()).thenReturn(isSubscribed);
         when(mockBlockchainService.getNodeName()).thenReturn(Constants.DEFAULT_NODE_NAME);
     }
 
     private void wireBlockchainServiceDown(boolean isConnected, boolean isSubscribed) {
 
-        when(mockBlockchainService.isConnected()).thenReturn(isSubscribed);
+        when(mockBlockSubscriptionStrategy.isSubscribed()).thenReturn(isSubscribed);
         if (isConnected) {
             when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(BLOCK_NUMBER);
         } else {
@@ -222,6 +227,7 @@ public class NodeHealthCheckServiceTest {
         final NodeHealthCheckService healthCheckService =
                 new NodeHealthCheckService(
                         mockBlockchainService,
+                        mockBlockSubscriptionStrategy,
                         mockReconnectionStrategy,
                         mockSubscriptionService,
                         mockEventeumValueMonitor,

@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.service.health;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
@@ -32,6 +33,7 @@ public class WebSocketHealthCheckService extends NodeHealthCheckService {
 
     public WebSocketHealthCheckService(Web3jService web3jService,
                                        BlockchainService blockchainService,
+                                       BlockSubscriptionStrategy blockSubscription,
                                        ReconnectionStrategy failureListener,
                                        SubscriptionService subscriptionService,
                                        EventeumValueMonitor valueMonitor,
@@ -40,7 +42,7 @@ public class WebSocketHealthCheckService extends NodeHealthCheckService {
                                        ScheduledThreadPoolExecutor taskScheduler,
                                        Long healthCheckPollInterval
     ) {
-        super(blockchainService, failureListener, subscriptionService,
+        super(blockchainService, blockSubscription, failureListener, subscriptionService,
                 valueMonitor, eventStoreService, syncingThreshold, taskScheduler, healthCheckPollInterval);
 
         if (web3jService instanceof EventeumWebSocketService) {
