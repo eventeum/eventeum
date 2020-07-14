@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.block;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
@@ -39,9 +40,10 @@ public class EventConfirmationBlockListener extends AbstractConfirmationBlockLis
 
     public EventConfirmationBlockListener(ContractEventDetails contractEvent,
                                           BlockchainService blockchainService,
+                                          BlockSubscriptionStrategy blockSubscription,
                                           BlockchainEventBroadcaster eventBroadcaster,
                                           Node node) {
-        super(contractEvent, blockchainService, node);
+        super(contractEvent, blockchainService, blockSubscription, node);
         this.contractEvent = contractEvent;
         this.eventBroadcaster = eventBroadcaster;
     }

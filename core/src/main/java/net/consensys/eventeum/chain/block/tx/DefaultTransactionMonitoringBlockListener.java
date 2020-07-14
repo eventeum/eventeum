@@ -23,6 +23,7 @@ import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
@@ -49,16 +50,13 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     //Keyed by node name
     private Map<String, List<TransactionMatchingCriteria>> criteria;
 
-    //Keyed by node name
-    private Map<String, BlockchainService> blockchainServices;
+    private ChainServicesContainer chainServicesContainer;
 
     private BlockchainEventBroadcaster broadcaster;
 
     private TransactionDetailsFactory transactionDetailsFactory;
 
     private BlockCache blockCache;
-
-    private RetryTemplate retryTemplate;
 
     private Lock lock = new ReentrantLock();
 
@@ -71,14 +69,7 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
                                                      NodeSettings nodeSettings) {
         this.criteria = new ConcurrentHashMap<>();
 
-        this.blockchainServices = new HashMap<>();
-
-        chainServicesContainer
-                .getNodeNames()
-                .forEach(nodeName -> {
-                    blockchainServices.put(nodeName,
-                            chainServicesContainer.getNodeServices(nodeName).getBlockchainService());
-                });
+        this.chainServicesContainer = chainServicesContainer;
 
         this.broadcaster = broadcaster;
         this.transactionDetailsFactory = transactionDetailsFactory;
@@ -157,14 +148,15 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
 
         final Node node = nodeSettings.getNode(txDetails.getNodeName());
         final BlockchainService blockchainService = getBlockchainService(txDetails.getNodeName());
+        final BlockSubscriptionStrategy blockSubscription = getBlockSubscriptionStrategy(txDetails.getNodeName());
 
         final boolean isSuccess = isSuccessTransaction(txDetails);
 
         if (isSuccess && shouldWaitBeforeConfirmation(node)) {
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);
 
-            blockchainService.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
-                    blockchainService, broadcaster,node,
+            blockSubscription.addBlockListener(new TransactionConfirmationBlockListener(txDetails,
+                    blockchainService, blockSubscription, broadcaster,node,
                     matchingCriteria.getStatuses(),
                     () -> onConfirmed(txDetails, matchingCriteria)));
 
@@ -218,7 +210,11 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
     }
 
     private BlockchainService getBlockchainService(String nodeName) {
-        return blockchainServices.get(nodeName);
+        return chainServicesContainer.getNodeServices(nodeName).getBlockchainService();
+    }
+
+    private BlockSubscriptionStrategy getBlockSubscriptionStrategy(String nodeName) {
+        return chainServicesContainer.getNodeServices(nodeName).getBlockSubscriptionStrategy();
     }
 
     private void onConfirmed(TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {

@@ -16,6 +16,7 @@ package net.consensys.eventeum.chain.block.tx;
 
 import net.consensys.eventeum.chain.block.AbstractConfirmationBlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
@@ -31,11 +32,12 @@ public class TransactionConfirmationBlockListener extends AbstractConfirmationBl
 
     public TransactionConfirmationBlockListener(TransactionDetails transactionDetails,
                                                 BlockchainService blockchainService,
+                                                BlockSubscriptionStrategy blockSubscription,
                                                 BlockchainEventBroadcaster eventBroadcaster,
                                                 Node node,
                                                 List<TransactionStatus> statusesToFilter,
                                                 OnConfirmedCallback onConfirmedCallback) {
-        super(transactionDetails, blockchainService, node);
+        super(transactionDetails, blockchainService, blockSubscription, node);
         this.eventBroadcaster = eventBroadcaster;
         this.onConfirmedCallback = onConfirmedCallback;
         this.statusesToFilter = statusesToFilter;

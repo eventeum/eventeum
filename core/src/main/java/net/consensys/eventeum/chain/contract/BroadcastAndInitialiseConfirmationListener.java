@@ -21,6 +21,7 @@ import net.consensys.eventeum.chain.block.EventConfirmationBlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -52,7 +53,7 @@ public class BroadcastAndInitialiseConfirmationListener implements ContractEvent
     public void onEvent(ContractEventDetails eventDetails) {
         if (eventDetails.getStatus() == ContractEventStatus.UNCONFIRMED) {
 
-            final BlockchainService blockchainService = getBlockchainService(eventDetails);
+            final BlockSubscriptionStrategy blockSubscription = getBlockSubscriptionStrategy(eventDetails);
             final Node node = nodeSettings.getNode(eventDetails.getNodeName());
 
             if (shouldInstantlyConfirm(eventDetails)) {
@@ -63,7 +64,7 @@ public class BroadcastAndInitialiseConfirmationListener implements ContractEvent
             }
 
             log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
-            blockchainService.addBlockListener(createEventConfirmationBlockListener(eventDetails, node));
+            blockSubscription.addBlockListener(createEventConfirmationBlockListener(eventDetails, node));
         }
 
         eventBroadcaster.broadcastContractEvent(eventDetails);
@@ -71,12 +72,17 @@ public class BroadcastAndInitialiseConfirmationListener implements ContractEvent
 
     protected BlockListener createEventConfirmationBlockListener(ContractEventDetails eventDetails,Node node) {
         return new EventConfirmationBlockListener(eventDetails,
-                getBlockchainService(eventDetails), eventBroadcaster, node);
+                getBlockchainService(eventDetails), getBlockSubscriptionStrategy(eventDetails), eventBroadcaster, node);
     }
 
     private BlockchainService getBlockchainService(ContractEventDetails eventDetails) {
         return chainServicesContainer.getNodeServices(
                 eventDetails.getNodeName()).getBlockchainService();
+    }
+
+    private BlockSubscriptionStrategy getBlockSubscriptionStrategy(ContractEventDetails eventDetails) {
+        return chainServicesContainer.getNodeServices(
+                eventDetails.getNodeName()).getBlockSubscriptionStrategy();
     }
 
     private boolean shouldInstantlyConfirm(ContractEventDetails eventDetails) {

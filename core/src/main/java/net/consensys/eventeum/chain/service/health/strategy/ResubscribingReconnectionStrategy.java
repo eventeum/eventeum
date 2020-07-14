@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.service.health.strategy;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.service.SubscriptionService;
 
 @AllArgsConstructor
@@ -24,11 +25,11 @@ import net.consensys.eventeum.service.SubscriptionService;
 public abstract class ResubscribingReconnectionStrategy implements ReconnectionStrategy {
 
     private SubscriptionService subscriptionService;
-    private BlockchainService blockchainService;
+    private BlockSubscriptionStrategy blockSubscriptionStrategy;
 
     @Override
     public void resubscribe() {
 
-        blockchainService.reconnect();
+        blockSubscriptionStrategy.subscribe();
     }
 }

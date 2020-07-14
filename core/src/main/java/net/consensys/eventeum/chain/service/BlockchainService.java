@@ -41,20 +41,6 @@ public interface BlockchainService {
     String getNodeName();
 
     /**
-     * Add a listener that gets notified when a new block is mined.
-     *
-     * @param blockListener the listener to add
-     */
-    void addBlockListener(BlockListener blockListener);
-
-    /**
-     * Remove a block listener than was previously added.
-     *
-     * @param blockListener the listener to remove
-     */
-    void removeBlockListener(BlockListener blockListener);
-
-    /**
      * Retrieves all events for a specified event filter.
      *
      * @param eventFilter The contract event filter that should be matched.
@@ -110,26 +96,7 @@ public interface BlockchainService {
      */
     TransactionReceipt getTransactionReceipt(String txId);
 
-    /**
-     * Connects to the Ethereum node and starts listening for new blocks
-     */
-    void connect();
 
-    /**
-     * Stops listening for new blocks from the ethereum node
-     */
-    void disconnect();
-
-    /**
-     * Reconnects to the Ethereum node (useful after node failure)
-     */
-    void reconnect();
-
-    /**
-     *
-     * @return true if the service is correctly connected to the ethereum node.
-     */
-    boolean isConnected();
 
     String getRevertReason(String from, String to, BigInteger blockNumber, String input);
 }

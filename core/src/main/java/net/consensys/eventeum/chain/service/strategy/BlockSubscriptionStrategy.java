@@ -19,6 +19,9 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import rx.Subscription;
 
 public interface BlockSubscriptionStrategy {
+
+    String getNodeName();
+
     Disposable subscribe();
 
     void unsubscribe();

@@ -18,6 +18,7 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
@@ -48,6 +49,7 @@ public class EventConfirmationBlockListenerTest {
 
     private ContractEventDetails mockEventDetails;
     private BlockchainService mockBlockchainService;
+    private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
     private BlockchainEventBroadcaster mockEventBroadcaster;
     private TransactionReceipt mockTransactionReceipt;
     private Log mockLog;
@@ -56,6 +58,7 @@ public class EventConfirmationBlockListenerTest {
     public void init() {
         mockEventDetails = mock(ContractEventDetails.class);
         mockBlockchainService = mock(BlockchainService.class);
+        mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
         mockEventBroadcaster = mock(BlockchainEventBroadcaster.class);
         mockTransactionReceipt = mock(TransactionReceipt.class);
         mockLog = mock(Log.class);
@@ -81,7 +84,7 @@ public class EventConfirmationBlockListenerTest {
         node.setBlocksToWaitBeforeInvalidating(BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
 
         underTest = new EventConfirmationBlockListener(mockEventDetails,
-                mockBlockchainService, mockEventBroadcaster, node);
+                mockBlockchainService, mockBlockSubscriptionStrategy, mockEventBroadcaster, node);
     }
 
     @Test
@@ -175,7 +178,7 @@ public class EventConfirmationBlockListenerTest {
     private void expectInvalidation() {
         expectBroadcastWithStatus(ContractEventStatus.INVALIDATED);
 
-        verify(mockBlockchainService, times(1)).removeBlockListener(underTest);
+        verify(mockBlockSubscriptionStrategy, times(1)).removeBlockListener(underTest);
     }
 
     private void expectBroadcastWithStatus(ContractEventStatus status) {

@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.service.health;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import net.consensys.eventeum.service.EventStoreService;
@@ -44,6 +45,8 @@ public class NodeHealthCheckService {
 
     private BlockchainService blockchainService;
 
+    private BlockSubscriptionStrategy blockSubscription;
+
     private NodeStatus nodeStatus;
 
     private ReconnectionStrategy reconnectionStrategy;
@@ -65,6 +68,7 @@ public class NodeHealthCheckService {
     private Long healthCheckPollInterval;
 
     public NodeHealthCheckService(BlockchainService blockchainService,
+                                  BlockSubscriptionStrategy blockSubscription,
                                   ReconnectionStrategy reconnectionStrategy,
                                   SubscriptionService subscriptionService,
                                   EventeumValueMonitor valueMonitor,
@@ -74,6 +78,7 @@ public class NodeHealthCheckService {
                                   Long healthCheckPollInterval) {
         this.eventStoreService = eventStoreService;
         this.blockchainService = blockchainService;
+        this.blockSubscription = blockSubscription;
         this.reconnectionStrategy = reconnectionStrategy;
         this.subscriptionService = subscriptionService;
         this.syncingThreshold = syncingThreshold;
@@ -115,7 +120,7 @@ public class NodeHealthCheckService {
                     nodeStatus = NodeStatus.DOWN;
 
                     if (statusAtStart != NodeStatus.DOWN) {
-                        blockchainService.disconnect();
+                        blockSubscription.unsubscribe();
                     }
 
                     doReconnectAndSubscribe();
@@ -152,7 +157,7 @@ public class NodeHealthCheckService {
     }
 
     protected boolean isSubscribed() {
-        return blockchainService.isConnected();
+        return blockSubscription.isSubscribed();
     }
 
     private void doReconnect() {

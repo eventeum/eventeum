@@ -19,6 +19,7 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.constant.Constants;
@@ -42,6 +43,7 @@ public class ConfirmationCheckInitialiserTest {
      private BroadcastAndInitialiseConfirmationListener underTest;
 
      private BlockchainService mockBlockchainService;
+     private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
      private BlockListener mockBlockListener;
      private ChainServicesContainer mockChainServicesContainer;
      private NodeServices mockNodeServices;
@@ -53,6 +55,7 @@ public class ConfirmationCheckInitialiserTest {
      public void init() {
 
          mockBlockchainService = mock(BlockchainService.class);
+         mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
          mockBlockListener = mock(BlockListener.class);
          mockChainServicesContainer = mock(ChainServicesContainer.class);
          mockNodeServices = mock(NodeServices.class);
@@ -62,9 +65,9 @@ public class ConfirmationCheckInitialiserTest {
                  .thenReturn(mockNodeServices);
 
          when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
+         when(mockNodeServices.getBlockSubscriptionStrategy()).thenReturn(mockBlockSubscriptionStrategy);
          when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(currentBlock);
-         Node node =
-                 new Node();
+         Node node = new Node();
          node.setBlocksToWaitForConfirmation(BigInteger.valueOf(10));
          node.setBlocksToWaitForMissingTx(BigInteger.valueOf(100));
          node.setBlocksToWaitBeforeInvalidating(BigInteger.valueOf(5));
@@ -80,14 +83,14 @@ public class ConfirmationCheckInitialiserTest {
              when(event.getBlockNumber()).thenReturn(currentBlock);
              underTest.onEvent(event);
 
-             verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener);
+             verify(mockBlockSubscriptionStrategy, times(1)).addBlockListener(mockBlockListener);
          }
 
     @Test
     public void testOnEventInvalidated() {
         underTest.onEvent(createContractEventDetails(ContractEventStatus.INVALIDATED));
 
-        verify(mockBlockchainService, never()).addBlockListener(mockBlockListener);
+        verify(mockBlockSubscriptionStrategy, never()).addBlockListener(mockBlockListener);
     }
 
     @Test
@@ -101,7 +104,7 @@ public class ConfirmationCheckInitialiserTest {
         when(mockBlockchainService.getTransactionReceipt(TX_HASH)).thenReturn(mockTxReceipt);
         underTest.onEvent(event);
 
-        verify(mockBlockchainService, times(0)).addBlockListener(mockBlockListener);
+        verify(mockBlockSubscriptionStrategy, times(0)).addBlockListener(mockBlockListener);
     }
 
      private ContractEventDetails createContractEventDetails(ContractEventStatus status) {

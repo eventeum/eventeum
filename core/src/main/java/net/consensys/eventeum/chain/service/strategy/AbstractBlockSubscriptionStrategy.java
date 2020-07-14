@@ -27,6 +27,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -59,6 +60,12 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         this.blockNumberService = blockNumberService;
     }
 
+    @Override
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    @PreDestroy
     @Override
     public void unsubscribe() {
         try {
