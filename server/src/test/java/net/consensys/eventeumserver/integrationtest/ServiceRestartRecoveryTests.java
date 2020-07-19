@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeumserver.integrationtest;
 
 import com.mongodb.MongoClient;
@@ -93,12 +107,15 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         triggerBlocks(2);
 
-        waitForBlockMessages(7);
+        Thread.sleep(2000);
+        triggerBlocks(1);
+
+        waitForBlockMessages(8);
 
         System.out.println("BROADCAST BLOCKS AFTER: " + JSON.stringify(getBroadcastBlockMessages()));
 
         //Eventeum will rebroadcast the last seen block after restart in case block
-        //wasn't fully processed
+        //wasn't fully processed (when numBlocksToReplay=0)
         assertEquals(lastBlockNumber, getBroadcastBlockMessages().get(0).getNumber());
 
         //Assert incremental blocks
@@ -155,15 +172,13 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
             }
         });
 
-        waitForContractEventMessages(2);
+        waitForContractEventMessages(1);
 
-        assertEquals(2, getBroadcastContractEvents().size());
+        assertEquals(1, getBroadcastContractEvents().size());
 
-        verifyDummyEventDetails(registeredFilter,
-                getBroadcastContractEvents().get(0), ContractEventStatus.UNCONFIRMED);
 
         verifyDummyEventDetails(registeredFilter,
-                getBroadcastContractEvents().get(1), ContractEventStatus.CONFIRMED);
+                getBroadcastContractEvents().get(0), ContractEventStatus.CONFIRMED);
     }
 
     protected void doBroadcastTransactionUnconfirmedAfterFailureTest() throws Exception {

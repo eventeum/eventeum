@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.service;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -15,7 +29,7 @@ public interface SubscriptionService {
     /**
      * Initialise the subscription service
      */
-    void init();
+    void init(List<ContractEventFilter> initFilters);
 
     /**
      * Registers a new contract event filter.
@@ -65,20 +79,22 @@ public interface SubscriptionService {
     void unregisterContractEventFilter(String filterId, boolean broadcast) throws NotFoundException;
 
     /**
-     * Resubscribe to all currently active event filters.
-     */
-    void resubscribeToAllSubscriptions(String nodeName);
-
-    /**
      * Unsubscribe all active listeners
      */
     void unsubscribeToAllSubscriptions(String nodeName);
 
     /**
-     * Returns true if all subscriptions for node are active (not disposed)
      *
-     * @param nodeName The node name
-     * @return true if all subscriptions for node are active (not disposed)
+     * @return the state of the service
      */
-    boolean isFullySubscribed(String nodeName);
+    SubscriptionServiceState getState();
+
+    enum SubscriptionServiceState {
+        UNINITIALISED,
+
+        SYNCING_EVENTS,
+
+        SUBSCRIBED
+    }
+
 }

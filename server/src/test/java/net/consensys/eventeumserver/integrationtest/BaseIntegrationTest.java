@@ -1,10 +1,23 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeumserver.integrationtest;
 
 import java.io.File;
 import java.util.*;
 
 import junit.framework.TestCase;
-import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.util.Web3jUtil;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -14,7 +27,6 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import net.consensys.eventeum.dto.transaction.TransactionIdentifier;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
 import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
 import net.consensys.eventeum.integration.eventstore.db.repository.ContractEventDetailsRepository;
@@ -25,7 +37,6 @@ import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -53,8 +64,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class BaseIntegrationTest {
 
@@ -107,6 +117,8 @@ public class BaseIntegrationTest {
 
     private List<String> registeredTransactionMonitorIds = new ArrayList<>();
 
+    public static boolean shouldPersistNodeVolume = true;
+
     @BeforeClass
     public static void setupEnvironment() throws Exception {
         StubEventStoreService.start();
@@ -149,6 +161,8 @@ public class BaseIntegrationTest {
     public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
 
+
+        shouldPersistNodeVolume = true;
         stopParity();
 
         try {
@@ -350,9 +364,10 @@ public class BaseIntegrationTest {
         assertEquals(BigInteger.ONE, eventDetails.getNonIndexedParameters().get(2).getValue());
         assertEquals(Web3jUtil.getSignature(registeredFilter.getEventSpecification()),
                 eventDetails.getEventSpecificationSignature());
+        assertNotNull(eventDetails.getTimestamp());
     }
 
-    protected byte[] stringToBytes(String string) {
+    protected static byte[] stringToBytes(String string) {
         byte[] byteValue = string.getBytes();
         byte[] byteValueLen32 = new byte[32];
         System.arraycopy(byteValue, 0, byteValueLen32, 0, byteValue.length);
@@ -477,7 +492,9 @@ public class BaseIntegrationTest {
         Optional<ContractEventFilter> saved = getFilterRepo().findById(getDummyEventFilterId());
         assertEquals(registeredFilter, saved.get());
 
+        Thread.sleep(1000);
         unregisterDummyEventFilter();
+        Thread.sleep(1000);
 
         saved = getFilterRepo().findById(getDummyEventFilterId());
         assertFalse(saved.isPresent());
@@ -492,7 +509,6 @@ public class BaseIntegrationTest {
         contractEventFilter.setId(id);
         contractEventFilter.setContractAddress(contractAddress);
         contractEventFilter.setEventSpecification(eventSpec);
-        contractEventFilter.setStartBlock(BigInteger.ONE);
 
         return contractEventFilter;
     }
@@ -502,8 +518,10 @@ public class BaseIntegrationTest {
         parityContainer.waitingFor(Wait.forListeningPort());
         parityContainer.withFixedExposedPort(8545, 8545);
         parityContainer.withFixedExposedPort(8546, 8546);
-        parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
-                "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        if (shouldPersistNodeVolume) {
+            parityContainer.withFileSystemBind(PARITY_VOLUME_PATH,
+                    "/root/.local/share/io.parity.ethereum/", BindMode.READ_WRITE);
+        }
         parityContainer.addEnv("NO_BLOCKS", "true");
         parityContainer.start();
 
@@ -519,6 +537,8 @@ public class BaseIntegrationTest {
         builder.append("\n");
         builder.append("Expected message count: " + expectedMessageCount);
         builder.append(", received: " + messages.size());
+        builder.append("\n\n");
+        builder.append("Messages received: " + JSON.stringify(messages));
         builder.append("\n\n");
         builder.append("Registered filters:");
         builder.append("\n\n");

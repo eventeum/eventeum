@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.settings;
 
 import java.math.BigInteger;
@@ -30,6 +44,10 @@ public class NodeSettings {
     private static final String DEFAULT_BLOCKS_TO_WAIT_BEFORE_INVALIDATING = "2";
 
     private static final String DEFAULT_BLOCKS_TO_WAIT_FOR_CONFIRMATION = "12";
+
+    private static final String DEFAULT_NUM_BLOCKS_TO_REPLAY = "12";
+
+    private static final String DEFAULT_MAX_BLOCKS_TO_SYNC = "0";
 
     private static final String ATTRIBUTE_PREFIX = "ethereum";
 
@@ -73,6 +91,18 @@ public class NodeSettings {
 
     private static final String GLOBAL_BLOCKS_TO_WAIT_FOR_MISSING_TX_ATTRIBUTE = "broadcaster.event.confirmation.numBlocksToWaitForMissingTx";
 
+    private static final String INITIAL_START_BLOCK_ATTRIBUTE = "initialStartBlock";
+
+    private static final String GLOBAL_INITIAL_START_BLOCK_ATTRIBUTE = ATTRIBUTE_PREFIX + "." + INITIAL_START_BLOCK_ATTRIBUTE;
+
+    private static final String NUM_BLOCKS_TO_REPLAY_ATTRIBUTE = "numBlocksToReplay";
+
+    private static final String GLOBAL_NUM_BLOCKS_TO_REPLAY_ATTRIBUTE = ATTRIBUTE_PREFIX + "." + NUM_BLOCKS_TO_REPLAY_ATTRIBUTE;
+
+    private static final String MAX_BLOCKS_TO_SYNC_ATTRIBUTE = "maxBlocksToSync";
+
+    private static final String GLOBAL_MAX_BLOCKS_TO_SYNC_ATTRIBUTE = ATTRIBUTE_PREFIX + "." + MAX_BLOCKS_TO_SYNC_ATTRIBUTE;
+
     private HashMap<String, Node> nodes;
 
     private String blockStrategy;
@@ -103,13 +133,16 @@ public class NodeSettings {
                     getNodeTransactionRevertReasonProperty(environment, index),
                     getMaxIdleConnectionsProperty(environment, index),
                     getKeepAliveDurationProperty(environment, index),
-                    getConnectionTimeoutProperty(environment,index),
-                    getReadTimeoutProperty(environment,index),
+                    getConnectionTimeoutProperty(environment, index),
+                    getReadTimeoutProperty(environment, index),
                     getSyncingThresholdProperty(environment,index),
                     getNodeHealthcheckIntervalProperty(environment, index),
-                    getBlocksToWaitForConfirmationProperty(environment,index),
-                    getBlocksToWaitBeforeInvalidatingProperty(environment,index),
-                    getBlocksToWaitForMissingTxProperty(environment,index)
+                    getBlocksToWaitForConfirmationProperty(environment, index),
+                    getBlocksToWaitBeforeInvalidatingProperty(environment, index),
+                    getBlocksToWaitForMissingTxProperty(environment, index),
+                    getInitialStartBlockProperty(environment, index),
+                    getNumBlocksToReplayProperty(environment, index),
+                    getMaxBlocksToSyncProperty(environment, index)
             );
 
             nodes.put(nodeName, node);
@@ -199,6 +232,7 @@ public class NodeSettings {
 
         return Integer.valueOf(syncingThreshold);
     }
+
     private BigInteger getBlocksToWaitForConfirmationProperty(Environment environment, int index) {
         String blocksToWaitForConfirmation =
                 getProperty(environment, buildNodeAttribute(BLOCKS_TO_WAIT_FOR_CONFIRMATION_ATTRIBUTE, index));
@@ -235,6 +269,40 @@ public class NodeSettings {
         return BigInteger.valueOf(Long.valueOf(blocksToWaitForMissingTx));
     }
 
+    private BigInteger getInitialStartBlockProperty(Environment environment, int index) {
+        String initialStartBlock =
+                getProperty(environment, buildNodeAttribute(INITIAL_START_BLOCK_ATTRIBUTE, index));
+
+        if (initialStartBlock == null) {
+            initialStartBlock = getProperty(environment, GLOBAL_INITIAL_START_BLOCK_ATTRIBUTE);
+        }
+
+        return initialStartBlock == null ? null : BigInteger.valueOf(Long.valueOf(initialStartBlock));
+    }
+
+    private BigInteger getNumBlocksToReplayProperty(Environment environment, int index) {
+        String numBlocksToReplay =
+                getProperty(environment, buildNodeAttribute(NUM_BLOCKS_TO_REPLAY_ATTRIBUTE, index));
+
+        if (numBlocksToReplay == null) {
+            numBlocksToReplay = getProperty(environment,
+                    GLOBAL_NUM_BLOCKS_TO_REPLAY_ATTRIBUTE, DEFAULT_NUM_BLOCKS_TO_REPLAY);
+        }
+
+        return BigInteger.valueOf(Long.valueOf(numBlocksToReplay));
+    }
+
+    private BigInteger getMaxBlocksToSyncProperty(Environment environment, int index) {
+        String maxBlocksToSync =
+                getProperty(environment, buildNodeAttribute(MAX_BLOCKS_TO_SYNC_ATTRIBUTE, index));
+
+        if (maxBlocksToSync == null) {
+            maxBlocksToSync = getProperty(environment,
+                    GLOBAL_MAX_BLOCKS_TO_SYNC_ATTRIBUTE, DEFAULT_MAX_BLOCKS_TO_SYNC);
+        }
+
+        return BigInteger.valueOf(Long.valueOf(maxBlocksToSync));
+    }
 
     private String getNodeUsernameProperty(Environment environment, int index) {
         return getProperty(environment, buildNodeAttribute(NODE_USERNAME_ATTRIBUTE, index));

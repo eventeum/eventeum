@@ -1,6 +1,21 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service;
 
 import io.reactivex.Flowable;
+import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
@@ -16,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscriber;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -51,23 +67,16 @@ public class Web3jServiceTest {
 
     private Web3j mockWeb3j;
 
-    private EventBlockManagementService mockBlockManagement;
-
     private ContractEventDetailsFactory mockContractEventDetailsFactory;
 
     private ContractEventDetails mockContractEventDetails;
 
-    private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
 
     @Before
     public void init() throws IOException {
         mockWeb3j = mock(Web3j.class);
-        mockBlockManagement = mock(EventBlockManagementService.class);
         mockContractEventDetailsFactory = mock(ContractEventDetailsFactory.class);
         mockContractEventDetails = mock(ContractEventDetails.class);
-        mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
-
-        when(mockBlockManagement.getLatestBlockForEvent(any(ContractEventFilter.class))).thenReturn(BLOCK_NUMBER);
 
         //Wire up getBlockNumber
         final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
@@ -76,8 +85,7 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenReturn(blockNumber);
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
 
-        underTest = new Web3jService("test", mockWeb3j, mockContractEventDetailsFactory,
-                mockBlockManagement, mockBlockSubscriptionStrategy, new DummyAsyncTaskService());
+        underTest = new Web3jService("test", mockWeb3j, mockContractEventDetailsFactory, new DummyAsyncTaskService());
     }
 
     @Test
@@ -188,7 +196,8 @@ public class Web3jServiceTest {
         when(mockContractEventDetailsFactory.createEventDetails(filter, mockLog)).thenReturn(mockContractEventDetails);
 
         final ContractEventListener mockEventListener = mock(ContractEventListener.class);
-        underTest.registerEventListener(filter, mockEventListener);
+        underTest.registerEventListener(filter, mockEventListener,
+                BigInteger.ZERO, BigInteger.valueOf(9999L), null);
 
         final ArgumentCaptor<ContractEventDetails> captor = ArgumentCaptor.forClass(ContractEventDetails.class);
         verify(mockEventListener).onEvent(captor.capture());

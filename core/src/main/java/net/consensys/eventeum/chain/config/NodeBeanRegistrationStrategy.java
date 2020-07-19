@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.config;
 
 import lombok.AllArgsConstructor;
@@ -12,6 +26,7 @@ import net.consensys.eventeum.chain.service.strategy.PubSubBlockSubscriptionStra
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import okhttp3.ConnectionPool;
+import okhttp3.JavaNetCookieJar;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -26,9 +41,7 @@ import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.utils.Async;
 
 import javax.xml.bind.DatatypeConverter;
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -62,26 +75,34 @@ public class NodeBeanRegistrationStrategy {
         registerContractEventDetailsFactoryBean(node, registry);
 
         final Web3jService web3jService = buildWeb3jService(node);
+
         final Web3j web3j = buildWeb3j(node, web3jService);
+
         final String blockchainServiceBeanName = registerBlockchainServiceBean(node, web3j, registry);
-        registerNodeServicesBean(node, web3j, blockchainServiceBeanName, registry);
+
+        final String blockSubStrategyBeanName = registerBlockSubscriptionStrategyBean(node, web3j, registry);
+
+        registerNodeServicesBean(node, web3j, blockchainServiceBeanName, blockSubStrategyBeanName, registry);
+
         final String nodeFailureListenerBeanName =
-                registerNodeFailureListener(node, blockchainServiceBeanName, web3jService, registry);
-        registerNodeHealthCheckBean(node, blockchainServiceBeanName, web3jService, nodeFailureListenerBeanName, registry);
+                registerNodeFailureListener(node, blockSubStrategyBeanName, web3jService, registry);
 
-
+        registerNodeHealthCheckBean(node, blockchainServiceBeanName,
+                blockSubStrategyBeanName, web3jService, nodeFailureListenerBeanName, registry);
     }
 
     private String registerNodeServicesBean(Node node,
                                             Web3j web3j,
                                             String web3jServiceBeanName,
+                                            String blockSubStrategyBeanName,
                                             BeanDefinitionRegistry registry) {
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 NodeServices.class);
 
         builder.addPropertyValue("nodeName", node.getName())
                 .addPropertyValue("web3j", web3j)
-                .addPropertyReference("blockchainService", web3jServiceBeanName);
+                .addPropertyReference("blockchainService", web3jServiceBeanName)
+                .addPropertyReference("blockSubscriptionStrategy", blockSubStrategyBeanName);
 
         final String beanName = String.format(NODE_SERVICES_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
@@ -105,16 +126,13 @@ public class NodeBeanRegistrationStrategy {
     }
 
     private String registerBlockchainServiceBean(Node node, Web3j web3j, BeanDefinitionRegistry registry) {
-        final String blockSubStrategyBeanName = registerBlockSubscriptionStrategyBean(node, web3j, registry);
 
         final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 net.consensys.eventeum.chain.service.Web3jService.class);
 
         builder.addConstructorArgValue(node.getName())
                 .addConstructorArgValue(web3j)
-                .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()))
-                .addConstructorArgReference("defaultEventBlockManagementService")
-                .addConstructorArgReference(blockSubStrategyBeanName);
+                .addConstructorArgReference(String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()));
 
         final String beanName = String.format(WEB3J_SERVICE_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
@@ -124,6 +142,7 @@ public class NodeBeanRegistrationStrategy {
 
     private String registerNodeHealthCheckBean(Node node,
                                                String blockchainServiceBeanName,
+                                               String blockSubStrategyBeanName,
                                                Web3jService web3jService,
                                                String nodeFailureListenerBeanName,
                                                BeanDefinitionRegistry registry) {
@@ -137,6 +156,7 @@ public class NodeBeanRegistrationStrategy {
         }
 
         builder.addConstructorArgReference(blockchainServiceBeanName);
+        builder.addConstructorArgReference(blockSubStrategyBeanName);
         builder.addConstructorArgReference(nodeFailureListenerBeanName);
         builder.addConstructorArgReference("defaultSubscriptionService");
         builder.addConstructorArgReference("eventeumValueMonitor");
@@ -152,7 +172,7 @@ public class NodeBeanRegistrationStrategy {
     }
 
     private String registerNodeFailureListener(Node node,
-                                               String blockchainServiceBeanName,
+                                               String blockSubStrategyBeanName,
                                                Web3jService web3jService,
                                                BeanDefinitionRegistry registry) {
         final BeanDefinition beanDefinition;
@@ -170,8 +190,9 @@ public class NodeBeanRegistrationStrategy {
                     .getBeanDefinition();
         }
 
-        beanDefinition.getConstructorArgumentValues()
-                .addIndexedArgumentValue(1, new RuntimeBeanReference(blockchainServiceBeanName));
+        beanDefinition
+                .getConstructorArgumentValues()
+                .addIndexedArgumentValue(1, new RuntimeBeanReference(blockSubStrategyBeanName));
 
 
         final String beanName = String.format(NODE_FAILURE_LISTENER_BEAN_NAME, node.getName());
@@ -210,9 +231,13 @@ public class NodeBeanRegistrationStrategy {
             web3jService = wsService;
         } else {
 
+            CookieManager cookieManager = new CookieManager();
+            cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+
             ConnectionPool pool = new ConnectionPool(node.getMaxIdleConnections(), node.getKeepAliveDuration(), TimeUnit.MILLISECONDS);
             OkHttpClient client = globalOkHttpClient.newBuilder()
                     .connectionPool(pool)
+                    . cookieJar(new JavaNetCookieJar(cookieManager))
                     .readTimeout(node.getReadTimeout(),TimeUnit.MILLISECONDS)
                     .connectTimeout(node.getConnectionTimeout(),TimeUnit.MILLISECONDS)
                     .build();
@@ -254,7 +279,8 @@ public class NodeBeanRegistrationStrategy {
 
         builder.addConstructorArgValue(web3j)
                 .addConstructorArgValue(node.getName())
-                .addConstructorArgReference("defaultEventStoreService");
+                .addConstructorArgReference("asyncTaskService")
+                .addConstructorArgReference("defaultBlockNumberService");
 
         final String beanName = String.format(NODE_BLOCK_SUB_STRATEGY_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());

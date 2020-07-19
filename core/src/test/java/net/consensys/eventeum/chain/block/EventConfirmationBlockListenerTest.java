@@ -1,9 +1,24 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.block;
 
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
@@ -34,6 +49,7 @@ public class EventConfirmationBlockListenerTest {
 
     private ContractEventDetails mockEventDetails;
     private BlockchainService mockBlockchainService;
+    private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
     private BlockchainEventBroadcaster mockEventBroadcaster;
     private TransactionReceipt mockTransactionReceipt;
     private Log mockLog;
@@ -42,6 +58,7 @@ public class EventConfirmationBlockListenerTest {
     public void init() {
         mockEventDetails = mock(ContractEventDetails.class);
         mockBlockchainService = mock(BlockchainService.class);
+        mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
         mockEventBroadcaster = mock(BlockchainEventBroadcaster.class);
         mockTransactionReceipt = mock(TransactionReceipt.class);
         mockLog = mock(Log.class);
@@ -50,6 +67,7 @@ public class EventConfirmationBlockListenerTest {
         when(anotherMockLog.getLogIndex()).thenReturn(EVENT_LOG_INDEX.add(BigInteger.ONE));
 
         when(mockTransactionReceipt.getLogs()).thenReturn(Arrays.asList(anotherMockLog, mockLog));
+        when(mockTransactionReceipt.getBlockHash()).thenReturn(EVENT_BLOCK_HASH);
 
         when(mockEventDetails.getBlockNumber()).thenReturn(EVENT_BLOCK_NUMBER);
         when(mockEventDetails.getTransactionHash()).thenReturn(EVENT_TX_HASH);
@@ -66,7 +84,7 @@ public class EventConfirmationBlockListenerTest {
         node.setBlocksToWaitBeforeInvalidating(BLOCKS_TO_WAIT_BEFORE_INVALIDATING);
 
         underTest = new EventConfirmationBlockListener(mockEventDetails,
-                mockBlockchainService, mockEventBroadcaster, node);
+                mockBlockchainService, mockBlockSubscriptionStrategy, mockEventBroadcaster, node);
     }
 
     @Test
@@ -160,7 +178,7 @@ public class EventConfirmationBlockListenerTest {
     private void expectInvalidation() {
         expectBroadcastWithStatus(ContractEventStatus.INVALIDATED);
 
-        verify(mockBlockchainService, times(1)).removeBlockListener(underTest);
+        verify(mockBlockSubscriptionStrategy, times(1)).removeBlockListener(underTest);
     }
 
     private void expectBroadcastWithStatus(ContractEventStatus status) {

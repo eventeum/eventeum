@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.contract;
 
 import net.consensys.eventeum.chain.block.BlockListener;
@@ -5,6 +19,7 @@ import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.constant.Constants;
@@ -25,9 +40,10 @@ public class ConfirmationCheckInitialiserTest {
      private static final String TX_HASH = "0x05ba7cdf9f35579c9e2332804a3a98bf2231572e8bfe57b3e31ed0240ae7f582";
      private static final String BLOCK_HASH = "0xb9f2b107229b1f49547a7d0d446d018adef30b83ae8a69738c2f38375b28f4dc";
 
-     private ConfirmationCheckInitialiser underTest;
+     private BroadcastAndInitialiseConfirmationListener underTest;
 
      private BlockchainService mockBlockchainService;
+     private BlockSubscriptionStrategy mockBlockSubscriptionStrategy;
      private BlockListener mockBlockListener;
      private ChainServicesContainer mockChainServicesContainer;
      private NodeServices mockNodeServices;
@@ -39,6 +55,7 @@ public class ConfirmationCheckInitialiserTest {
      public void init() {
 
          mockBlockchainService = mock(BlockchainService.class);
+         mockBlockSubscriptionStrategy = mock(BlockSubscriptionStrategy.class);
          mockBlockListener = mock(BlockListener.class);
          mockChainServicesContainer = mock(ChainServicesContainer.class);
          mockNodeServices = mock(NodeServices.class);
@@ -48,9 +65,9 @@ public class ConfirmationCheckInitialiserTest {
                  .thenReturn(mockNodeServices);
 
          when(mockNodeServices.getBlockchainService()).thenReturn(mockBlockchainService);
+         when(mockNodeServices.getBlockSubscriptionStrategy()).thenReturn(mockBlockSubscriptionStrategy);
          when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(currentBlock);
-         Node node =
-                 new Node();
+         Node node = new Node();
          node.setBlocksToWaitForConfirmation(BigInteger.valueOf(10));
          node.setBlocksToWaitForMissingTx(BigInteger.valueOf(100));
          node.setBlocksToWaitBeforeInvalidating(BigInteger.valueOf(5));
@@ -66,14 +83,14 @@ public class ConfirmationCheckInitialiserTest {
              when(event.getBlockNumber()).thenReturn(currentBlock);
              underTest.onEvent(event);
 
-             verify(mockBlockchainService, times(1)).addBlockListener(mockBlockListener);
+             verify(mockBlockSubscriptionStrategy, times(1)).addBlockListener(mockBlockListener);
          }
 
     @Test
     public void testOnEventInvalidated() {
         underTest.onEvent(createContractEventDetails(ContractEventStatus.INVALIDATED));
 
-        verify(mockBlockchainService, never()).addBlockListener(mockBlockListener);
+        verify(mockBlockSubscriptionStrategy, never()).addBlockListener(mockBlockListener);
     }
 
     @Test
@@ -87,7 +104,7 @@ public class ConfirmationCheckInitialiserTest {
         when(mockBlockchainService.getTransactionReceipt(TX_HASH)).thenReturn(mockTxReceipt);
         underTest.onEvent(event);
 
-        verify(mockBlockchainService, times(0)).addBlockListener(mockBlockListener);
+        verify(mockBlockSubscriptionStrategy, times(0)).addBlockListener(mockBlockListener);
     }
 
      private ContractEventDetails createContractEventDetails(ContractEventStatus status) {
@@ -102,7 +119,7 @@ public class ConfirmationCheckInitialiserTest {
          return eventDetails;
      }
 
-     private class ConfirmationCheckInitialiserForTest extends ConfirmationCheckInitialiser {
+     private class ConfirmationCheckInitialiserForTest extends BroadcastAndInitialiseConfirmationListener {
 
          public ConfirmationCheckInitialiserForTest(ChainServicesContainer chainServicesContainer,
                                                     BlockchainEventBroadcaster eventBroadcaster,

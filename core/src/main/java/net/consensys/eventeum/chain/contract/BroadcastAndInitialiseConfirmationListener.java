@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.contract;
 
 import lombok.AllArgsConstructor;
@@ -7,6 +21,7 @@ import net.consensys.eventeum.chain.block.EventConfirmationBlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -28,7 +43,7 @@ import java.math.BigInteger;
 @Component
 @AllArgsConstructor
 @Slf4j
-public class ConfirmationCheckInitialiser implements ContractEventListener {
+public class BroadcastAndInitialiseConfirmationListener implements ContractEventListener {
 
     private ChainServicesContainer chainServicesContainer;
     private BlockchainEventBroadcaster eventBroadcaster;
@@ -38,7 +53,7 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
     public void onEvent(ContractEventDetails eventDetails) {
         if (eventDetails.getStatus() == ContractEventStatus.UNCONFIRMED) {
 
-            final BlockchainService blockchainService = getBlockchainService(eventDetails);
+            final BlockSubscriptionStrategy blockSubscription = getBlockSubscriptionStrategy(eventDetails);
             final Node node = nodeSettings.getNode(eventDetails.getNodeName());
 
             if (shouldInstantlyConfirm(eventDetails)) {
@@ -49,18 +64,25 @@ public class ConfirmationCheckInitialiser implements ContractEventListener {
             }
 
             log.info("Registering an EventConfirmationBlockListener for event: {}", eventDetails.getId());
-            blockchainService.addBlockListener(createEventConfirmationBlockListener(eventDetails, node));
+            blockSubscription.addBlockListener(createEventConfirmationBlockListener(eventDetails, node));
         }
+
+        eventBroadcaster.broadcastContractEvent(eventDetails);
     }
 
     protected BlockListener createEventConfirmationBlockListener(ContractEventDetails eventDetails,Node node) {
         return new EventConfirmationBlockListener(eventDetails,
-                getBlockchainService(eventDetails), eventBroadcaster, node);
+                getBlockchainService(eventDetails), getBlockSubscriptionStrategy(eventDetails), eventBroadcaster, node);
     }
 
     private BlockchainService getBlockchainService(ContractEventDetails eventDetails) {
         return chainServicesContainer.getNodeServices(
                 eventDetails.getNodeName()).getBlockchainService();
+    }
+
+    private BlockSubscriptionStrategy getBlockSubscriptionStrategy(ContractEventDetails eventDetails) {
+        return chainServicesContainer.getNodeServices(
+                eventDetails.getNodeName()).getBlockSubscriptionStrategy();
     }
 
     private boolean shouldInstantlyConfirm(ContractEventDetails eventDetails) {

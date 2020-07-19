@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeumserver.integrationtest;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -11,13 +25,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.testcontainers.containers.FixedHostPortGenericContainer;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.MSSQLServerContainer;
 import org.web3j.crypto.Keys;
 
 import java.math.BigInteger;
@@ -31,15 +47,21 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(locations="classpath:application-test-sql.properties")
+@ContextConfiguration(initializers = {BroadcasterSqlDBEventStoreIT.Initializer.class})
 public class BroadcasterSqlDBEventStoreIT extends MainBroadcasterTests {
 
     @ClassRule
-    public static final GenericContainer sqlServerContainer =
-            new FixedHostPortGenericContainer("microsoft/mssql-server-linux")
-                    .withFixedExposedPort(1433, 1433)
-                    .withEnv("ACCEPT_EULA", "Y")
-                    .withEnv("SA_PASSWORD", "reallyStrongPwd123")
-                    .waitingFor(Wait.forListeningPort());
+    public static MSSQLServerContainer mssqlserver = new MSSQLServerContainer()
+            .withPassword("reallyStrongPwd123");
+
+    static class Initializer
+            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + mssqlserver.getJdbcUrl()
+            ).applyTo(configurableApplicationContext.getEnvironment());
+        }
+    }
 
     @Autowired
     private EventStore eventStore;

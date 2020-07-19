@@ -1,3 +1,17 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain;
 
 import lombok.AllArgsConstructor;
@@ -11,6 +25,8 @@ import net.consensys.eventeum.service.TransactionMonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +41,7 @@ import java.util.Optional;
  */
 @Service
 @AllArgsConstructor
-public class ChainBootstrapper implements InitializingBean {
+public class ChainBootstrapper {
     private final Logger LOG = LoggerFactory.getLogger(ChainBootstrapper.class);
 
     private SubscriptionService subscriptionService;
@@ -36,12 +52,12 @@ public class ChainBootstrapper implements InitializingBean {
     private Optional<List<ContractEventFilterFactory>> contractEventFilterFactories;
     private TransactionFilterConfiguration transactionFilterConfiguration;
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    @EventListener
+    public void onApplicationEvent(ContextRefreshedEvent event) {
         registerTransactionsToMonitor(transactionMonitoringRepository.findAll(), true);
         registerTransactionsToMonitor(transactionFilterConfiguration.getConfiguredTransactionFilters(), true);
 
-        subscriptionService.init();
+        subscriptionService.init(filterConfiguration.getConfiguredEventFilters());
         registerFilters(filterConfiguration.getConfiguredEventFilters(), true);
         registerFilters(filterRepository.findAll(), false);
 

@@ -1,12 +1,29 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.consensys.eventeum.chain.service.health;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
+import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 
 import java.math.BigInteger;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -28,13 +45,13 @@ public class NodeHealthCheckService {
 
     private BlockchainService blockchainService;
 
+    private BlockSubscriptionStrategy blockSubscription;
+
     private NodeStatus nodeStatus;
 
     private ReconnectionStrategy reconnectionStrategy;
 
     private SubscriptionService subscriptionService;
-
-    private boolean initiallySubscribed = false;
 
     private AtomicLong currentBlock;
 
@@ -46,7 +63,12 @@ public class NodeHealthCheckService {
 
     private Integer syncingThreshold;
 
+    private ScheduledThreadPoolExecutor taskScheduler;
+
+    private Long healthCheckPollInterval;
+
     public NodeHealthCheckService(BlockchainService blockchainService,
+                                  BlockSubscriptionStrategy blockSubscription,
                                   ReconnectionStrategy reconnectionStrategy,
                                   SubscriptionService subscriptionService,
                                   EventeumValueMonitor valueMonitor,
@@ -56,9 +78,12 @@ public class NodeHealthCheckService {
                                   Long healthCheckPollInterval) {
         this.eventStoreService = eventStoreService;
         this.blockchainService = blockchainService;
+        this.blockSubscription = blockSubscription;
         this.reconnectionStrategy = reconnectionStrategy;
         this.subscriptionService = subscriptionService;
         this.syncingThreshold = syncingThreshold;
+        this.taskScheduler = taskScheduler;
+        this.healthCheckPollInterval = healthCheckPollInterval;
         nodeStatus = NodeStatus.SUBSCRIBED;
 
         currentBlock = valueMonitor.monitor( "currentBlock", blockchainService.getNodeName(), new
@@ -68,6 +93,11 @@ public class NodeHealthCheckService {
         syncing = valueMonitor.monitor("syncing", blockchainService.getNodeName(), new
                 AtomicInteger(0));
 
+    }
+
+    @EventListener
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        log.info("Starting healthcheck scheduler");
         taskScheduler.scheduleWithFixedDelay(() -> this.checkHealth() ,0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
     }
 
@@ -77,23 +107,26 @@ public class NodeHealthCheckService {
 
             final NodeStatus statusAtStart = nodeStatus;
 
-            if (isNodeConnected()) {
+            if (isNodeConnected() && (isSubscribed()
+                    || subscriptionService.getState() == SubscriptionService.SubscriptionServiceState.SYNCING_EVENTS)) {
                 log.trace("Node connected");
+
                 if (nodeStatus == NodeStatus.DOWN) {
                     log.info("Node {} has come back up.", blockchainService.getNodeName());
-
-                    //We've come back up
-                    doResubscribe();
                 }
 
-            } else {
+            } else if (subscriptionService.getState() == SubscriptionService.SubscriptionServiceState.SUBSCRIBED) {
+                    log.error("Node {} is down or unsubscribed!!", blockchainService.getNodeName());
+                    nodeStatus = NodeStatus.DOWN;
+
+                    if (statusAtStart != NodeStatus.DOWN) {
+                        blockSubscription.unsubscribe();
+                    }
+
+                    doReconnectAndSubscribe();
+            } else if (subscriptionService.getState() == SubscriptionService.SubscriptionServiceState.SYNCING_EVENTS) {
                 log.error("Node {} is down!!", blockchainService.getNodeName());
                 nodeStatus = NodeStatus.DOWN;
-
-                if (statusAtStart != NodeStatus.DOWN) {
-                    subscriptionService.unsubscribeToAllSubscriptions(blockchainService.getNodeName());
-                    blockchainService.disconnect();
-                }
 
                 doReconnect();
             }
@@ -124,11 +157,14 @@ public class NodeHealthCheckService {
     }
 
     protected boolean isSubscribed() {
-        return blockchainService.isConnected() &&
-                subscriptionService.isFullySubscribed(blockchainService.getNodeName());
+        return blockSubscription.isSubscribed();
     }
 
     private void doReconnect() {
+        reconnectionStrategy.reconnect();
+    }
+
+    private void doReconnectAndSubscribe() {
         reconnectionStrategy.reconnect();
 
         if (isNodeConnected()) {
