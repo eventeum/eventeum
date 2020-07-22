@@ -21,8 +21,11 @@ import java.util.List;
 
 public class TxHashMatchingCriteria extends SingleValueMatchingCriteria<String> {
 
-    public TxHashMatchingCriteria(String nodeName, String hashToMatch, List<TransactionStatus> statuses) {
-        super(nodeName, hashToMatch, statuses);
+    public TxHashMatchingCriteria(String id,
+                                  String nodeName,
+                                  String hashToMatch,
+                                  List<TransactionStatus> statuses) {
+        super(id, nodeName, hashToMatch, statuses);
     }
 
     @Override

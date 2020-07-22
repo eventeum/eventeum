@@ -21,6 +21,8 @@ import java.util.List;
 
 public interface TransactionMatchingCriteria {
 
+    String getId();
+
     String getNodeName();
 
     List<TransactionStatus> getStatuses();

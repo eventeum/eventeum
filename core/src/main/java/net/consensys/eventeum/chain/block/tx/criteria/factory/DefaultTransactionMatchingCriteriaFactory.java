@@ -28,15 +28,15 @@ public class DefaultTransactionMatchingCriteriaFactory implements TransactionMat
     @Override
     public TransactionMatchingCriteria build(TransactionMonitoringSpec spec) {
         if (spec.getType() == TransactionIdentifierType.HASH) {
-            return new TxHashMatchingCriteria(spec.getNodeName(), spec.getTransactionIdentifierValue(), spec.getStatuses());
+            return new TxHashMatchingCriteria(spec.getId(), spec.getNodeName(), spec.getTransactionIdentifierValue(), spec.getStatuses());
         }
 
         if (spec.getType() == TransactionIdentifierType.TO_ADDRESS) {
-            return new ToAddressMatchingCriteria(spec.getNodeName(), spec.getTransactionIdentifierValue(), spec.getStatuses());
+            return new ToAddressMatchingCriteria(spec.getId(), spec.getNodeName(), spec.getTransactionIdentifierValue(), spec.getStatuses());
         }
 
         if (spec.getType() == TransactionIdentifierType.FROM_ADDRESS) {
-            return new FromAddressMatchingCriteria(spec.getNodeName(), spec.getTransactionIdentifierValue(), spec.getStatuses());
+            return new FromAddressMatchingCriteria(spec.getId(), spec.getNodeName(), spec.getTransactionIdentifierValue(), spec.getStatuses());
         }
 
         throw new UnsupportedOperationException("Type: " + spec.getType() + " not currently supported");

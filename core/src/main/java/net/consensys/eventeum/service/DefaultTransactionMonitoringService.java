@@ -29,6 +29,7 @@ import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.web3j.crypto.Hash;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -132,6 +133,11 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
 
     private void registerTransactionMonitoring(TransactionMonitoringSpec spec) {
 
+        spec.convertToCheckSum();
+        if (spec.getId() == null) {
+            generateId(spec);
+        }
+
         final TransactionMatchingCriteria matchingCriteria = matchingCriteriaFactory.build(spec);
         monitoringBlockListener.addMatchingCriteria(matchingCriteria);
 
@@ -157,5 +163,12 @@ public class DefaultTransactionMonitoringService implements TransactionMonitorin
             this.matchingCriteria = matchingCriteria;
         }
 
+    }
+
+    public void generateId(TransactionMonitoringSpec monitoringSpec) {
+        final String id = Hash.sha3String(monitoringSpec.getTransactionIdentifierValue() + monitoringSpec.getType()
+                + monitoringSpec.getNodeName() + monitoringSpec.getStatuses().toString()).substring(2);
+
+        monitoringSpec.setId(id);
     }
 }

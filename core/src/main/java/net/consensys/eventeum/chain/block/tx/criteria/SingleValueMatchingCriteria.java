@@ -25,6 +25,8 @@ import java.util.List;
 @AllArgsConstructor
 public abstract class SingleValueMatchingCriteria<T> implements TransactionMatchingCriteria {
 
+    private String id;
+
     private String nodeName;
 
     private T valueToMatch;

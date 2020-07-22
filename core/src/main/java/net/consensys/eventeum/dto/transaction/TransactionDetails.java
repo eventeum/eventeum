@@ -47,6 +47,8 @@ public class TransactionDetails implements TransactionBasedDetails {
 
     private TransactionStatus status;
 
+    private String monitorId;
+
     @JsonIgnore
     public String getTransactionHash() {
         return hash;

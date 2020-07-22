@@ -44,8 +44,6 @@ public class TransactionMonitoringEndpoint {
     @RequestMapping(method = RequestMethod.POST)
     public MonitorTransactionsResponse monitorTransactions(@RequestBody TransactionMonitoringSpec spec,
                                                            HttpServletResponse response) {
-        spec.generateId();
-        spec.convertToCheckSum();
         monitoringService.registerTransactionsToMonitor(spec);
         response.setStatus(HttpServletResponse.SC_ACCEPTED);
 

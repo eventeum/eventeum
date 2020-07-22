@@ -145,8 +145,9 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final String txHash = Hash.sha3(signedTxHex);
         TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
 
-        monitorTransaction(monitorSpec);
+        final String monitorId = monitorTransaction(monitorSpec);
 
+        assertNotNull(monitorId);
         assertEquals(txHash, sendRawTransaction(signedTxHex));
 
         waitForTransactionMessages(1);
@@ -156,6 +157,7 @@ public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
         final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
         assertEquals(txHash, txDetails.getHash());
         assertEquals(expectedStatus, txDetails.getStatus());
+        assertEquals(monitorId, txDetails.getMonitorId());
         assertNotNull(txDetails.getTimestamp());
 
         return txHash;
