@@ -16,16 +16,15 @@ package net.consensys.eventeum.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
-import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.sync.EventSyncService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -44,7 +43,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     private ChainServicesContainer chainServices;
 
-    private ContractEventFilterRepository eventFilterRepository;
+    private CrudRepository<ContractEventFilter, String> eventFilterRepository;
 
     private EventeumEventBroadcaster eventeumEventBroadcaster;
 
@@ -60,7 +59,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
     @Autowired
     public DefaultSubscriptionService(ChainServicesContainer chainServices,
-                                      ContractEventFilterRepository eventFilterRepository,
+                                      CrudRepository<ContractEventFilter, String> eventFilterRepository,
                                       EventeumEventBroadcaster eventeumEventBroadcaster,
                                       List<BlockListener> blockListeners,
                                       @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate,

@@ -12,20 +12,12 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.repository;
+package net.consensys.eventeum.repository.factory;
 
 import net.consensys.eventeum.model.EventFilterSyncStatus;
-import net.consensys.eventeum.repository.factory.EventFilterSyncStatusRepositoryFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
 
-/**
- * Spring repository for storing active EventFilterSyncStatus entries in DB.
- *
- * @author Craig Williams <craigwilliams84@gmail.com>
- */
-@Repository
-@ConditionalOnMissingBean(EventFilterSyncStatusRepositoryFactory.class)
-public interface EventFilterSyncStatusRepository extends CrudRepository<EventFilterSyncStatus, String> {
+public interface EventFilterSyncStatusRepositoryFactory {
+
+    CrudRepository<EventFilterSyncStatus, String> build();
 }
