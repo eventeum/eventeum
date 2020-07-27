@@ -12,20 +12,12 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.repository;
+package net.consensys.eventeum.repository.factory;
 
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
-import net.consensys.eventeum.repository.factory.TransactionMonitoringSpecRepositoryFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
 
-/**
- * Spring repository for storing active TransactionMonitoringSpec(s) in DB.
- *
- * @author Craig Williams <craig.williams@consensys.net>
- */
-@Repository
-@ConditionalOnMissingBean(TransactionMonitoringSpecRepositoryFactory.class)
-public interface TransactionMonitoringSpecRepository extends CrudRepository<TransactionMonitoringSpec, String> {
+public interface TransactionMonitoringSpecRepositoryFactory {
+
+    CrudRepository<TransactionMonitoringSpec, String> build();
 }

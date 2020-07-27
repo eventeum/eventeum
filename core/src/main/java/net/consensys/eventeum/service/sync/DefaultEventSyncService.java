@@ -21,8 +21,8 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.model.EventFilterSyncStatus;
 import net.consensys.eventeum.model.SyncStatus;
-import net.consensys.eventeum.repository.EventFilterSyncStatusRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +38,7 @@ public class DefaultEventSyncService implements EventSyncService {
 
     private EventRetriever eventRetriever;
 
-    private EventFilterSyncStatusRepository syncStatusRepository;
+    private CrudRepository<EventFilterSyncStatus, String> syncStatusRepository;
 
     private ContractEventProcessor contractEventProcessor;
 
@@ -46,7 +46,7 @@ public class DefaultEventSyncService implements EventSyncService {
 
     public DefaultEventSyncService(BlockNumberService blockNumberService,
                                    EventRetriever eventRetriever,
-                                   EventFilterSyncStatusRepository syncStatusRepository,
+                                   CrudRepository<EventFilterSyncStatus, String> syncStatusRepository,
                                    ContractEventProcessor contractEventProcessor,
                                    @Qualifier("eternalRetryTemplate") RetryTemplate retryTemplate) {
         this.blockNumberService = blockNumberService;

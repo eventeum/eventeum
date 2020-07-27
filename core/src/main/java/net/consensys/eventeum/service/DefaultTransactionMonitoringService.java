@@ -19,15 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.TransactionMonitoringBlockListener;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.block.tx.criteria.factory.TransactionMatchingCriteriaFactory;
-import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
-import net.consensys.eventeum.chain.service.block.BlockCache;
-import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
-import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadcaster;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
-import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Hash;
 
@@ -38,41 +34,25 @@ import java.util.Map;
 @Service
 public class DefaultTransactionMonitoringService implements TransactionMonitoringService {
 
-    private ChainServicesContainer chainServices;
-
-    private BlockchainEventBroadcaster broadcaster;
-
     private EventeumEventBroadcaster eventeumEventBroadcaster;
 
-    private TransactionDetailsFactory transactionDetailsFactory;
-
-    private TransactionMonitoringSpecRepository transactionMonitoringRepo;
+    private CrudRepository<TransactionMonitoringSpec, String> transactionMonitoringRepo;
 
     private TransactionMonitoringBlockListener monitoringBlockListener;
 
     private TransactionMatchingCriteriaFactory matchingCriteriaFactory;
 
-    private BlockCache blockCache;
-
     private Map<String, TransactionMonitor> transactionMonitors = new HashMap<>();
 
     @Autowired
-    public DefaultTransactionMonitoringService(ChainServicesContainer chainServices,
-                                               BlockchainEventBroadcaster broadcaster,
-                                               EventeumEventBroadcaster eventeumEventBroadcaster,
-                                               TransactionDetailsFactory transactionDetailsFactory,
-                                               TransactionMonitoringSpecRepository transactionMonitoringRepo,
+    public DefaultTransactionMonitoringService(EventeumEventBroadcaster eventeumEventBroadcaster,
+                                               CrudRepository<TransactionMonitoringSpec, String> transactionMonitoringRepo,
                                                TransactionMonitoringBlockListener monitoringBlockListener,
-                                               TransactionMatchingCriteriaFactory matchingCriteriaFactory,
-                                               BlockCache blockCache) {
-        this.chainServices = chainServices;
-        this.broadcaster = broadcaster;
+                                               TransactionMatchingCriteriaFactory matchingCriteriaFactory) {
         this.eventeumEventBroadcaster = eventeumEventBroadcaster;
-        this.transactionDetailsFactory = transactionDetailsFactory;
         this.transactionMonitoringRepo = transactionMonitoringRepo;
         this.monitoringBlockListener = monitoringBlockListener;
         this.matchingCriteriaFactory = matchingCriteriaFactory;
-        this.blockCache = blockCache;
     }
 
     @Override

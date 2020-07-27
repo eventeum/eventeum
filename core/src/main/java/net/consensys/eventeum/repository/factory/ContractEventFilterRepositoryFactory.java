@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.factory;
+package net.consensys.eventeum.repository.factory;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import org.springframework.data.repository.CrudRepository;
