@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.crypto.Hash;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
@@ -114,6 +115,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
         final String txHash = Hash.sha3(signedTxHex);
 
         final TransactionMonitoringSpec spec = new TransactionMonitoringSpec();
+        spec.setId(UUID.randomUUID().toString());
         spec.setNodeName("default");
         spec.setTransactionIdentifierValue(txHash);
         spec.setType(TransactionIdentifierType.HASH);

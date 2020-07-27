@@ -92,10 +92,6 @@ public class TransactionMonitoringSpec {
         this.type = type;
     }
 
-    public void generateId() {
-        this.id = Hash.sha3String(transactionIdentifierValue + type + nodeName + statuses.toString()).substring(2);
-    }
-
     public void convertToCheckSum() {
         if (this.type != TransactionIdentifierType.HASH) {
             this.transactionIdentifierValue = Keys.toChecksumAddress(this.transactionIdentifierValue);

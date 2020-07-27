@@ -29,13 +29,11 @@ import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -151,6 +149,8 @@ public class DefaultTransactionMonitoringBlockListener implements TransactionMon
         final BlockSubscriptionStrategy blockSubscription = getBlockSubscriptionStrategy(txDetails.getNodeName());
 
         final boolean isSuccess = isSuccessTransaction(txDetails);
+
+        txDetails.setMonitorId(matchingCriteria.getId());
 
         if (isSuccess && shouldWaitBeforeConfirmation(node)) {
             txDetails.setStatus(TransactionStatus.UNCONFIRMED);

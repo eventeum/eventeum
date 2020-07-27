@@ -21,8 +21,11 @@ import java.util.List;
 
 public class FromAddressMatchingCriteria extends SingleValueMatchingCriteria<String> {
 
-    public FromAddressMatchingCriteria(String nodeName, String fromAddress, List<TransactionStatus> statuses) {
-        super(nodeName, fromAddress, statuses);
+    public FromAddressMatchingCriteria(String id,
+                                       String nodeName,
+                                       String fromAddress,
+                                       List<TransactionStatus> statuses) {
+        super(id, nodeName, fromAddress, statuses);
     }
 
     @Override
