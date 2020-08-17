@@ -57,6 +57,9 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         typeConverters.put("string",
                 (type) -> new StringParameter(type.getTypeAsString(),
                         trim((String)type.getValue())));
+        typeConverters.put("bytes",
+                (type) -> new StringParameter(type.getTypeAsString(),
+                        Numeric.toHexString((byte[])type.getValue())));
 
         this.settings = settings;
     }

@@ -22,7 +22,6 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.service.exception.ValidationException;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Bytes1;
 
@@ -42,6 +41,7 @@ public class Web3jUtil {
     private static final String BOOL = "BOOL";
     private static final String STRING = "STRING";
     private static final String BYTE = "BYTE";
+    private static final String BYTES = "BYTES";
 
     static {
         addUintMappings(8, 256);
@@ -62,6 +62,7 @@ public class Web3jUtil {
         typeMappings.put(ParameterType.build(STRING), new TypeMapping(new TypeReference<Utf8String>() {}, Utf8String.class));
         typeMappings.put(ParameterType.build(STRING + "[]"),
                 new TypeMapping(new TypeReference<DynamicArray<Utf8String>>() {}, DynamicArray.class));
+        typeMappings.put(ParameterType.build(BYTES), new TypeMapping(new TypeReference<DynamicBytes>() {}, DynamicBytes.class));
     }
 
     public static List<TypeReference<?>> getTypeReferencesFromParameterDefinitions(
