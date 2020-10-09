@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  eventeum:
+    image: eventeum/eventeum:latest
+    ports:
+    - "8060:8060"
+    depends_on:
+      - mongodb
+    environment:
+      SPRING_DATA_MONGODB_HOST: mongodb
+      ETHEREUM_NODE_URL: wss://ropsten.infura.io/ws
+      ETHEREUM_NODES_0_BLOCKSTRATEGY: PUBSUB
+      BROADCASTER_TYPE: EVENT_BRIDGE
+      EVENT_BRIDGE_EVENT_BUS_NAME: ropsten
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: 
+      AWS_SECRET_ACCESS_KEY: 
+    networks:
+      - default
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - $HOME/mongodb/data/db:/data/db
+    networks:
+      - default

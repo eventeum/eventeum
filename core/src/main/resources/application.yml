@@ -96,3 +96,7 @@ kafka:
   security:
     protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
   retries: ${KAFKA_RETRIES:10}
+
+eventBridge:
+  eventBusName: ${EVENT_BRIDGE_EVENT_BUS_NAME:eventeum}
+  source: ${EVENT_BRIDGE_SOURCE:eventeum}

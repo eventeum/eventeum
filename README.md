@@ -25,6 +25,7 @@ An Ethereum event listener that bridges your smart contract events and backend m
 * HTTP Post
 * [RabbitMQ](https://www.rabbitmq.com/)
 * [Pulsar](https://pulsar.apache.org)
+* [Amazon EventBrige](https://aws.amazon.com/eventbridge/)
 
 
 For RabbitMQ, you can configure the following extra values
@@ -408,7 +409,7 @@ Example filtering by `FROM_ADDRES`, this will notify when a transactions fails w
 ## Broadcast Messages Format
 
 ###  Contract Events
-When a subscribed event is emitted, a JSON message is broadcast to the configured kafka topic or rabbit exchange (contract-events by default), with the following format:
+When a subscribed event is emitted, a JSON message is broadcast to the configured kafka topic or rabbit exchange (contract-events by default) or EventBridge Bus, with the following format:
 
 ```json
 {
@@ -435,7 +436,7 @@ When a subscribed event is emitted, a JSON message is broadcast to the configure
 ```
 
 ### Block Events
-When a new block is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (block-events by default), with the following format:
+When a new block is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (block-events by default) or EventBridge Bus, with the following format:
 
 ```json
  {
@@ -451,7 +452,7 @@ When a new block is mined, a JSON message is broadcast to the configured kafka t
 
 
 ### Transaction Events
-When a new transaction that matches a transaction monitor is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (transaction-events by default), with the following format:
+When a new transaction that matches a transaction monitor is mined, a JSON message is broadcast to the configured kafka topic or rabbit exchange (transaction-events by default) or EventBridge Bus, with the following format:
 
 ```json
  {
@@ -503,7 +504,7 @@ Eventeum can either be configured by:
 | ETHEREUM_NUMBLOCKSTOREPLAY | 12 | Number of blocks to replay on node or service failure (ensures no blocks / events are missed on chain reorg) |
 | POLLING_INTERVAL | 10000 | The polling interval used by Web3j to get events from the blockchain. |
 | EVENTSTORE_TYPE | DB | The type of eventstore used in Eventeum. (See the Advanced section for more details) |
-| BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT) |
+| BROADCASTER_TYPE | KAFKA | The broadcast mechanism to use.  (KAFKA or HTTP or RABBIT or EVENT_BRIDGE) |
 | BROADCASTER_CACHE_EXPIRATIONMILLIS | 6000000 | The eventeum broadcaster has an internal cache of sent messages, which ensures that duplicate messages are not broadcast.  This is the time that a message should live within this cache. |
 | BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAIT | 12 | The number of blocks to wait (after the initial mined block) before broadcasting a CONFIRMED event |
 | BROADCASTER_EVENT_CONFIRMATION_NUMBLOCKSTOWAITFORMISSINGTX | 200 | After a fork, a transaction may disappear, and this is the number of blocks to wait on the new fork, before assuming that an event emitted during this transaction has been INVALIDATED |
