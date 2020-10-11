@@ -64,7 +64,7 @@ public class NodeBeanRegistrationStrategy {
             "%sNodeFailureListener";
 
     private static final String NODE_BLOCK_SUB_STRATEGY_BEAN_NAME =
-            "%sBlockSubscriptionStategy";
+            "%sBlockSubscriptionStrategy";
 
     private static final String WEB_SOCKET_CLIENT_BEAN_NAME = "%sWebSocketClient";
 
