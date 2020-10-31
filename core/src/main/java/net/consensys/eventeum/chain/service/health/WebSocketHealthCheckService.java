@@ -18,10 +18,10 @@ import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.websocket.EventeumWebSocketService;
 import org.web3j.protocol.websocket.WebSocketClient;
 
@@ -31,7 +31,7 @@ public class WebSocketHealthCheckService extends NodeHealthCheckService {
 
     private WebSocketClient webSocketClient;
 
-    public WebSocketHealthCheckService(Web3jService web3jService,
+    public WebSocketHealthCheckService(Web3jContainer web3jContainer,
                                        BlockchainService blockchainService,
                                        BlockSubscriptionStrategy blockSubscription,
                                        ReconnectionStrategy failureListener,
@@ -45,8 +45,8 @@ public class WebSocketHealthCheckService extends NodeHealthCheckService {
         super(blockchainService, blockSubscription, failureListener, subscriptionService,
                 valueMonitor, eventStoreService, syncingThreshold, taskScheduler, healthCheckPollInterval);
 
-        if (web3jService instanceof EventeumWebSocketService) {
-            this.webSocketClient = ((EventeumWebSocketService)web3jService).getWebSocketClient();
+        if (web3jContainer.getWeb3jService() instanceof EventeumWebSocketService) {
+            this.webSocketClient = ((EventeumWebSocketService)web3jContainer.getWeb3jService()).getWebSocketClient();
         } else {
             throw new BlockchainException(
                     "Non web socket service passed to WebSocketHealthCheckService");

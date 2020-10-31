@@ -15,11 +15,13 @@
 package net.consensys.eventeum.chain.service.health.strategy;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.chain.websocket.WebSocketReconnectionManager;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.web3j.protocol.websocket.WebSocketClient;
+import org.web3j.protocol.websocket.EventeumWebSocketService;
+
+import java.io.IOException;
 
 /**
  * An NodeFailureListener that reconnects to the websocket server on failure, and
@@ -34,21 +36,40 @@ import org.web3j.protocol.websocket.WebSocketClient;
 public class WebSocketResubscribeNodeFailureListener extends ResubscribingReconnectionStrategy {
 
     private WebSocketReconnectionManager reconnectionManager;
-    private WebSocketClient client;
+    private Web3jContainer web3jContainer;
 
     public WebSocketResubscribeNodeFailureListener(SubscriptionService subscriptionService,
                                                    BlockSubscriptionStrategy blockSubscription,
                                                    WebSocketReconnectionManager reconnectionManager,
-                                                   WebSocketClient client) {
+                                                   Web3jContainer web3jContainer) {
         super(subscriptionService, blockSubscription);
 
         this.reconnectionManager = reconnectionManager;
-        this.client = client;
+        this.web3jContainer = web3jContainer;
     }
 
     @Override
     public void reconnect() {
         log.info("Reconnecting web socket because of {} node failure", getBlockSubscriptionStrategy().getNodeName());
-        reconnectionManager.reconnect(client);
+
+        final EventeumWebSocketService web3jService = getEventeumWebSocketService();
+        reconnectionManager.reconnect(web3jService.getWebSocketClient());
+    }
+
+    @Override
+    public void onError() {
+        log.warn("Reinitialising web3j");
+
+        try {
+            web3jContainer.getWeb3jService().close();
+        } catch (IOException e) {
+            log.warn("Failed to close websocker", e);
+        }
+
+        web3jContainer.reinitialise();
+    }
+
+    private EventeumWebSocketService getEventeumWebSocketService() {
+        return (EventeumWebSocketService) web3jContainer.getWeb3jService();
     }
 }

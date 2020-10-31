@@ -19,23 +19,22 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.JSON;
-import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.math.BigInteger;
-import java.util.Optional;
 
 @Slf4j
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
-    public PollingBlockSubscriptionStrategy(Web3j web3j,
+    public PollingBlockSubscriptionStrategy(Web3jContainer web3jContainer,
                                             String nodeName,
                                             AsyncTaskService asyncService,
                                             BlockNumberService blockNumberService) {
-        super(web3j, nodeName, asyncService, blockNumberService);
+        super(web3jContainer, nodeName, asyncService, blockNumberService);
     }
 
     @Override
@@ -47,7 +46,7 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
 
         final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock);
 
-        blockSubscription = web3j
+        blockSubscription = web3jContainer.getWeb3j()
                 .replayPastAndFutureBlocksFlowable(blockParam, true)
                 .doOnError((error) -> onError(blockSubscription, error))
                 .subscribe(block -> triggerListeners(block), (error) -> onError(blockSubscription, error));

@@ -19,6 +19,7 @@ import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
@@ -49,6 +50,8 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private Web3j mockWeb3j;
 
+    private Web3jContainer mockWeb3jContainer;
+
     private EthBlock mockEthBlock;
 
     private BlockListener mockBlockListener;
@@ -59,7 +62,9 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     @Before
     public void init() {
-        this.mockWeb3j = mock(Web3j.class);
+        mockWeb3j = mock(Web3j.class);
+        mockWeb3jContainer = mock(Web3jContainer.class);
+        when(mockWeb3jContainer.getWeb3j()).thenReturn(mockWeb3j);
 
         mockEthBlock = mock(EthBlock.class);
         mockBlockNumberService = mock(BlockNumberService.class);
@@ -76,7 +81,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
         when(mockBlockNumberService.getStartBlockForNode(NODE_NAME)).thenReturn(BigInteger.ONE);
 
-        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j,
+        underTest = new PollingBlockSubscriptionStrategy(mockWeb3jContainer,
                 NODE_NAME, new DummyAsyncTaskService(), mockBlockNumberService);
     }
 

@@ -26,13 +26,13 @@ import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jTransactionReceipt;
 import net.consensys.eventeum.chain.util.Web3jUtil;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.model.FilterSubscription;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
-import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -59,16 +59,16 @@ public class Web3jService implements BlockchainService {
 
     @Getter
     @Setter
-    private Web3j web3j;
+    private Web3jContainer web3jContainer;
     private ContractEventDetailsFactory eventDetailsFactory;
     private AsyncTaskService asyncTaskService;
 
     public Web3jService(String nodeName,
-                        Web3j web3j,
+                        Web3jContainer web3jContainer,
                         ContractEventDetailsFactory eventDetailsFactory,
                         AsyncTaskService asyncTaskService) {
         this.nodeName = nodeName;
-        this.web3j = web3j;
+        this.web3jContainer = web3jContainer;
         this.eventDetailsFactory = eventDetailsFactory;
         this.asyncTaskService = asyncTaskService;
     }
@@ -88,7 +88,7 @@ public class Web3jService implements BlockchainService {
         }
 
         try {
-            final EthLog logs = web3j.ethGetLogs(ethFilter).send();
+            final EthLog logs = web3jContainer.getWeb3j().ethGetLogs(ethFilter).send();
             return logs.getLogs()
                     .stream()
                     .map(logResult -> eventDetailsFactory.createEventDetails(eventFilter, (Log) logResult.get()))
@@ -119,7 +119,7 @@ public class Web3jService implements BlockchainService {
             ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
         }
 
-        final Flowable<Log> flowable = web3j
+        final Flowable<Log> flowable = web3jContainer.getWeb3j()
                 .ethLogFlowable(ethFilter)
                 .doOnComplete(() -> {
                     if (onCompletion.isPresent()) {
@@ -158,7 +158,7 @@ public class Web3jService implements BlockchainService {
     @Override
     public String getClientVersion() {
         try {
-            final Web3ClientVersion web3ClientVersion = web3j.web3ClientVersion().send();
+            final Web3ClientVersion web3ClientVersion = web3jContainer.getWeb3j().web3ClientVersion().send();
             return web3ClientVersion.getWeb3ClientVersion();
         } catch (IOException e) {
             throw new BlockchainException("Error when obtaining client version", e);
@@ -171,7 +171,7 @@ public class Web3jService implements BlockchainService {
     @Override
     public TransactionReceipt getTransactionReceipt(String txId) {
         try {
-            final EthGetTransactionReceipt response = web3j.ethGetTransactionReceipt(txId).send();
+            final EthGetTransactionReceipt response = web3jContainer.getWeb3j().ethGetTransactionReceipt(txId).send();
 
             return response
                     .getTransactionReceipt()
@@ -188,7 +188,7 @@ public class Web3jService implements BlockchainService {
     @Override
     public BigInteger getCurrentBlockNumber() {
         try {
-            final EthBlockNumber ethBlockNumber = web3j.ethBlockNumber().send();
+            final EthBlockNumber ethBlockNumber = web3jContainer.getWeb3j().ethBlockNumber().send();
 
             return ethBlockNumber.getBlockNumber();
         } catch (IOException e) {
@@ -198,7 +198,8 @@ public class Web3jService implements BlockchainService {
 
     public Optional<Block> getBlock(String blockHash, boolean fullTransactionObjects) {
         try {
-            final EthBlock blockResponse = web3j.ethGetBlockByHash(blockHash, fullTransactionObjects).send();
+            final EthBlock blockResponse = web3jContainer.getWeb3j()
+                    .ethGetBlockByHash(blockHash, fullTransactionObjects).send();
 
             if (blockResponse.getBlock() == null) {
                 return Optional.empty();
@@ -224,7 +225,7 @@ public class Web3jService implements BlockchainService {
                 ethFilter = ethFilter.addSingleTopic(Web3jUtil.getSignature(eventSpec));
             }
 
-            final EthLog ethLog = web3j.ethGetLogs(ethFilter).send();
+            final EthLog ethLog = web3jContainer.getWeb3j().ethGetLogs(ethFilter).send();
 
             return ethLog.getLogs()
                     .stream()
@@ -238,7 +239,7 @@ public class Web3jService implements BlockchainService {
     @Override
     public String getRevertReason(String from, String to, BigInteger blockNumber, String input) {
         try {
-            return web3j.ethCall(
+            return web3jContainer.getWeb3j().ethCall(
                     Transaction.createEthCallTransaction(from, to, input),
                     DefaultBlockParameter.valueOf(blockNumber)
             ).send().getRevertReason();
