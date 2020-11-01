@@ -12,24 +12,23 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.chain.service.health.strategy;
+package net.consensys.eventeum.chain.web3j;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
-import net.consensys.eventeum.service.SubscriptionService;
+import lombok.Getter;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.Web3jService;
 
-@AllArgsConstructor
-@Data
-public abstract class ResubscribingReconnectionStrategy implements ReconnectionStrategy {
+public interface Web3jFactory {
 
-    private SubscriptionService subscriptionService;
-    private BlockSubscriptionStrategy blockSubscriptionStrategy;
+    Web3jAndService build();
 
-    @Override
-    public void resubscribe() {
+    @Getter
+    @AllArgsConstructor
+    class Web3jAndService {
 
-        blockSubscriptionStrategy.subscribe();
+        private Web3j web3j;
+
+        private Web3jService web3jService;
     }
-
 }

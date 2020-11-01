@@ -133,7 +133,8 @@ public class NodeHealthCheckService {
 
             nodeStatusGauge.set(nodeStatus.ordinal());
         } catch (Throwable t) {
-            log.error("An error occured during the check health / recovery process...Will retry at next poll", t);
+            log.error("An error occured during the check health / recovery process...Calling onError", t);
+            reconnectionStrategy.onError();
         }
     }
 

@@ -20,19 +20,18 @@ import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
-import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.events.NewHead;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Optional;
 
 public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<NewHead> {
 
@@ -42,11 +41,11 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
 
     private AsyncTaskService asyncService;
 
-    public PubSubBlockSubscriptionStrategy(Web3j web3j,
+    public PubSubBlockSubscriptionStrategy(Web3jContainer web3jContainer,
                                            String nodeName,
                                            AsyncTaskService asyncService,
                                            BlockNumberService blockNumberService) {
-        super(web3j, nodeName, asyncService, blockNumberService);
+        super(web3jContainer, nodeName, asyncService, blockNumberService);
 
         this.asyncService = asyncService;
     }
@@ -57,7 +56,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock);
 
         //New heads can only start from latest block so we need to obtain missing blocks first
-        blockSubscription = web3j.replayPastBlocksFlowable(blockParam, true)
+        blockSubscription = web3jContainer.getWeb3j().replayPastBlocksFlowable(blockParam, true)
                 .doOnComplete(() -> blockSubscription = subscribeToNewHeads())
                 .subscribe(ethBlock -> triggerListeners(convertToEventeumBlock(ethBlock)));
 
@@ -65,7 +64,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     }
 
     private Disposable subscribeToNewHeads() {
-        final Disposable disposable = web3j.newHeadsNotifications().subscribe(newHead -> {
+        final Disposable disposable = web3jContainer.getWeb3j().newHeadsNotifications().subscribe(newHead -> {
             //Need to execute this is a seperate thread to workaround websocket thread deadlock
             asyncService.execute(ExecutorNameFactory.build(PUB_SUB_EXECUTOR_NAME, nodeName),
                     () -> triggerListeners(newHead.getParams().getResult()));
@@ -115,7 +114,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     private EthBlock getEthBlock(String blockHash) {
         return getRetryTemplate().execute((context) -> {
             try {
-                final EthBlock block = web3j.ethGetBlockByHash(blockHash, true).send();
+                final EthBlock block = web3jContainer.getWeb3j().ethGetBlockByHash(blockHash, true).send();
 
                 if (block == null || block.getBlock() == null) {
                     throw new BlockchainException(String.format("Block not found. Hash: %s", blockHash));

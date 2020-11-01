@@ -20,10 +20,9 @@ import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.ExecutorNameFactory;
-import net.consensys.eventeum.utils.JSON;
-import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
@@ -42,7 +41,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
     protected Disposable blockSubscription;
-    protected Web3j web3j;
+    protected Web3jContainer web3jContainer;
     protected String nodeName;
     protected AsyncTaskService asyncService;
     protected BlockNumberService blockNumberService;
@@ -50,11 +49,11 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     private AtomicBoolean errored = new AtomicBoolean(false);
 
-    public AbstractBlockSubscriptionStrategy(Web3j web3j,
+    public AbstractBlockSubscriptionStrategy(Web3jContainer web3jContainer,
                                              String nodeName,
                                              AsyncTaskService asyncService,
                                              BlockNumberService blockNumberService) {
-        this.web3j = web3j;
+        this.web3jContainer = web3jContainer;
         this.nodeName = nodeName;
         this.asyncService = asyncService;
         this.blockNumberService = blockNumberService;
@@ -161,7 +160,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     }
 
     private Block getBlockWithNumber(BigInteger blockNumber) throws IOException {
-        final EthBlock ethBlock = web3j.ethGetBlockByNumber(
+        final EthBlock ethBlock = web3jContainer.getWeb3j().ethGetBlockByNumber(
                 DefaultBlockParameter.valueOf(blockNumber), true).send();
 
         return new Web3jBlock(ethBlock.getBlock(), nodeName);

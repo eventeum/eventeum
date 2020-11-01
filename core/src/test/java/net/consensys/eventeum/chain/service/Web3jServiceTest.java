@@ -15,15 +15,13 @@
 package net.consensys.eventeum.chain.service;
 
 import io.reactivex.Flowable;
-import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
-import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
-import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
+import net.consensys.eventeum.chain.service.domain.Log;
+import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
+import net.consensys.eventeum.chain.web3j.Web3jContainer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,12 +29,13 @@ import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscriber;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.*;
+import org.web3j.protocol.core.methods.response.EthBlockNumber;
+import org.web3j.protocol.core.methods.response.EthCall;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
+import org.web3j.protocol.core.methods.response.Web3ClientVersion;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -47,11 +46,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.*;
 
 public class Web3jServiceTest {
 
@@ -67,6 +62,8 @@ public class Web3jServiceTest {
 
     private Web3j mockWeb3j;
 
+    private Web3jContainer mockWeb3jContainer;
+
     private ContractEventDetailsFactory mockContractEventDetailsFactory;
 
     private ContractEventDetails mockContractEventDetails;
@@ -75,8 +72,11 @@ public class Web3jServiceTest {
     @Before
     public void init() throws IOException {
         mockWeb3j = mock(Web3j.class);
+        mockWeb3jContainer = mock(Web3jContainer.class);
         mockContractEventDetailsFactory = mock(ContractEventDetailsFactory.class);
         mockContractEventDetails = mock(ContractEventDetails.class);
+
+        when(mockWeb3jContainer.getWeb3j()).thenReturn(mockWeb3j);
 
         //Wire up getBlockNumber
         final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
@@ -85,7 +85,7 @@ public class Web3jServiceTest {
         when(mockRequest.send()).thenReturn(blockNumber);
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
 
-        underTest = new Web3jService("test", mockWeb3j, mockContractEventDetailsFactory, new DummyAsyncTaskService());
+        underTest = new Web3jService("test", mockWeb3jContainer, mockContractEventDetailsFactory, new DummyAsyncTaskService());
     }
 
     @Test

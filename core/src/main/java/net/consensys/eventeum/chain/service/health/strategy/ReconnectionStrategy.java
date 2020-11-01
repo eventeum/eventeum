@@ -30,4 +30,9 @@ public interface ReconnectionStrategy {
      * Triggered when it has been detected that the Ethereum node has recovered after failure.
      */
     void resubscribe();
+
+    /**
+     * Triggered when it has been an unexpected error when reconnecting or resubscribing.
+     */
+    void onError();
 }
