@@ -61,6 +61,12 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribingReconn
         log.warn("Reinitialising web3j");
 
         try {
+            getBlockSubscriptionStrategy().unsubscribe();
+        } catch (Throwable t) {
+            log.warn("Failed to unsubscribe block subscription", t);
+        }
+
+        try {
             web3jContainer.getWeb3jService().close();
         } catch (IOException e) {
             log.warn("Failed to close websocker", e);
