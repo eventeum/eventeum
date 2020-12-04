@@ -87,7 +87,9 @@ kafka:
     partitions: 1
     replicationSets: 1
 
-
+eventBridge:
+  eventBusName: ${EVENT_BRIDGE_EVENT_BUS_NAME:eventeum}
+  source: ${EVENT_BRIDGE_SOURCE:eventeum}
 
 
 management:

@@ -1,0 +1,13 @@
+ethereum:
+  nodes:
+    - name: default
+      url: ws://your-node-host
+      # username: my-username
+      # password: my-password
+
+broadcaster:
+  type: EVENT_BRIDGE
+
+eventBridge:
+  eventBusName: mainnet
+  source: eventeum

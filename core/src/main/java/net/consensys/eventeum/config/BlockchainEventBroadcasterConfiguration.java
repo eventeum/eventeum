@@ -17,6 +17,7 @@ package net.consensys.eventeum.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.EventeumMessage;
+import net.consensys.eventeum.integration.EventBridgeSettings;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.integration.PulsarSettings;
 import net.consensys.eventeum.integration.RabbitSettings;
@@ -97,6 +98,16 @@ public class BlockchainEventBroadcasterConfiguration {
     			new PulsarBlockChainEventBroadcaster(settings, mapper);
 
     	return onlyOnceWrap(broadcaster);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name=BROADCASTER_PROPERTY, havingValue="EVENT_BRIDGE")
+    public BlockchainEventBroadcaster eventBridgeBlockChainEventBroadcaster(EventBridgeSettings settings) {
+        final BlockchainEventBroadcaster broadcaster =
+                new EventBridgeBlockChainEventBroadcaster(settings);
+
+        return onlyOnceWrap(broadcaster);
     }
 
 
