@@ -52,8 +52,12 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribingReconn
     public void reconnect() {
         log.info("Reconnecting web socket because of {} node failure", getBlockSubscriptionStrategy().getNodeName());
 
-        final EventeumWebSocketService web3jService = getEventeumWebSocketService();
-        reconnectionManager.reconnect(web3jService.getWebSocketClient());
+        if (web3jContainer.isInitialised()) {
+            final EventeumWebSocketService web3jService = getEventeumWebSocketService();
+            reconnectionManager.reconnect(web3jService.getWebSocketClient());
+        } else {
+            web3jContainer.reinitialise();
+        }
     }
 
     @Override
@@ -69,10 +73,14 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribingReconn
         try {
             web3jContainer.getWeb3jService().close();
         } catch (IOException e) {
-            log.warn("Failed to close websocker", e);
+            log.warn("Failed to close websocket", e);
         }
 
-        web3jContainer.reinitialise();
+        try {
+            web3jContainer.reinitialise();
+        } catch (Throwable t) {
+            log.warn("Failed to reinitialise web3j", t);
+        }
     }
 
     private EventeumWebSocketService getEventeumWebSocketService() {
