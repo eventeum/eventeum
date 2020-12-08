@@ -27,7 +27,11 @@ public class Web3jContainer {
 
     private Web3jService web3jService;
 
+    private boolean initialised;
+
     public Web3jContainer(Web3jFactory factory) {
+        this.factory = factory;
+
         setWeb3jValues(factory.build());
     }
 
@@ -36,11 +40,19 @@ public class Web3jContainer {
     }
 
     public synchronized void reinitialise() {
-        setWeb3jValues(factory.build());
+        try {
+            setWeb3jValues(factory.build());
+        } catch (Throwable t) {
+            initialised = false;
+
+            throw t;
+        }
     }
 
     private void setWeb3jValues(Web3jFactory.Web3jAndService web3jAndService) {
         web3j = web3jAndService.getWeb3j();
         web3jService = web3jAndService.getWeb3jService();
+
+        initialised = true;
     }
 }
