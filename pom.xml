@@ -16,7 +16,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.consensys.eventeum</groupId>
+    <groupId>io.eventeum</groupId>
     <artifactId>eventeum</artifactId>
     <version>0.9.1-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -37,14 +37,20 @@
         <node.version>v8.2.1</node.version>
         <npm.version>5.3.0</npm.version>
         <web3j.version>4.5.18</web3j.version>
-        <kafka-deadletter.version>0.2.1-RELEASE</kafka-deadletter.version>
+        <kafka-deadletter.version>0.2.2-RELEASE</kafka-deadletter.version>
     </properties>
 
     <distributionManagement>
         <repository>
-            <id>bintray</id>
-            <url>https://api.bintray.com/maven/consensys/kauri/eventeum/;publish=1</url>
+            <id>artifactory</id>
+            <name>artifactory</name>
+            <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
         </repository>
+        <snapshotRepository>
+            <id>artifactory</id>
+            <name>artifactory</name>
+            <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <repositories>
@@ -53,26 +59,14 @@
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
         <repository>
-            <id>ethereum</id>
-            <url>https://dl.bintray.com/ethereum/maven/</url>
-        </repository>
-        <repository>
-            <id>bintray-consensys-kauri</id>
-            <url>https://consensys.bintray.com/kauri</url>
+            <id>artifactory</id>
+            <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>ethereum</id>
-            <url>https://dl.bintray.com/ethereum/maven/</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>bintray-consensys-kauri</id>
-            <url>https://consensys.bintray.com/kauri</url>
         </pluginRepository>
     </pluginRepositories>
 </project>

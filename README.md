@@ -629,13 +629,13 @@ Eventeum can be embedded into an existing Spring Application via an annotation.
 
 #### Steps to Embed
 
-1. Add the Consensys Kauri bintray repository into your `pom.xml` file:
+1. Add the Eventeum Artifactory repository into your `pom.xml` file:
 
 ```xml
 <repositories>
   <repository>
-    <id>bintray-consensys-kauri</id>
-    <url>https://consensys.bintray.com/kauri</url>
+    <id>eventeum-artifactory</id>
+    <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
   </repository>
 </repositories>
 ```
@@ -644,7 +644,7 @@ Eventeum can be embedded into an existing Spring Application via an annotation.
 
 ```xml
 <dependency>
-  <groupId>net.consensys.eventeum</groupId>
+  <groupId>io.eventeum</groupId>
   <artifactId>eventeum-core</artifactId>
   <version>*LATEST_EVENTEUM_VERSION*</version>
 </dependency>
