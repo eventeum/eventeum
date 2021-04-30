@@ -58,6 +58,10 @@
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
+        <repository>
+            <id>artifactory</id>
+            <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
