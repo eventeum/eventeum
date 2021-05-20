@@ -2,7 +2,8 @@ version: '3'
 
 services:
   eventeum:
-    image: eventeum/eventeum:latest
+    # image: eventeum/eventeum:latest
+    build: ..
     ports:
     - "8060:8060"
     depends_on:
@@ -20,7 +21,7 @@ services:
   parity:
     build:
       context: .
-      dockerfile: Dockerfile-ParityNode
+      dockerfile: Dockerfile.ParityNode
     ports:
       - "8545:8545"
       - "8180:8180"

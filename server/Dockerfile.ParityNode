@@ -1,0 +1,20 @@
+FROM parity/parity:v2.5.1
+USER root
+WORKDIR /home/parity
+ENV NODE_PATH /usr/lib/node_modules
+# Install
+RUN apt-get update \
+    && apt-get -yqq --no-install-recommends install git build-essential nodejs \
+    && npm install -g web3@1.3.6 --unsafe-perm \
+    && curl -LO https://deb.nodesource.com/setup_10.x \
+    && chmod +x setup_10.x \
+    && ./setup_10.x \
+    # apt cleanup
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/*;
+COPY docker-scripts/run-parity.sh .
+# switch to user parity here
+USER parity
+
+ENTRYPOINT ["bash", "run-parity.sh"]
