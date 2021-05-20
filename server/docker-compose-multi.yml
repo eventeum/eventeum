@@ -2,7 +2,7 @@ version: '3'
 
 services:
   eventeum1:
-    build: ./
+    build: ..
     ports:
     - "8060:8060"
     depends_on:
@@ -19,7 +19,7 @@ services:
       - default
 
   eventeum2:
-      build: ./
+      build: ..
       ports:
       - "8050:8050"
       depends_on:
