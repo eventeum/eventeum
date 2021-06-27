@@ -55,7 +55,7 @@ $ cd /path/to/eventeum/
 
 2. Compile, test and package the project
 ```
-$ mvn clean package
+$ mvn clean install -DskipTests
 ```
 
 ### Run

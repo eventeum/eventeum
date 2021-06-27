@@ -77,9 +77,9 @@ kafka:
   bootstrap:
     addresses: ${KAFKA_ADDRESSES:localhost:9092}
   topic:
-    contractEvents: contract-events
-    blockEvents: block-events
-    eventeumEvents: eventeum-events
+    contractEvents: ${KAFKA_TOPIC_CONTRACT_EVENTS:contract-events}
+    blockEvents: ${KAFKA_TOPIC_BLOCK_EVENTS:block-events}
+    eventeumEvents: ${KAFKA_TOPIC_EVENTEUM_EVENTS:eventeum-events}
   request:
     timeout:
       msConfig: ${KAFKA_REQUEST_TIMEOUT_MS:20000}

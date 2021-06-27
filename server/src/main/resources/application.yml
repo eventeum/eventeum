@@ -79,10 +79,10 @@ kafka:
   bootstrap:
     addresses: ${KAFKA_ADDRESSES:localhost:9092}
   topic:
-    contractEvents: contract-events
-    blockEvents: block-events
-    eventeumEvents: eventeum-events
-    transactionEvents: transaction-events
+    contractEvents: ${KAFKA_TOPIC_CONTRACT_EVENTS:contract-events}
+    blockEvents: ${KAFKA_TOPIC_BLOCK_EVENTS:block-events}
+    eventeumEvents: ${KAFKA_TOPIC_EVENTEUM_EVENTS:eventeum-events}
+    transactionEvents: ${KAFKA_TOPIC_TRANSACTION_EVENTS:transaction-events}
 
     partitions: 1
     replicationSets: 1
