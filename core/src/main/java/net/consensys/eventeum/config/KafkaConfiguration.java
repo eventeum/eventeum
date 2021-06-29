@@ -52,6 +52,12 @@ public class KafkaConfiguration {
     public KafkaAdmin eventeumAdmin() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, settings.getBootstrapAddresses());
+        configs.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
+        configs.put(AdminClientConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
+        configs.put("retries", settings.getRetries());
+        if (!"PLAINTEXT".equals(settings.getSecurityProtocol())) {
+            configurePlaintextSecurityProtocol(configs);
+        }
         return new KafkaAdmin(configs);
     }
 
@@ -65,7 +71,7 @@ public class KafkaConfiguration {
         configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
         configProps.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
         configProps.put("retries", settings.getRetries());
-        if ("PLAINTEXT".equals(settings.getSecurityProtocol())) {
+        if (!"PLAINTEXT".equals(settings.getSecurityProtocol())) {
             configurePlaintextSecurityProtocol(configProps);
         }
         return new DefaultKafkaProducerFactory<>(configProps);
@@ -77,9 +83,9 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, settings.getBootstrapAddresses());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, settings.getGroupId());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
-        props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
-        if ("PLAINTEXT".equals(settings.getSecurityProtocol())) {
+        props.put(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
+        props.put(ConsumerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
+        if (!"PLAINTEXT".equals(settings.getSecurityProtocol())) {
             configurePlaintextSecurityProtocol(props);
         }
         return new DefaultKafkaConsumerFactory<>(props, null, new JsonDeserializer<>(EventeumMessage.class));
@@ -91,7 +97,11 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, settings.getBootstrapAddresses());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, settings.getGroupId());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-
+        props.put(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG, settings.getRequestTimeoutMsConfig());
+        props.put(ConsumerConfig.RETRY_BACKOFF_MS_CONFIG, settings.getRetryBackoffMsConfig());
+        if (!"PLAINTEXT".equals(settings.getSecurityProtocol())) {
+            configurePlaintextSecurityProtocol(props);
+        }
         return new DefaultKafkaConsumerFactory<>(props, null, new JsonDeserializer<>(Object.class));
     }
 
