@@ -14,21 +14,20 @@
 
 package net.consensys.eventeum.chain.service;
 
-import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.model.FilterSubscription;
-import rx.Subscription;
 
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Interface for a service that interacts directly with an Ethereum blockchain node.
+ * Interface for a service that interacts directly with an Ethereum blockchain
+ * node.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
@@ -44,27 +43,29 @@ public interface BlockchainService {
      * Retrieves all events for a specified event filter.
      *
      * @param eventFilter The contract event filter that should be matched.
-     * @param startBlock The start block
-     * @param endBlock The end block
+     * @param startBlock  The start block
+     * @param endBlock    The end block
      * @return The blockchain contract events
      */
     List<ContractEventDetails> retrieveEvents(ContractEventFilter eventFilter,
-                                              BigInteger startBlock,
-                                              BigInteger endBlock);
+            BigInteger startBlock,
+            BigInteger endBlock);
 
     /**
-     * Register a contract event listener for the specified event filter, that gets triggered when an event
+     * Register a contract event listener for the specified event filter, that gets
+     * triggered when an event
      * matching the filter is emitted within the Ethereum network.
      *
-     * @param eventFilter The contract event filter that should be matched.
-     * @param eventListener The listener to be triggered when a matching event is emitted
+     * @param eventFilter   The contract event filter that should be matched.
+     * @param eventListener The listener to be triggered when a matching event is
+     *                      emitted
      * @return The registered subscription
      */
     FilterSubscription registerEventListener(ContractEventFilter eventFilter,
-                                             ContractEventListener eventListener,
-                                             BigInteger startBlock,
-                                             BigInteger endBlock,
-                                             Optional<Runnable> onCompletion);
+            ContractEventListener eventListener,
+            BigInteger startBlock,
+            BigInteger endBlock,
+            Optional<Runnable> onCompletion);
 
     /**
      *
@@ -74,15 +75,17 @@ public interface BlockchainService {
 
     /**
      *
-     * @return the current block number of the network that the Ethereum node is connected to.
+     * @return the current block number of the network that the Ethereum node is
+     *         connected to.
      */
     BigInteger getCurrentBlockNumber();
 
     /**
      *
-     * @param blockHash The hash of the block to obtain
+     * @param blockHash              The hash of the block to obtain
      * @param fullTransactionObjects If full transaction details should be populated
-     * @return The block for the specified hash or nothing if a block with the specified hash does not exist.
+     * @return The block for the specified hash or nothing if a block with the
+     *         specified hash does not exist.
      */
     public Optional<Block> getBlock(String blockHash, boolean fullTransactionObjects);
 
@@ -95,8 +98,6 @@ public interface BlockchainService {
      * @return the receipt for the transaction with the specified id.
      */
     TransactionReceipt getTransactionReceipt(String txId);
-
-
 
     String getRevertReason(String from, String to, BigInteger blockNumber, String input);
 }
