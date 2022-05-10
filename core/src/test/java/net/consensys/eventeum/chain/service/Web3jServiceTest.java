@@ -25,8 +25,8 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscriber;
 import org.web3j.protocol.Web3j;
@@ -44,14 +44,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.eq;
 
 public class Web3jServiceTest {
 
@@ -71,14 +71,13 @@ public class Web3jServiceTest {
 
     private ContractEventDetails mockContractEventDetails;
 
-
-    @Before
+    @BeforeEach
     public void init() throws IOException {
         mockWeb3j = mock(Web3j.class);
         mockContractEventDetailsFactory = mock(ContractEventDetailsFactory.class);
         mockContractEventDetails = mock(ContractEventDetails.class);
 
-        //Wire up getBlockNumber
+        // Wire up getBlockNumber
         final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
         final EthBlockNumber blockNumber = new EthBlockNumber();
         blockNumber.setResult("0x0");
@@ -116,14 +115,16 @@ public class Web3jServiceTest {
         assertEquals("Version 1.0", underTest.getClientVersion());
     }
 
-    @Test(expected = BlockchainException.class)
+    @Test
     public void testGetClientVersionIOException() throws IOException {
-        final Request<?, Web3ClientVersion> mockRequest = mock(Request.class);
+        assertThrows(BlockchainException.class, () -> {
+            final Request<?, Web3ClientVersion> mockRequest = mock(Request.class);
 
-        when(mockRequest.send()).thenThrow(new IOException());
-        doReturn(mockRequest).when(mockWeb3j).web3ClientVersion();
+            when(mockRequest.send()).thenThrow(new IOException());
+            doReturn(mockRequest).when(mockWeb3j).web3ClientVersion();
 
-        underTest.getClientVersion();
+            underTest.getClientVersion();
+        });
     }
 
     @Test
@@ -132,8 +133,8 @@ public class Web3jServiceTest {
         final EthGetTransactionReceipt mockGetTxReceipt = mock(EthGetTransactionReceipt.class);
         final org.web3j.protocol.core.methods.response.TransactionReceipt mockTxReceipt = createMockTxReceipt();
 
-        final Optional<org.web3j.protocol.core.methods.response.TransactionReceipt> txReceiptOptional
-                = Optional.ofNullable(mockTxReceipt);
+        final Optional<org.web3j.protocol.core.methods.response.TransactionReceipt> txReceiptOptional = Optional
+                .ofNullable(mockTxReceipt);
         when(mockGetTxReceipt.getTransactionReceipt()).thenReturn(txReceiptOptional);
         when(mockRequest.send()).thenReturn(mockGetTxReceipt);
         doReturn(mockRequest).when(mockWeb3j).ethGetTransactionReceipt(TX_HASH);
@@ -141,14 +142,16 @@ public class Web3jServiceTest {
         checkTransactionReceipt(underTest.getTransactionReceipt(TX_HASH));
     }
 
-    @Test(expected = BlockchainException.class)
+    @Test
     public void testGetTransactionReceiptIOException() throws IOException {
-        final Request<?, EthGetTransactionReceipt> mockRequest = mock(Request.class);
+        assertThrows(BlockchainException.class, () -> {
+            final Request<?, EthGetTransactionReceipt> mockRequest = mock(Request.class);
 
-        when(mockRequest.send()).thenThrow(new IOException());
-        doReturn(mockRequest).when(mockWeb3j).ethGetTransactionReceipt(TX_HASH);
+            when(mockRequest.send()).thenThrow(new IOException());
+            doReturn(mockRequest).when(mockWeb3j).ethGetTransactionReceipt(TX_HASH);
 
-        underTest.getTransactionReceipt(TX_HASH);
+            underTest.getTransactionReceipt(TX_HASH);
+        });
     }
 
     @Test
@@ -163,13 +166,15 @@ public class Web3jServiceTest {
         assertEquals(BigInteger.TEN, underTest.getCurrentBlockNumber());
     }
 
-    @Test(expected = BlockchainException.class)
+    @Test
     public void testGetCurrentBlockNumberIOException() throws IOException {
-        final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
+        assertThrows(BlockchainException.class, () -> {
+            final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
 
-        when(mockRequest.send()).thenThrow(new IOException());
-        doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
-        underTest.getCurrentBlockNumber();
+            when(mockRequest.send()).thenThrow(new IOException());
+            doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
+            underTest.getCurrentBlockNumber();
+        });
     }
 
     @Test
@@ -185,8 +190,8 @@ public class Web3jServiceTest {
     }
 
     private ContractEventDetails doRegisterEventListenerAndTrigger() throws IOException {
-        final org.web3j.protocol.core.methods.response.Log mockLog
-                = mock(org.web3j.protocol.core.methods.response.Log.class);
+        final org.web3j.protocol.core.methods.response.Log mockLog = mock(
+                org.web3j.protocol.core.methods.response.Log.class);
 
         final Flowable<org.web3j.protocol.core.methods.response.Log> flowable = new DummyFlowable<>(mockLog);
         when(mockWeb3j.ethLogFlowable(any(EthFilter.class))).thenReturn(flowable);
@@ -214,8 +219,8 @@ public class Web3jServiceTest {
     private static final String LOGS_BLOOM = "bloom";
 
     private org.web3j.protocol.core.methods.response.TransactionReceipt createMockTxReceipt() {
-        final org.web3j.protocol.core.methods.response.TransactionReceipt txReceipt =
-                mock(org.web3j.protocol.core.methods.response.TransactionReceipt.class);
+        final org.web3j.protocol.core.methods.response.TransactionReceipt txReceipt = mock(
+                org.web3j.protocol.core.methods.response.TransactionReceipt.class);
 
         when(txReceipt.getTransactionHash()).thenReturn(TX_HASH);
         when(txReceipt.getTransactionIndex()).thenReturn(TX_INDEX);
@@ -227,8 +232,8 @@ public class Web3jServiceTest {
         when(txReceipt.getFrom()).thenReturn(FROM_ADDRESS);
         when(txReceipt.getTo()).thenReturn(TO_ADDRESS);
         when(txReceipt.getLogsBloom()).thenReturn(LOGS_BLOOM);
-        final List<org.web3j.protocol.core.methods.response.Log> mockLogs
-                = Arrays.asList(createMockTransactionLog(false));
+        final List<org.web3j.protocol.core.methods.response.Log> mockLogs = Arrays
+                .asList(createMockTransactionLog(false));
         when(txReceipt.getLogs()).thenReturn(mockLogs);
 
         return txReceipt;
@@ -255,8 +260,8 @@ public class Web3jServiceTest {
     private static final String TOPIC = "topic";
 
     private org.web3j.protocol.core.methods.response.Log createMockTransactionLog(boolean isRemoved) {
-        final org.web3j.protocol.core.methods.response.Log log =
-                mock(org.web3j.protocol.core.methods.response.Log.class);
+        final org.web3j.protocol.core.methods.response.Log log = mock(
+                org.web3j.protocol.core.methods.response.Log.class);
 
         when(log.isRemoved()).thenReturn(isRemoved);
         when(log.getLogIndex()).thenReturn(LOG_INDEX);

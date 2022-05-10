@@ -14,7 +14,6 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import com.mongodb.MongoClient;
 import junit.framework.TestCase;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -29,6 +28,8 @@ import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import net.consensys.eventeum.utils.JSON;
 import net.consensys.eventeumserver.integrationtest.utils.RestartingSpringRunner;
 import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,14 +44,17 @@ import wiremock.org.apache.commons.collections4.IterableUtils;
 import java.math.BigInteger;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(RestartingSpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@TestPropertySource(properties=
-        {"spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"})
+@TestPropertySource(properties = {
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration" })
 public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTest {
     private static final int MONGO_PORT = 27017;
 
@@ -59,7 +63,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
     @Autowired
     private TransactionMonitoringSpecRepository txRepo;
 
-    @BeforeClass
+    @BeforeAll
     public static void startMongo() {
         mongoContainer = new FixedHostPortGenericContainer("mongo:3.5.5");
         mongoContainer.waitingFor(Wait.forListeningPort());
@@ -69,7 +73,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
         waitForMongoDBToStart(30000);
     }
 
-    @AfterClass
+    @AfterAll
     public static void stopMongo() {
         if (mongoContainer != null) {
             mongoContainer.stop();
@@ -82,8 +86,8 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         waitForBlockMessages(5);
 
-        //Depending on timing, the genesis block is sometimes broadcast,
-        //So wait another few seconds for the last block if this is the case
+        // Depending on timing, the genesis block is sometimes broadcast,
+        // So wait another few seconds for the last block if this is the case
         waitForBroadcast();
 
         List<BlockDetails> broadcastBlocks = getBroadcastBlockMessages();
@@ -92,7 +96,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         final BigInteger lastBlockNumber = broadcastBlocks.get(broadcastBlocks.size() - 1).getNumber();
 
-        //Ensure latest block has been updated in eventeum
+        // Ensure latest block has been updated in eventeum
         waitForBroadcast();
 
         getBroadcastBlockMessages().clear();
@@ -114,12 +118,12 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         System.out.println("BROADCAST BLOCKS AFTER: " + JSON.stringify(getBroadcastBlockMessages()));
 
-        //Eventeum will rebroadcast the last seen block after restart in case block
-        //wasn't fully processed (when numBlocksToReplay=0)
+        // Eventeum will rebroadcast the last seen block after restart in case block
+        // wasn't fully processed (when numBlocksToReplay=0)
         assertEquals(lastBlockNumber, getBroadcastBlockMessages().get(0).getNumber());
 
-        //Assert incremental blocks
-        for(int i = 0; i < getBroadcastBlockMessages().size(); i++) {
+        // Assert incremental blocks
+        for (int i = 0; i < getBroadcastBlockMessages().size(); i++) {
             final BigInteger expectedNumber = BigInteger.valueOf(i + lastBlockNumber.intValue());
 
             assertEquals(expectedNumber, getBroadcastBlockMessages().get(i).getNumber());
@@ -176,7 +180,6 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-
         verifyDummyEventDetails(registeredFilter,
                 getBroadcastContractEvents().get(0), ContractEventStatus.CONFIRMED);
     }
@@ -187,14 +190,16 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         waitForBlockMessages(1);
 
-        //We're going to send 10 transactions in front to trigger blocks so nonce should be 10 higher
+        // We're going to send 10 transactions in front to trigger blocks so nonce
+        // should be 10 higher
         final BigInteger nonce = getNonce().add(BigInteger.TEN);
 
         final String signedHex = createRawSignedTransactionHex(nonce);
 
         final String txHash = Hash.sha3(signedHex);
 
-        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash,
+                Constants.DEFAULT_NODE_NAME);
 
         monitorTransaction(monitorSpec);
 
@@ -233,21 +238,22 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
             }
 
             try {
-                //Check mongo is up
-                final MongoClient mongo = new MongoClient();
+                // Check mongo is up
+                final MongoClient mongo = MongoClients.create();
                 final List<String> databaseNames = IterableUtils.toList(mongo.listDatabaseNames());
 
                 if (databaseNames.size() > 0) {
                     break;
                 }
             } catch (Throwable t) {
-                //If an error occurs, mongoDB is not yet up
+                // If an error occurs, mongoDB is not yet up
             }
 
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
-                e.printStackTrace();;
+                e.printStackTrace();
+                ;
             }
         }
     }

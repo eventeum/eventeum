@@ -16,18 +16,16 @@ package net.consensys.eventeum.chain.block;
 
 import net.consensys.eventeum.chain.factory.DefaultBlockDetailsFactory;
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class BroadcastingBlockListenerTest {
@@ -36,7 +34,7 @@ public class BroadcastingBlockListenerTest {
 
     private BlockchainEventBroadcaster mockBroadcaster;
 
-    @Before
+    @BeforeEach
     public void init() {
         mockBroadcaster = mock(BlockchainEventBroadcaster.class);
 

@@ -28,7 +28,8 @@ import net.consensys.eventeum.utils.JSON;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
@@ -37,7 +38,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 
@@ -63,31 +64,32 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     private KafkaMessageListenerContainer springMessageListener;
 
     @ClassRule
-    public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 1);
+    public static EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 1);
 
     private KafkaMessageListenerContainer<String, String> testContainer;
 
     @Autowired
     public KafkaListenerEndpointRegistry registry;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
 
         // set up the Kafka consumer properties
-        final Map<String, Object> consumerProperties =
-                KafkaTestUtils.consumerProps(generateTestGroupId(), "false", embeddedKafka);
+        final Map<String, Object> consumerProperties = KafkaTestUtils.consumerProps(generateTestGroupId(), "false",
+                embeddedKafka);
 
-        //Child classes can modify the properties
+        // Child classes can modify the properties
         modifyKafkaConsumerProps(consumerProperties);
 
         // create a Kafka consumer factory
-        DefaultKafkaConsumerFactory<String, String> consumerFactory =
-                new DefaultKafkaConsumerFactory<>(consumerProperties, new StringDeserializer(), new StringDeserializer());
+        DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(
+                consumerProperties, new StringDeserializer(), new StringDeserializer());
 
         // set the topic that needs to be consumed
         ContainerProperties containerProperties = new ContainerProperties(kafkaSettings.getContractEventsTopic(),
-                kafkaSettings.getEventeumEventsTopic(), kafkaSettings.getBlockEventsTopic(), kafkaSettings.getTransactionEventsTopic());
+                kafkaSettings.getEventeumEventsTopic(), kafkaSettings.getBlockEventsTopic(),
+                kafkaSettings.getTransactionEventsTopic());
 
         // create a Kafka MessageListenerContainer
         testContainer = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
@@ -99,18 +101,17 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                 System.out.println("Received message: " + JSON.stringify(record.value()));
                 try {
                     if (record.topic().equals(kafkaSettings.getContractEventsTopic())) {
-                        final EventeumMessage<ContractEventDetails> message =
-                                objectMapper.readValue(record.value(), EventeumMessage.class);
+                        final EventeumMessage<ContractEventDetails> message = objectMapper.readValue(record.value(),
+                                EventeumMessage.class);
 
                         getBroadcastContractEvents().add(message.getDetails());
                     }
 
                     if (record.topic().equals(kafkaSettings.getEventeumEventsTopic())) {
-                        final EventeumMessage message =
-                                objectMapper.readValue(record.value(), EventeumMessage.class);
+                        final EventeumMessage message = objectMapper.readValue(record.value(), EventeumMessage.class);
 
                         if (message.getType().equals(ContractEventFilterAdded.TYPE)
-                            || message.getType().equals(ContractEventFilterRemoved.TYPE)) {
+                                || message.getType().equals(ContractEventFilterRemoved.TYPE)) {
                             final EventeumMessage<ContractEventFilter> filterMessge = message;
                             getBroadcastFilterEventMessages().add(filterMessge);
                         } else {
@@ -121,15 +122,15 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
                     }
 
                     if (record.topic().equals(kafkaSettings.getBlockEventsTopic())) {
-                        final EventeumMessage<BlockDetails> message =
-                                objectMapper.readValue(record.value(), EventeumMessage.class);
+                        final EventeumMessage<BlockDetails> message = objectMapper.readValue(record.value(),
+                                EventeumMessage.class);
 
                         getBroadcastBlockMessages().add(message.getDetails());
                     }
 
                     if (record.topic().equals(kafkaSettings.getTransactionEventsTopic())) {
-                        final EventeumMessage<TransactionDetails> message =
-                                objectMapper.readValue(record.value(), EventeumMessage.class);
+                        final EventeumMessage<TransactionDetails> message = objectMapper.readValue(record.value(),
+                                EventeumMessage.class);
 
                         getBroadcastTransactionMessages().add(message.getDetails());
                     }
@@ -147,7 +148,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
 
         final MessageListenerContainer defaultContainer = registry.getListenerContainer(KAFKA_LISTENER_CONTAINER_ID);
 
-        //Container won't exist in non multi-instance mode
+        // Container won't exist in non multi-instance mode
         if (defaultContainer != null) {
             ContainerTestUtils.waitForAssignment(defaultContainer, embeddedKafka.getPartitionsPerTopic());
         }
@@ -167,7 +168,7 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
         clearMessages();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         // stop the container
         testContainer.stop();

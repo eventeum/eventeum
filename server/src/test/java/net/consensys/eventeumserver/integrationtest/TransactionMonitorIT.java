@@ -20,7 +20,7 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,13 +33,13 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@TestPropertySource(locations="classpath:application-test-tx-monitor.properties")
+@TestPropertySource(locations = "classpath:application-test-tx-monitor.properties")
 public class TransactionMonitorIT extends MainBroadcasterTests {
 
     private static final String TO_ADDRESS = "0x607f4c5bb672230e8672085532f7e901544a7375";
@@ -95,13 +95,14 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
 
         TransactionDetails txDetails = null;
 
-        //Not sure why there is sometimes a value sending transaction first...maybe something to do with the genesis block?
+        // Not sure why there is sometimes a value sending transaction first...maybe
+        // something to do with the genesis block?
         if (getBroadcastTransactionMessages().size() == 1) {
             txDetails = getBroadcastTransactionMessages().get(0);
         } else if (getBroadcastTransactionMessages().size() == 2) {
             txDetails = getBroadcastTransactionMessages().get(1);
 
-            //Check that the same tx hasn't been broadcast twice
+            // Check that the same tx hasn't been broadcast twice
             assertNotEquals(getBroadcastTransactionMessages().get(0).getHash(), txDetails.getHash());
         } else {
             TestCase.fail("Incorrect number of transaction messages broadcast");
@@ -120,8 +121,9 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
         assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
     }
 
-    private void triggerBlocksAndCheckMessagesSize(int numBlocks, int expectedNumBroadcasts) throws InterruptedException, ExecutionException, IOException {
-        for (int i = 0; i< numBlocks; i++) {
+    private void triggerBlocksAndCheckMessagesSize(int numBlocks, int expectedNumBroadcasts)
+            throws InterruptedException, ExecutionException, IOException {
+        for (int i = 0; i < numBlocks; i++) {
             triggerBlocks(1);
             assertEquals(expectedNumBroadcasts, getBroadcastTransactionMessages().size());
         }

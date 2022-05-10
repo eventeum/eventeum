@@ -24,8 +24,8 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Keys;
@@ -34,16 +34,16 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DefaultContractEventDetailsFactoryTest {
 
-    //Values: 123, 0x00a329c0648769a73afac7f9381e08fb43dbea72, -42
+    // Values: 123, 0x00a329c0648769a73afac7f9381e08fb43dbea72, -42
     private static final String LOG_DATA = "0x000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000a329c0648769a73afac7f9381e08fb43dbea72ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd6";
 
-    //Values: 456
+    // Values: 456
     private static final String INDEXED_PARAM = "0x00000000000000000000000000000000000000000000000000000000000001c8";
 
     private static final String CONTRACT_ADDRESS = "0x7a55a28856d43bba3c6a7e36f2cee9a82923e99b";
@@ -84,7 +84,7 @@ public class DefaultContractEventDetailsFactoryTest {
                 new ParameterDefinition(3, ParameterType.build("INT256"))));
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         mockParameterCoverter = mock(EventParameterConverter.class);
 
@@ -117,7 +117,7 @@ public class DefaultContractEventDetailsFactoryTest {
         assertEquals(BLOCK_HASH, eventDetails.getBlockHash());
         assertEquals(Web3jUtil.getSignature(eventSpec), eventDetails.getEventSpecificationSignature());
         assertEquals(ContractEventStatus.UNCONFIRMED, eventDetails.getStatus());
-        assertEquals(NETWORK_NAME,eventDetails.getNetworkName());
+        assertEquals(NETWORK_NAME, eventDetails.getNetworkName());
     }
 
     @Test
@@ -173,8 +173,7 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     private DefaultContractEventDetailsFactory createFactory(BigInteger confirmations) {
-        Node node =
-                new Node();
+        Node node = new Node();
         node.setBlocksToWaitForConfirmation(confirmations);
         node.setBlocksToWaitForMissingTx(BigInteger.valueOf(100));
         node.setBlocksToWaitBeforeInvalidating(BigInteger.valueOf(5));

@@ -24,14 +24,14 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.service.EventStoreService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +71,7 @@ public class DefaultEventBlockManagementServiceTest {
                 Arrays.asList(new ParameterDefinition(2, ParameterType.build("BYTES32"))));
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         mockNodeServices = mock(NodeServices.class);
         mockChainServicesContainer = mock(ChainServicesContainer.class);
@@ -115,7 +115,8 @@ public class DefaultEventBlockManagementServiceTest {
     public void testGetNoLocalMatchButHitInEventStore() {
         final ContractEventDetails mockEventDetails = mock(ContractEventDetails.class);
         when(mockEventDetails.getBlockNumber()).thenReturn(BigInteger.ONE);
-        when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH, CONTRACT_ADDRESS)).thenReturn(Optional.of(mockEventDetails));
+        when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH, CONTRACT_ADDRESS))
+                .thenReturn(Optional.of(mockEventDetails));
 
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
@@ -126,7 +127,8 @@ public class DefaultEventBlockManagementServiceTest {
     public void testGetNoLocalMatchAndNoHitInEventStore() {
         when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH, CONTRACT_ADDRESS)).thenReturn(null);
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(BigInteger.valueOf(20));
-        when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH, CONTRACT_ADDRESS)).thenReturn(Optional.empty());
+        when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH, CONTRACT_ADDRESS))
+                .thenReturn(Optional.empty());
 
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 

@@ -18,7 +18,7 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -46,9 +46,10 @@ public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
 
     private boolean isFirstTest = true;
 
-    @Before
+    @BeforeEach
     public void waitForRabbitInit() throws InterruptedException {
-        //TODO Figure out how to verify when rabbitMQ has started we we don't have to sleep
+        // TODO Figure out how to verify when rabbitMQ has started we we don't have to
+        // sleep
         if (isFirstTest) {
             Thread.sleep(10000);
         }
@@ -56,33 +57,21 @@ public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
         isFirstTest = false;
     }
 
-    @RabbitListener(bindings = @QueueBinding(
-            key = "contractEvents.*",
-            value = @Queue("contractEvents"),
-            exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)
-    ))
+    @RabbitListener(bindings = @QueueBinding(key = "contractEvents.*", value = @Queue("contractEvents"), exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)))
     public void onContractEvent(EventeumMessage message) {
-        if(message.getDetails() instanceof ContractEventDetails){
+        if (message.getDetails() instanceof ContractEventDetails) {
             onContractEventMessageReceived((ContractEventDetails) message.getDetails());
-        } else if(message.getDetails() instanceof TransactionDetails){
+        } else if (message.getDetails() instanceof TransactionDetails) {
             onTransactionMessageReceived((TransactionDetails) message.getDetails());
         }
     }
 
-    @RabbitListener(bindings = @QueueBinding(
-            key = "transactionEvents.*",
-            value = @Queue("transactionEvents"),
-            exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)
-    ))
+    @RabbitListener(bindings = @QueueBinding(key = "transactionEvents.*", value = @Queue("transactionEvents"), exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)))
     public void onTransactionEvent(EventeumMessage message) {
         onTransactionMessageReceived((TransactionDetails) message.getDetails());
     }
 
-    @RabbitListener(bindings = @QueueBinding(
-            key = "blockEvents",
-            value = @Queue("blockEvents"),
-            exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)
-    ))
+    @RabbitListener(bindings = @QueueBinding(key = "blockEvents", value = @Queue("blockEvents"), exchange = @Exchange(value = "ThisIsAExchange", type = ExchangeTypes.TOPIC)))
     public void onBlockEvent(EventeumMessage message) {
         onBlockMessageReceived((BlockDetails) message.getDetails());
     }
@@ -93,7 +82,8 @@ public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
         @PostConstruct
         void initRabbit() {
             if (RabbitBroadcasterDBEventStoreIT.rabbitContainer == null) {
-                RabbitBroadcasterDBEventStoreIT.rabbitContainer = new FixedHostPortGenericContainer("rabbitmq:3.6.14-management");
+                RabbitBroadcasterDBEventStoreIT.rabbitContainer = new FixedHostPortGenericContainer(
+                        "rabbitmq:3.6.14-management");
                 RabbitBroadcasterDBEventStoreIT.rabbitContainer.waitingFor(Wait.forListeningPort());
                 RabbitBroadcasterDBEventStoreIT.rabbitContainer.withFixedExposedPort(5672, 5672);
                 RabbitBroadcasterDBEventStoreIT.rabbitContainer.start();

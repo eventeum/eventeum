@@ -65,18 +65,18 @@ public class MongoEventStore implements SaveableEventStore {
 
         final Query query = new Query(
                 Criteria.where("eventSpecificationSignature")
-                .is(eventSignature)
-                .and("address")
-                .is(contractAddress))
-            .with(new Sort(Direction.DESC, "blockNumber"))
-            .collation(Collation.of("en").numericOrderingEnabled());
+                        .is(eventSignature)
+                        .and("address")
+                        .is(contractAddress))
+                .with(Sort.by(Direction.DESC, "blockNumber"))
+                .collation(Collation.of("en").numericOrderingEnabled());
 
         final long totalResults = mongoTemplate.count(query, ContractEventDetails.class);
 
-        //Set pagination on query
+        // Set pagination on query
         query
-            .skip(pagination.getPageNumber() * pagination.getPageSize())
-            .limit(pagination.getPageSize());
+                .skip(pagination.getPageNumber() * pagination.getPageSize())
+                .limit(pagination.getPageSize());
 
         final List<ContractEventDetails> results = mongoTemplate.find(query, ContractEventDetails.class);
 

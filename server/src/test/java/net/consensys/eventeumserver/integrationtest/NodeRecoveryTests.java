@@ -18,7 +18,7 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.utils.JSON;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.web3j.crypto.Keys;
@@ -30,7 +30,7 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
@@ -97,7 +97,8 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
         final ContractEventDetails secondEventDetails = getBroadcastContractEvents().get(0);
 
         verifyDummyEventDetails(registeredFilter, secondEventDetails, ContractEventStatus.UNCONFIRMED,
-                toHexWithTrailingZeros(valueOne.getBytes(), 66), Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.valueOf(123), valueFour);
+                toHexWithTrailingZeros(valueOne.getBytes(), 66), Keys.toChecksumAddress(CREDS.getAddress()),
+                BigInteger.valueOf(123), valueFour);
     }
 
     private String toHexWithTrailingZeros(byte[] bytes, int length) {
