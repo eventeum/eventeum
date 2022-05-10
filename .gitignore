@@ -38,3 +38,6 @@ hs_err_pid*
 .target
 .springBeans
 **/target
+
+# Local Settinngs
+.vscode/
