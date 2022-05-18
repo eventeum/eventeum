@@ -25,8 +25,8 @@ import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import net.consensys.eventeum.monitoring.MicrometerValueMonitor;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -59,9 +59,9 @@ public class NodeHealthCheckServiceTest {
 
     private EventStoreService mockEventStoreService;
 
-    private ScheduledThreadPoolExecutor  mockTaskScheduler;
+    private ScheduledThreadPoolExecutor mockTaskScheduler;
 
-    @Before
+    @BeforeEach
     public void init() throws Exception {
         mockBlockchainService = mock(BlockchainService.class);
         when(mockBlockchainService.getNodeName()).thenReturn(Constants.DEFAULT_NODE_NAME);
@@ -124,7 +124,6 @@ public class NodeHealthCheckServiceTest {
         verify(mockReconnectionStrategy, times(2)).reconnect();
         verify(mockReconnectionStrategy, never()).resubscribe();
     }
-
 
     @Test
     public void testNodeComesBackUpNotSubscribed() {
@@ -224,18 +223,16 @@ public class NodeHealthCheckServiceTest {
     }
 
     private NodeHealthCheckService createUnderTest() throws Exception {
-        final NodeHealthCheckService healthCheckService =
-                new NodeHealthCheckService(
-                        mockBlockchainService,
-                        mockBlockSubscriptionStrategy,
-                        mockReconnectionStrategy,
-                        mockSubscriptionService,
-                        mockEventeumValueMonitor,
-                        mockEventStoreService,
-                        SYNCING_THRESHOLD,
-                        mockTaskScheduler,
-                        HEALTH_CHECK_INTERVAL
-                );
+        final NodeHealthCheckService healthCheckService = new NodeHealthCheckService(
+                mockBlockchainService,
+                mockBlockSubscriptionStrategy,
+                mockReconnectionStrategy,
+                mockSubscriptionService,
+                mockEventeumValueMonitor,
+                mockEventStoreService,
+                SYNCING_THRESHOLD,
+                mockTaskScheduler,
+                HEALTH_CHECK_INTERVAL);
 
         return healthCheckService;
     }

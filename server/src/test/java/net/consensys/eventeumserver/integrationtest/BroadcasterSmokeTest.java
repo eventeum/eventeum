@@ -23,12 +23,12 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
 
@@ -65,7 +65,8 @@ public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
     public void testBroadcastTransactionEvent() throws Exception {
 
         final String txHash = sendTransaction();
-        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+        TransactionMonitoringSpec monitorSpec = new TransactionMonitoringSpec(TransactionIdentifierType.HASH, txHash,
+                Constants.DEFAULT_NODE_NAME);
 
         monitorTransaction(monitorSpec);
 

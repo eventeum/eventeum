@@ -23,9 +23,10 @@ import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBroadcasterSettings;
 import net.consensys.eventeum.testutils.StubHttpConsumer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -38,7 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HttpBlockchainEventBroadcasterTest {
 
@@ -46,7 +47,7 @@ public class HttpBlockchainEventBroadcasterTest {
 
     private StubHttpConsumer httpConsumer;
 
-    @Before
+    @BeforeEach
     public void init() {
         final HttpBroadcasterSettings settings = new HttpBroadcasterSettings();
         settings.setBlockEventsUrl("http://localhost:8082/consumer/block-event");
@@ -65,11 +66,10 @@ public class HttpBlockchainEventBroadcasterTest {
         underTest = new HttpBlockchainEventBroadcaster(settings, retryTemplate);
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         httpConsumer.stop();
     }
-
 
     @Test
     public void testBroadcastContractEvent() {
@@ -113,10 +113,10 @@ public class HttpBlockchainEventBroadcasterTest {
         contractEvent.setName("AnEvent");
         contractEvent.setAddress("0xf0a6c84894ed7312a75ff0e621cde2f8a1c62d6f");
         contractEvent.setEventSpecificationSignature("somesig");
-        contractEvent.setIndexedParameters(Arrays.asList
-                (new StringParameter("bytes32", "1234"), new NumberParameter("uint256", BigInteger.valueOf(123))));
-        contractEvent.setNonIndexedParameters(Arrays.asList
-                (new StringParameter("string", "5678"), new NumberParameter("uint256", BigInteger.valueOf(456))));
+        contractEvent.setIndexedParameters(Arrays.asList(new StringParameter("bytes32", "1234"),
+                new NumberParameter("uint256", BigInteger.valueOf(123))));
+        contractEvent.setNonIndexedParameters(Arrays.asList(new StringParameter("string", "5678"),
+                new NumberParameter("uint256", BigInteger.valueOf(456))));
 
         return contractEvent;
     }

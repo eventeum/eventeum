@@ -15,13 +15,12 @@
 package net.consensys.eventeumserver.integrationtest;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -32,25 +31,26 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class BaseStartBlockTest extends BaseKafkaIntegrationTest {
 
-
-    @BeforeClass
+    @BeforeAll
     public static void doTriggerBlocks() throws IOException {
-        //Triggers 6 blocks total (genesis and additional 5)
+        // Triggers 6 blocks total (genesis and additional 5)
         triggerBlocks(5);
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void clearMessages() {
-        //Theres a race condition that sometimes causes the block messages to be cleared after being received
-        //Overriding to remove the clearing of block messages as its not required here (until there are multiple tests!)
+        // Theres a race condition that sometimes causes the block messages to be
+        // cleared after being received
+        // Overriding to remove the clearing of block messages as its not required here
+        // (until there are multiple tests!)
         getBroadcastContractEvents().clear();
         getBroadcastTransactionMessages().clear();
     }
@@ -78,20 +78,18 @@ public abstract class BaseStartBlockTest extends BaseKafkaIntegrationTest {
     private static void triggerBlocks(int numBlocks) throws IOException {
         final Web3j web3j = Web3j.build(new HttpService("http://localhost:8545"));
 
-        for (int i = 0; i < numBlocks; i++){
+        for (int i = 0; i < numBlocks; i++) {
             web3j.ethSendTransaction(Transaction.createEtherTransaction(
                     web3j.ethAccounts().send().getAccounts().get(0),
 
                     web3j.ethGetTransactionCount(
                             web3j.ethAccounts().send().getAccounts().get(0),
-                            DefaultBlockParameterName.fromString("latest")
-                    ).send().getTransactionCount(),
+                            DefaultBlockParameterName.fromString("latest")).send().getTransactionCount(),
 
                     BigInteger.valueOf(2000),
                     BigInteger.valueOf(6721975),
                     CREDS.getAddress(),
-                    new BigInteger("9460000000000000000"))
-            ).send();
+                    new BigInteger("9460000000000000000"))).send();
         }
     }
 }

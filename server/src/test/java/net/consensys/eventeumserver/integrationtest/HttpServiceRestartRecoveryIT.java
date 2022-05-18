@@ -14,10 +14,10 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(locations="classpath:application-test-db.properties")
+@TestPropertySource(locations = "classpath:application-test-db.properties")
 public class HttpServiceRestartRecoveryIT extends ServiceRestartRecoveryTests {
 
     @Test

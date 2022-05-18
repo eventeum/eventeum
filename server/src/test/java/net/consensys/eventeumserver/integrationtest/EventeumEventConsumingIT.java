@@ -26,7 +26,7 @@ import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +38,12 @@ import org.web3j.crypto.Hash;
 
 import java.math.BigInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@TestPropertySource(locations="classpath:application-test-multiinstance.properties")
+@TestPropertySource(locations = "classpath:application-test-multiinstance.properties")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
@@ -157,14 +157,14 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
     private void waitForFilterEventMessages(int expectedMessageCounnt) throws InterruptedException {
         waitForMessages(expectedMessageCounnt, getBroadcastFilterEventMessages());
 
-        //Wait an extra 2 seconds because there may be a race condition
+        // Wait an extra 2 seconds because there may be a race condition
         Thread.sleep(2000);
     }
 
     private void waitForTransactionMonitorEventMessages(int expectedMessageCounnt) throws InterruptedException {
         waitForMessages(expectedMessageCounnt, getBroadcastTransactionEventMessages());
 
-        //Wait an extra 2 seconds because there may be a race condition
+        // Wait an extra 2 seconds because there may be a race condition
         Thread.sleep(2000);
     }
 }

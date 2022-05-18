@@ -25,8 +25,8 @@ import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -38,11 +38,9 @@ public class EventConfirmationBlockListenerTest {
     private static final BigInteger BLOCKS_TO_WAIT = BigInteger.valueOf(10);
     private static final BigInteger BLOCKS_TO_WAIT_MISSING = BigInteger.valueOf(100);
     private static final BigInteger BLOCKS_TO_WAIT_BEFORE_INVALIDATING = BigInteger.valueOf(1);
-    private static final String EVENT_BLOCK_HASH =
-            "0x368ce0ee3afdf1bd73d7e6912f899f31b14b9656e1a3164400ba4587df192c1d";
+    private static final String EVENT_BLOCK_HASH = "0x368ce0ee3afdf1bd73d7e6912f899f31b14b9656e1a3164400ba4587df192c1d";
     private static final BigInteger EVENT_BLOCK_NUMBER = BigInteger.valueOf(1000);
-    private static final String EVENT_TX_HASH =
-            "0x1fdb6a20587d7114ee471f3ec9d2517b267fc951eafc91ccdede7c50962a755b";
+    private static final String EVENT_TX_HASH = "0x1fdb6a20587d7114ee471f3ec9d2517b267fc951eafc91ccdede7c50962a755b";
     private static final BigInteger EVENT_LOG_INDEX = BigInteger.valueOf(1);
 
     private EventConfirmationBlockListener underTest;
@@ -54,7 +52,7 @@ public class EventConfirmationBlockListenerTest {
     private TransactionReceipt mockTransactionReceipt;
     private Log mockLog;
 
-    @Before
+    @BeforeEach
     public void init() {
         mockEventDetails = mock(ContractEventDetails.class);
         mockBlockchainService = mock(BlockchainService.class);
@@ -77,8 +75,7 @@ public class EventConfirmationBlockListenerTest {
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(EVENT_BLOCK_NUMBER);
         when(mockBlockchainService.getTransactionReceipt(EVENT_TX_HASH)).thenReturn(mockTransactionReceipt);
 
-        Node node =
-                new Node();
+        Node node = new Node();
         node.setBlocksToWaitForConfirmation(BLOCKS_TO_WAIT);
         node.setBlocksToWaitForMissingTx(BLOCKS_TO_WAIT_MISSING);
         node.setBlocksToWaitBeforeInvalidating(BLOCKS_TO_WAIT_BEFORE_INVALIDATING);

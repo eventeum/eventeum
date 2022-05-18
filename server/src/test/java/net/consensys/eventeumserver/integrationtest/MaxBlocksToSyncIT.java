@@ -14,15 +14,15 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@TestPropertySource(locations="classpath:application-test-db.properties",
-        properties = {"ethereum.nodes[0].maxBlocksToSync=4"})
+@TestPropertySource(locations = "classpath:application-test-db.properties", properties = {
+        "ethereum.nodes[0].maxBlocksToSync=4" })
 public class MaxBlocksToSyncIT extends ServiceRestartRecoveryTests {
 
     @Test

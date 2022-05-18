@@ -21,9 +21,10 @@ import net.consensys.eventeum.model.SyncStatus;
 import net.consensys.eventeum.repository.EventFilterSyncStatusRepository;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.bouncycastle.util.test.TestFailedException;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -56,7 +57,7 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
     @Autowired
     private EventFilterSyncStatusRepository syncStatusRepository;
 
-    @BeforeClass
+    @BeforeAll
     public static void doEmitEvents() throws Exception {
         final Web3j web3j = Web3j.build(new HttpService("http://localhost:8545"));
 
@@ -69,11 +70,13 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
         System.setProperty("EVENT_EMITTER_CONTRACT_ADDRESS", eventEmitter.getContractAddress());
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void clearMessages() {
-        //Theres a race condition that sometimes causes the event messages to be cleared after being received
-        //Overriding to remove the clearing of event messages as its not required here (until there are multiple tests!)
+        // Theres a race condition that sometimes causes the event messages to be
+        // cleared after being received
+        // Overriding to remove the clearing of event messages as its not required here
+        // (until there are multiple tests!)
         getBroadcastBlockMessages().clear();
         getBroadcastTransactionMessages().clear();
     }

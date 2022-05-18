@@ -36,6 +36,10 @@ import net.consensys.eventeum.utils.JSON;
 import net.consensys.eventeumserver.integrationtest.utils.SpringRestarter;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
@@ -70,7 +74,7 @@ public class BaseIntegrationTest {
 
     private static final String PARITY_VOLUME_PATH = "target/parity";
 
-    //"BytesValue" in hex
+    // "BytesValue" in hex
     private static final String BYTES_VALUE_HEX = "0x427974657356616c756500000000000000000000000000000000000000000000";
 
     protected static final BigInteger GAS_PRICE = BigInteger.valueOf(22_000_000_000L);
@@ -80,7 +84,8 @@ public class BaseIntegrationTest {
     protected static final String DUMMY_EVENT_NOT_ORDERED_NAME = "DummyEventNotOrdered";
     protected static final String FAKE_CONTRACT_ADDRESS = "0xb4f391500fc66e6a1ac5d345f58bdcbea66c1a6f";
 
-    protected static final Credentials CREDS = Credentials.create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
+    protected static final Credentials CREDS = Credentials
+            .create("0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
 
     protected static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -119,7 +124,7 @@ public class BaseIntegrationTest {
 
     public static boolean shouldPersistNodeVolume = true;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupEnvironment() throws Exception {
         StubEventStoreService.start();
 
@@ -129,7 +134,7 @@ public class BaseIntegrationTest {
         startParity();
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
 
         initRestTemplate();
@@ -140,15 +145,13 @@ public class BaseIntegrationTest {
                 this.web3j.ethAccounts().send().getAccounts().get(0),
 
                 this.web3j.ethGetTransactionCount(
-                    this.web3j.ethAccounts().send().getAccounts().get(0),
-                        DefaultBlockParameterName.fromString("latest")
-                ).send().getTransactionCount(),
+                        this.web3j.ethAccounts().send().getAccounts().get(0),
+                        DefaultBlockParameterName.fromString("latest")).send().getTransactionCount(),
 
                 BigInteger.valueOf(2000),
                 BigInteger.valueOf(6721975),
                 CREDS.getAddress(),
-                new BigInteger("9460000000000000000"))
-        ).send();
+                new BigInteger("9460000000000000000"))).send();
 
         dummyEventFilterId = UUID.randomUUID().toString();
         dummyEventNotOrderedFilterId = UUID.randomUUID().toString();
@@ -157,24 +160,24 @@ public class BaseIntegrationTest {
 
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardownEnvironment() throws Exception {
         StubEventStoreService.stop();
-
 
         shouldPersistNodeVolume = true;
         stopParity();
 
         try {
-            //Clear parity data
+            // Clear parity data
             final File file = new File(PARITY_VOLUME_PATH);
             FileUtils.deleteDirectory(file);
         } catch (Throwable t) {
-            //When running on circleci the parity dir cannot be deleted but this does no affect tests
+            // When running on circleci the parity dir cannot be deleted but this does no
+            // affect tests
         }
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         final ArrayList<String> filterIds = new ArrayList<>(registeredFilters.keySet());
 
@@ -190,7 +193,7 @@ public class BaseIntegrationTest {
             eventDetailsRepository.deleteAll();
         }
 
-        //Get around concurrent modification exception
+        // Get around concurrent modification exception
         try {
             new ArrayList<>(registeredTransactionMonitorIds).forEach(this::unregisterTransactionMonitor);
         } catch (Throwable t) {
@@ -223,8 +226,8 @@ public class BaseIntegrationTest {
     }
 
     protected ContractEventFilter registerEventFilter(ContractEventFilter filter) {
-        final ResponseEntity<AddEventFilterResponse> response =
-                restTemplate.postForEntity(restUrl + "/api/rest/v1/event-filter", filter, AddEventFilterResponse.class);
+        final ResponseEntity<AddEventFilterResponse> response = restTemplate
+                .postForEntity(restUrl + "/api/rest/v1/event-filter", filter, AddEventFilterResponse.class);
 
         filter.setId(response.getBody().getId());
 
@@ -233,20 +236,21 @@ public class BaseIntegrationTest {
     }
 
     protected List<ContractEventFilter> listEventFilters() {
-	final ResponseEntity<List<ContractEventFilter>> response = restTemplate.exchange(
-		  restUrl + "/api/rest/v1/event-filter",
-		  HttpMethod.GET,
-		  null,
-		  new ParameterizedTypeReference<List<ContractEventFilter>>(){});
+        final ResponseEntity<List<ContractEventFilter>> response = restTemplate.exchange(
+                restUrl + "/api/rest/v1/event-filter",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<ContractEventFilter>>() {
+                });
 
-	List<ContractEventFilter> contractEventFilters = response.getBody();
+        List<ContractEventFilter> contractEventFilters = response.getBody();
 
-	return contractEventFilters;
+        return contractEventFilters;
     }
 
     protected String monitorTransaction(TransactionMonitoringSpec monitorSpec) {
-        final ResponseEntity<MonitorTransactionsResponse> response =
-                restTemplate.postForEntity(restUrl + "/api/rest/v1/transaction", monitorSpec, MonitorTransactionsResponse.class);
+        final ResponseEntity<MonitorTransactionsResponse> response = restTemplate
+                .postForEntity(restUrl + "/api/rest/v1/transaction", monitorSpec, MonitorTransactionsResponse.class);
 
         registeredTransactionMonitorIds.add(response.getBody().getId());
         return response.getBody().getId();
@@ -274,7 +278,7 @@ public class BaseIntegrationTest {
         try {
             return unlock.accountUnlocked();
         } catch (NullPointerException npe) {
-            //NPE thrown in parity if account is unlocked at startup
+            // NPE thrown in parity if account is unlocked at startup
             return true;
         }
     }
@@ -324,9 +328,10 @@ public class BaseIntegrationTest {
         return createRawSignedTransactionHex(toAddress, getNonce());
     }
 
-    protected String createRawSignedTransactionHex(String toAddress, BigInteger nonce) throws ExecutionException, InterruptedException {
+    protected String createRawSignedTransactionHex(String toAddress, BigInteger nonce)
+            throws ExecutionException, InterruptedException {
 
-        final RawTransaction rawTransaction  = RawTransaction.createEtherTransaction(
+        final RawTransaction rawTransaction = RawTransaction.createEtherTransaction(
                 nonce, GAS_PRICE, GAS_LIMIT, toAddress, BigInteger.ONE);
 
         final byte[] signedTx = TransactionEncoder.signMessage(rawTransaction, CREDS);
@@ -341,19 +346,19 @@ public class BaseIntegrationTest {
     }
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
-                                         ContractEventDetails eventDetails, ContractEventStatus status) {
+            ContractEventDetails eventDetails, ContractEventStatus status) {
 
         verifyDummyEventDetails(registeredFilter, eventDetails, status,
                 BYTES_VALUE_HEX, Keys.toChecksumAddress(CREDS.getAddress()), BigInteger.TEN, "StringValue");
     }
 
     protected void verifyDummyEventDetails(ContractEventFilter registeredFilter,
-                                           ContractEventDetails eventDetails,
-                                           ContractEventStatus status,
-                                           String valueOne,
-                                           String valueTwo,
-                                           BigInteger valueThree,
-                                           String valueFour) {
+            ContractEventDetails eventDetails,
+            ContractEventStatus status,
+            String valueOne,
+            String valueTwo,
+            BigInteger valueThree,
+            String valueFour) {
         assertEquals(registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(status, eventDetails.getStatus());
         assertEquals(valueOne, eventDetails.getIndexedParameters().get(0).getValue());
@@ -400,7 +405,7 @@ public class BaseIntegrationTest {
         waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages());
     }
 
-    protected void waitForTransactionMessages(int expectedTransactionMessages,  boolean failOnTimeout) {
+    protected void waitForTransactionMessages(int expectedTransactionMessages, boolean failOnTimeout) {
         waitForMessages(expectedTransactionMessages, getBroadcastTransactionMessages(), failOnTimeout);
     }
 
@@ -416,7 +421,7 @@ public class BaseIntegrationTest {
         }
 
         final long startTime = System.currentTimeMillis();
-        while(true) {
+        while (true) {
             if (messages.size() >= expectedMessageCount) {
                 return true;
             }
@@ -446,12 +451,12 @@ public class BaseIntegrationTest {
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES32")),
-                              new ParameterDefinition(1, ParameterType.build("ADDRESS"))));
+                        new ParameterDefinition(1, ParameterType.build("ADDRESS"))));
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(2, ParameterType.build("UINT256")),
-                              new ParameterDefinition(3, ParameterType.build("STRING")),
-                              new ParameterDefinition(4, ParameterType.build("UINT8"))));
+                        new ParameterDefinition(3, ParameterType.build("STRING")),
+                        new ParameterDefinition(4, ParameterType.build("UINT8"))));
 
         eventSpec.setEventName(DUMMY_EVENT_NAME);
 
@@ -467,12 +472,12 @@ public class BaseIntegrationTest {
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
         eventSpec.setIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(0, ParameterType.build("BYTES32")),
-                              new ParameterDefinition(2, ParameterType.build("ADDRESS"))));
+                        new ParameterDefinition(2, ParameterType.build("ADDRESS"))));
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(new ParameterDefinition(1, ParameterType.build("UINT256")),
-                              new ParameterDefinition(3, ParameterType.build("STRING")),
-                              new ParameterDefinition(4, ParameterType.build("UINT8"))));
+                        new ParameterDefinition(3, ParameterType.build("STRING")),
+                        new ParameterDefinition(4, ParameterType.build("UINT8"))));
 
         eventSpec.setEventName(DUMMY_EVENT_NOT_ORDERED_NAME);
 
@@ -504,7 +509,8 @@ public class BaseIntegrationTest {
         return registeredFilter;
     }
 
-    protected ContractEventFilter createFilter(String id, String contractAddress, ContractEventSpecification eventSpec) {
+    protected ContractEventFilter createFilter(String id, String contractAddress,
+            ContractEventSpecification eventSpec) {
         final ContractEventFilter contractEventFilter = new ContractEventFilter();
         contractEventFilter.setId(id);
         contractEventFilter.setContractAddress(contractAddress);
@@ -568,13 +574,14 @@ public class BaseIntegrationTest {
                 web3j.web3ClientVersion().send();
                 break;
             } catch (Throwable t) {
-                //If an error occurs, the node is not yet up
+                // If an error occurs, the node is not yet up
             }
 
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
-                e.printStackTrace();;
+                e.printStackTrace();
+                ;
             }
         }
     }

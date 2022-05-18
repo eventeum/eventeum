@@ -29,21 +29,21 @@ import net.consensys.eventeum.integration.broadcast.internal.EventeumEventBroadc
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.sync.EventSyncService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DefaultSubscriptionServiceTest {
     private static final String FILTER_ID = "123-456";
 
@@ -92,7 +92,7 @@ public class DefaultSubscriptionServiceTest {
                         new ParameterDefinition(2, ParameterType.build("ADDRESS"))));
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         when(mockChainServicesContainer.getNodeServices(
                 Constants.DEFAULT_NODE_NAME)).thenReturn(mockNodeServices);
@@ -121,7 +121,7 @@ public class DefaultSubscriptionServiceTest {
         final ContractEventFilter filter = createEventFilter();
         underTest.registerContractEventFilter(filter, true);
 
-        verifyContractEventFilterBroadcast(filter,true);
+        verifyContractEventFilterBroadcast(filter, true);
         assertEquals(1, underTest.listContractEventFilters().size());
     }
 
@@ -140,7 +140,7 @@ public class DefaultSubscriptionServiceTest {
         underTest.registerContractEventFilter(filter, true);
         underTest.registerContractEventFilter(filter, true);
 
-        verifyContractEventFilterBroadcast(filter,true);
+        verifyContractEventFilterBroadcast(filter, true);
 
         assertEquals(1, underTest.listContractEventFilters().size());
     }
@@ -178,11 +178,11 @@ public class DefaultSubscriptionServiceTest {
         assertEquals(0, underTest.listContractEventFilters().size());
 
         boolean exceptionThrown = false;
-        //This will test that the filter has been deleted from memory
+        // This will test that the filter has been deleted from memory
         try {
             underTest.unregisterContractEventFilter(FILTER_ID);
         } catch (NotFoundException e) {
-            //Expected
+            // Expected
             exceptionThrown = true;
         }
 

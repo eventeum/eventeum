@@ -29,7 +29,7 @@
     <properties>
         <java.version>1.8</java.version>
         <skipIntegrationTests>true</skipIntegrationTests>
-        <micrometer.version>1.1.0</micrometer.version>
+        <micrometer.version>1.8.5</micrometer.version>
     </properties>
 
     <dependencies>
@@ -37,6 +37,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.4.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>4.5.1</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -53,11 +67,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
-            <version>1.3.50</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -65,17 +74,13 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>2.8.5</version>
         </dependency>
         <!-- Micrometer Prometheus registry  -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
             <version> ${micrometer.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
@@ -92,7 +97,7 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>2.6.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -146,7 +151,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <classesDirectory>${project.build.directory}/${artifactId}.jar.original</classesDirectory>
+                    <classesDirectory>${project.build.directory}/${project.artifactId}.jar.original</classesDirectory>
                     <skipITs>${skipIntegrationTests}</skipITs>
                 </configuration>
             </plugin>

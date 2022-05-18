@@ -27,8 +27,8 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.RabbitSettings;
 import net.consensys.eventeum.integration.broadcast.blockchain.RabbitBlockChainEventBroadcaster;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,8 +37,8 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 public class RabbitBlockchainEventBroadcasterTest {
@@ -48,13 +48,12 @@ public class RabbitBlockchainEventBroadcasterTest {
     private static final String CONTRACT_EVENT_ROUTING_KEY = "contractEvent";
     private static final String TRANSACTION_EVENT_ROUTING_KEY = "transactionEvent";
 
-
     private RabbitBlockChainEventBroadcaster underTest;
 
     private RabbitTemplate rabbitTemplate;
     private RabbitSettings rabbitSettings;
 
-    @Before
+    @BeforeEach
     public void init() {
         rabbitTemplate = Mockito.mock(RabbitTemplate.class);
         rabbitSettings = Mockito.mock(RabbitSettings.class);
@@ -80,7 +79,7 @@ public class RabbitBlockchainEventBroadcasterTest {
         final ArgumentCaptor<EventeumMessage> messageCaptor = ArgumentCaptor.forClass(EventeumMessage.class);
         verify(rabbitTemplate).convertAndSend(eq(EVENT_EXCHANGE), routingKeyCaptor.capture(), messageCaptor.capture());
 
-        assertEquals(String.format("%s", NEW_BLOCK_ROUTING_KEY),routingKeyCaptor.getValue());
+        assertEquals(String.format("%s", NEW_BLOCK_ROUTING_KEY), routingKeyCaptor.getValue());
         assertEquals(BlockEvent.TYPE, messageCaptor.getValue().getType());
         assertEquals(block, messageCaptor.getValue().getDetails());
     }
@@ -96,7 +95,8 @@ public class RabbitBlockchainEventBroadcasterTest {
         final ArgumentCaptor<EventeumMessage> messageCaptor = ArgumentCaptor.forClass(EventeumMessage.class);
         verify(rabbitTemplate).convertAndSend(eq(EVENT_EXCHANGE), routingKeyCaptor.capture(), messageCaptor.capture());
 
-        assertEquals(String.format("%s.%s", CONTRACT_EVENT_ROUTING_KEY, event.getFilterId()),routingKeyCaptor.getValue());
+        assertEquals(String.format("%s.%s", CONTRACT_EVENT_ROUTING_KEY, event.getFilterId()),
+                routingKeyCaptor.getValue());
         assertEquals(ContractEvent.TYPE, messageCaptor.getValue().getType());
         assertEquals(event, messageCaptor.getValue().getDetails());
     }
@@ -112,7 +112,8 @@ public class RabbitBlockchainEventBroadcasterTest {
         final ArgumentCaptor<EventeumMessage> messageCaptor = ArgumentCaptor.forClass(EventeumMessage.class);
         verify(rabbitTemplate).convertAndSend(eq(EVENT_EXCHANGE), routingKeyCaptor.capture(), messageCaptor.capture());
 
-        assertEquals(String.format("%s.%s", TRANSACTION_EVENT_ROUTING_KEY, event.getHash()),routingKeyCaptor.getValue());
+        assertEquals(String.format("%s.%s", TRANSACTION_EVENT_ROUTING_KEY, event.getHash()),
+                routingKeyCaptor.getValue());
         assertEquals(TransactionEvent.TYPE, messageCaptor.getValue().getType());
         assertEquals(event, messageCaptor.getValue().getDetails());
     }
@@ -141,10 +142,10 @@ public class RabbitBlockchainEventBroadcasterTest {
         contractEvent.setName("AnEvent");
         contractEvent.setAddress("0xf0a6c84894ed7312a75ff0e621cde2f8a1c62d6f");
         contractEvent.setEventSpecificationSignature("somesig");
-        contractEvent.setIndexedParameters(Arrays.asList
-                (new StringParameter("bytes32", "1234"), new NumberParameter("uint256", BigInteger.valueOf(123))));
-        contractEvent.setNonIndexedParameters(Arrays.asList
-                (new StringParameter("string", "5678"), new NumberParameter("uint256", BigInteger.valueOf(456))));
+        contractEvent.setIndexedParameters(Arrays.asList(new StringParameter("bytes32", "1234"),
+                new NumberParameter("uint256", BigInteger.valueOf(123))));
+        contractEvent.setNonIndexedParameters(Arrays.asList(new StringParameter("string", "5678"),
+                new NumberParameter("uint256", BigInteger.valueOf(456))));
 
         return contractEvent;
     }

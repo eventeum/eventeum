@@ -16,8 +16,8 @@ package net.consensys.eventeum.chain.contract;
 
 import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
@@ -31,7 +31,7 @@ public class EventBlockUpdaterListenerTest {
 
     private EventBlockManagementService mockBlockManagementService;
 
-    @Before
+    @BeforeEach
     public void init() {
         mockBlockManagementService = mock(EventBlockManagementService.class);
 
