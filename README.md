@@ -134,7 +134,7 @@ That is the simplest node configuration, but there is other custom flags you can
 - `readTimeout`: Http read timeout to the node in milliseconds (default: 60000)
 - `addTransactionRevertReason`: Enables receiving the revert reason when a transaction fails.  (default: false)
 - `pollInterval`: Polling interval of the rpc request to the node (default: 10000)
-- `healthcheckInterval`: Polling interval of that evenreum will use to check if the node is active (default: 10000)
+- `healthcheckInterval`: Polling interval of that eventeum will use to check if the node is active (default: 10000)
 - `numBlocksToWait`: Blocks to wait until we decide event is confirmed (default: 1). Overrides broadcaster config
 - `numBlocksToWaitBeforeInvalidating`:  Blocks to wait until we decide event is invalidated (default: 1).  Overrides broadcaster config
 - `numBlocksToWaitForMissingTx`: Blocks to wait until we decide tx is missing (default: 1)  Overrides broadcaster config
