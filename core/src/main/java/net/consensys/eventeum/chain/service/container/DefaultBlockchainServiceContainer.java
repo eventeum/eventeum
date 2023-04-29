@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-@Lazy
 @Component
 public class DefaultBlockchainServiceContainer implements ChainServicesContainer, InitializingBean {
 
@@ -32,7 +31,7 @@ public class DefaultBlockchainServiceContainer implements ChainServicesContainer
     private Map<String, NodeServices> nodeServicesMap;
 
     @Autowired
-    public DefaultBlockchainServiceContainer(@Lazy List<NodeServices> nodeServices) {
+    public DefaultBlockchainServiceContainer(List<NodeServices> nodeServices) {
         this.nodeServices = nodeServices;
     }
 

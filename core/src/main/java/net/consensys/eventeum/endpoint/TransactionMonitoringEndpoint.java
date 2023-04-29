@@ -14,14 +14,13 @@
 
 package net.consensys.eventeum.endpoint;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.endpoint.response.MonitorTransactionsResponse;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
-import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.TransactionMonitoringService;
+import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * A REST endpoint for adding a removing event filters.

@@ -22,7 +22,6 @@ import net.consensys.eventeum.settings.EventeumSettings;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 

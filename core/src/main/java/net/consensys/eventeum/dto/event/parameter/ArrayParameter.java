@@ -15,10 +15,10 @@
 package net.consensys.eventeum.dto.event.parameter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Embeddable;
 import java.util.ArrayList;
 
 /**

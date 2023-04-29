@@ -14,25 +14,20 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.integration.eventstore.EventStore;
-import net.consensys.eventeum.model.LatestBlock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.crypto.Keys;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 

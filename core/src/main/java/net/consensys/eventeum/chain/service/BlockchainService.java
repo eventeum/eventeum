@@ -14,14 +14,12 @@
 
 package net.consensys.eventeum.chain.service;
 
-import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.model.FilterSubscription;
-import rx.Subscription;
 
 import java.math.BigInteger;
 import java.util.List;

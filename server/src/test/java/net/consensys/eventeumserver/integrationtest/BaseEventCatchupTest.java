@@ -14,13 +14,11 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import com.google.common.collect.Lists;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.model.EventFilterSyncStatus;
 import net.consensys.eventeum.model.SyncStatus;
 import net.consensys.eventeum.repository.EventFilterSyncStatusRepository;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.bouncycastle.util.test.TestFailedException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,13 +26,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 

@@ -29,7 +29,6 @@ import net.consensys.eventeum.integration.eventstore.db.repository.ContractEvent
 import net.consensys.eventeum.integration.eventstore.db.repository.LatestBlockRepository;
 import net.consensys.eventeum.integration.eventstore.rest.RESTEventStore;
 import net.consensys.eventeum.integration.eventstore.rest.client.EventStoreClient;
-
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

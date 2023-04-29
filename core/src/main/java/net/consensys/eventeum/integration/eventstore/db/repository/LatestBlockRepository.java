@@ -18,7 +18,6 @@ import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

@@ -15,7 +15,6 @@
 package net.consensys.eventeum.chain.block;
 
 import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
 
 /**
  * A listener for new block events.

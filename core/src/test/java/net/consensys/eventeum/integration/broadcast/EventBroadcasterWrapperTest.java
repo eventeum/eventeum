@@ -17,8 +17,8 @@ package net.consensys.eventeum.integration.broadcast;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.EventBroadcasterWrapper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.mockito.Mockito.never;
@@ -30,7 +30,7 @@ public class EventBroadcasterWrapperTest {
 
     private BlockchainEventBroadcaster blockchainEventBroadcaster;
 
-    @Before
+    @BeforeEach
     public void init() {
         blockchainEventBroadcaster = Mockito.mock(BlockchainEventBroadcaster.class);
     }

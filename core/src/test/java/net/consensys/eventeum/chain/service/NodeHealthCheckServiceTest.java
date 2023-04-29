@@ -19,17 +19,15 @@ import net.consensys.eventeum.chain.service.health.NodeHealthCheckService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.constant.Constants;
-import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.monitoring.EventeumValueMonitor;
 import net.consensys.eventeum.monitoring.MicrometerValueMonitor;
 import net.consensys.eventeum.service.EventStoreService;
 import net.consensys.eventeum.service.SubscriptionService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -61,7 +59,7 @@ public class NodeHealthCheckServiceTest {
 
     private ScheduledThreadPoolExecutor  mockTaskScheduler;
 
-    @Before
+    @BeforeEach
     public void init() throws Exception {
         mockBlockchainService = mock(BlockchainService.class);
         when(mockBlockchainService.getNodeName()).thenReturn(Constants.DEFAULT_NODE_NAME);

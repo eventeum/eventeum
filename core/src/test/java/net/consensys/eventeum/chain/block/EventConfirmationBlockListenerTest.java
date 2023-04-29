@@ -23,10 +23,8 @@ import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.service.AsyncTaskService;
-import net.consensys.eventeum.testutils.DummyAsyncTaskService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -54,7 +52,7 @@ public class EventConfirmationBlockListenerTest {
     private TransactionReceipt mockTransactionReceipt;
     private Log mockLog;
 
-    @Before
+    @BeforeEach
     public void init() {
         mockEventDetails = mock(ContractEventDetails.class);
         mockBlockchainService = mock(BlockchainService.class);

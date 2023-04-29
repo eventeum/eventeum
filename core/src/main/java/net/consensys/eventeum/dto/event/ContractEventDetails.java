@@ -16,22 +16,19 @@ package net.consensys.eventeum.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
-import net.consensys.eventeum.dto.TransactionBasedDetails;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.consensys.eventeum.dto.TransactionBasedDetails;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigInteger;
 import java.util.List;
-
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
 
 /**
  * Represents the details of an emitted Ethereum smart contract event.

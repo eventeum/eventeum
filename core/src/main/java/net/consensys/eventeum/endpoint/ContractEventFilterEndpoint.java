@@ -14,15 +14,14 @@
 
 package net.consensys.eventeum.endpoint;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.endpoint.exception.BadRequestException;
 import net.consensys.eventeum.endpoint.response.AddEventFilterResponse;
-import net.consensys.eventeum.service.exception.NotFoundException;
 import net.consensys.eventeum.service.SubscriptionService;
+import net.consensys.eventeum.service.exception.NotFoundException;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.List;
 

@@ -14,14 +14,13 @@
 
 package net.consensys.eventeum.dto.event.parameter;
 
-import java.io.Serializable;
-
-import javax.persistence.Embeddable;
-
+import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 @Embeddable
 @Data

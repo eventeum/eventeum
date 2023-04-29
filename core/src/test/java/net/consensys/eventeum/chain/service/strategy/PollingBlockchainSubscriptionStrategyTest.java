@@ -14,6 +14,9 @@
 
 package net.consensys.eventeum.chain.service.strategy;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
 import net.consensys.eventeum.chain.block.BlockListener;
@@ -21,16 +24,16 @@ import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.math.BigInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class PollingBlockchainSubscriptionStrategyTest {
@@ -57,7 +60,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
 
     private EventeumSettings mockSettings;
 
-    @Before
+    @BeforeEach
     public void init() {
         this.mockWeb3j = mock(Web3j.class);
 
@@ -84,18 +87,18 @@ public class PollingBlockchainSubscriptionStrategyTest {
     public void testSubscribe() {
         final Disposable returnedSubscription = underTest.subscribe();
 
-        assertEquals(false, returnedSubscription.isDisposed());
+        assertFalse(returnedSubscription.isDisposed());
     }
 
     @Test
     public void testUnsubscribe() {
         final Disposable returnedSubscription = underTest.subscribe();
 
-        assertEquals(false, returnedSubscription.isDisposed());
+        assertFalse(returnedSubscription.isDisposed());
 
         underTest.unsubscribe();
 
-        assertEquals(true, returnedSubscription.isDisposed());
+        assertTrue(returnedSubscription.isDisposed());
     }
 
     @Test

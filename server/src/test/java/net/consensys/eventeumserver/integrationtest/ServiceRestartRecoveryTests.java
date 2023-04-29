@@ -14,7 +14,8 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import junit.framework.TestCase;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -49,8 +50,7 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@TestPropertySource(properties=
-        {"spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"})
+@TestPropertySource()
 public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTest {
     private static final int MONGO_PORT = 27017;
 
@@ -232,9 +232,9 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
                 throw new IllegalStateException("MongoDB failed to start...");
             }
 
-            try {
+            try(final MongoClient mongo = MongoClients.create()){
                 //Check mongo is up
-                final MongoClient mongo = new MongoClient();
+                ;
                 final List<String> databaseNames = IterableUtils.toList(mongo.listDatabaseNames());
 
                 if (databaseNames.size() > 0) {

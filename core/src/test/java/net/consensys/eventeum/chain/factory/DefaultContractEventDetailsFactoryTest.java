@@ -24,17 +24,16 @@ import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 import net.consensys.eventeum.dto.event.filter.ParameterDefinition;
 import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Keys;
-import org.web3j.protocol.core.methods.response.EthBlock;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -84,7 +83,7 @@ public class DefaultContractEventDetailsFactoryTest {
                 new ParameterDefinition(3, ParameterType.build("INT256"))));
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         mockParameterCoverter = mock(EventParameterConverter.class);
 

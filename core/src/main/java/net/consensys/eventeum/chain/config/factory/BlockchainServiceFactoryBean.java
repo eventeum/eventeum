@@ -15,11 +15,9 @@
 package net.consensys.eventeum.chain.config.factory;
 
 import lombok.Data;
-import net.consensys.eventeum.chain.service.BlockchainService;
-import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
-import net.consensys.eventeum.chain.service.Web3jService;
 import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
-import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
+import net.consensys.eventeum.chain.service.BlockchainService;
+import net.consensys.eventeum.chain.service.Web3jService;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.beans.factory.FactoryBean;

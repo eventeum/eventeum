@@ -14,6 +14,7 @@
 
 package net.consensys.eventeum.model;
 
+import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.consensys.eventeum.dto.block.BlockDetails;
@@ -21,8 +22,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigInteger;
-
-import javax.persistence.Entity;
 
 @Document
 @Entity
@@ -37,7 +36,7 @@ public class LatestBlock {
         this.timestamp = blockDetails.getTimestamp();
     }
 
-    @javax.persistence.Id
+    @jakarta.persistence.Id
     @Id
     private String nodeName;
 

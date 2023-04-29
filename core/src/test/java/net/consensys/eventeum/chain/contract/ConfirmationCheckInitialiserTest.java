@@ -28,9 +28,8 @@ import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
-import org.junit.Before;
-import org.junit.Test;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 
 import static org.mockito.Mockito.*;
@@ -51,7 +50,7 @@ public class ConfirmationCheckInitialiserTest {
      private AsyncTaskService asyncTaskService = new DummyAsyncTaskService();
      private BigInteger currentBlock = BigInteger.valueOf(2000);
 
-     @Before
+     @BeforeEach
      public void init() {
 
          mockBlockchainService = mock(BlockchainService.class);

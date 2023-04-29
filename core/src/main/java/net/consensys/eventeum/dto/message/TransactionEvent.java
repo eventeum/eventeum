@@ -15,7 +15,6 @@
 package net.consensys.eventeum.dto.message;
 
 import lombok.NoArgsConstructor;
-import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 
 @NoArgsConstructor

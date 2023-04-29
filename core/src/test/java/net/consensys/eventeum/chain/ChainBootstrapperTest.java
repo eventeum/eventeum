@@ -14,22 +14,22 @@
 
 package net.consensys.eventeum.chain;
 
+import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.config.EventFilterConfiguration;
 import net.consensys.eventeum.chain.config.TransactionFilterConfiguration;
+import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
 import net.consensys.eventeum.service.SubscriptionService;
-import net.consensys.eventeum.chain.block.BlockListener;
-import net.consensys.eventeum.chain.config.EventFilterConfiguration;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.service.TransactionMonitoringService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,7 +38,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ChainBootstrapperTest {
 
     @Mock
@@ -71,7 +71,7 @@ public class ChainBootstrapperTest {
 
     private ChainBootstrapper underTest;
 
-    @Before
+    @BeforeEach
     public void init() {
         underTest = new ChainBootstrapper(mockSubscriptionService, mockTransactionMonitoringService, mockConfig,
                 mockFilterRepository, mockTransactionMonitoringRepository,

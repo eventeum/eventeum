@@ -18,9 +18,7 @@ import lombok.Data;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.utils.ModelMapperFactory;
-import org.modelmapper.Condition;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
 
 import java.math.BigInteger;
 import java.util.List;

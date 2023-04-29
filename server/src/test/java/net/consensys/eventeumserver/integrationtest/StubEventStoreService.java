@@ -14,20 +14,20 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-
 import com.github.tomakehurst.wiremock.WireMockServer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.mixin.SimplePageImpl;
 import net.consensys.eventeum.model.LatestBlock;
-import org.springframework.data.domain.Page;
 import net.consensys.eventeum.utils.JSON;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 public class StubEventStoreService {
 

@@ -16,8 +16,8 @@ package net.consensys.eventeum.chain.converter;
 
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import net.consensys.eventeum.settings.EventeumSettings;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Bytes32;
@@ -26,14 +26,15 @@ import org.web3j.abi.datatypes.generated.Uint8;
 
 import java.math.BigInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class Web3jEventParameterConverterTest {
     private static String ADDRESS = "0xBb4F53C05e50574C5fEdbFE89c13Cc5fEb634ae3";
 
     private Web3jEventParameterConverter underTest;
 
-    @Before
+    @BeforeEach
     public void init() {
         underTest = new Web3jEventParameterConverter(new EventeumSettings(true, "10000"));
     }
@@ -69,9 +70,9 @@ public class Web3jEventParameterConverterTest {
         assertEquals("aTopic", result.getValue());
     }
 
-    @Test(expected = TypeConversionException.class)
+    @Test()
     public void testInvalidTypeConversion() {
-        underTest.convert(new InvalidType());
+        assertThrows(TypeConversionException.class,() -> underTest.convert(new InvalidType()));
     }
 
     private class InvalidType implements Type {

@@ -14,12 +14,11 @@
 
 package net.consensys.eventeum.dto.event.parameter;
 
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
-
-import javax.persistence.Embeddable;
 
 /**
  * A number based EventParameter, represented by a BigInteger.

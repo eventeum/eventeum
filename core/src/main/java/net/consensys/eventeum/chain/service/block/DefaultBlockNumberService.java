@@ -15,11 +15,14 @@
 package net.consensys.eventeum.chain.service.block;
 
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.service.EventStoreService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -29,17 +32,21 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultBlockNumberService implements BlockNumberService {
 
-    private NodeSettings settings;
+    private final NodeSettings settings;
 
-    private EventStoreService eventStoreService;
+    private final EventStoreService eventStoreService;
 
     private ChainServicesContainer chainServices;
 
-    private Map<String, BigInteger> currentBlockAtStartup = new HashMap<>();
+    private final Map<String, BigInteger> currentBlockAtStartup = new HashMap<>();
 
+    @Autowired
+    public void setChainServices(@Lazy ChainServicesContainer chainServices) {
+        this.chainServices = chainServices;
+    }
     @Override
     public BigInteger getStartBlockForNode(String nodeName) {
         final Optional<LatestBlock> latestBlock = getLatestBlock(nodeName);

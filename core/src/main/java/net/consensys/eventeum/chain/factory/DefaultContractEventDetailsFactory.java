@@ -14,12 +14,9 @@
 
 package net.consensys.eventeum.chain.factory;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.util.Web3jUtil;
-import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -33,6 +30,8 @@ import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.Log;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;

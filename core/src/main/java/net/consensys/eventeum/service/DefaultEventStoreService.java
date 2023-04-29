@@ -47,8 +47,8 @@ public class DefaultEventStoreService implements EventStoreService {
             String eventSignature, String contractAddress) {
         int page = eventStore.isPagingZeroIndexed() ? 0 : 1;
 
-        final PageRequest pagination = new PageRequest(page,
-                1, new Sort(Sort.Direction.DESC, "blockNumber"));
+        final PageRequest pagination = PageRequest.of(page,
+                1, Sort.by(Sort.Direction.DESC, "blockNumber"));
 
         final Page<ContractEventDetails> eventsPage =
                 eventStore.getContractEventsForSignature(eventSignature, contractAddress, pagination);

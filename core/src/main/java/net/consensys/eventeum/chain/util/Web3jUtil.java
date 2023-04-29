@@ -22,7 +22,6 @@ import net.consensys.eventeum.dto.event.filter.ParameterType;
 import net.consensys.eventeum.service.exception.ValidationException;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.Utils;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Bytes1;
 

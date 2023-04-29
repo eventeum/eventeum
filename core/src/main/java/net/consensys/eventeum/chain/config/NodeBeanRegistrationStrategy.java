@@ -14,6 +14,7 @@
 
 package net.consensys.eventeum.chain.config;
 
+import jakarta.xml.bind.DatatypeConverter;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.config.factory.ContractEventDetailsFactoryFactoryBean;
 import net.consensys.eventeum.chain.service.container.NodeServices;
@@ -40,7 +41,6 @@ import org.web3j.protocol.websocket.WebSocketClient;
 import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.utils.Async;
 
-import javax.xml.bind.DatatypeConverter;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Map;

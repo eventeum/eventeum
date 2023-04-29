@@ -15,28 +15,26 @@
 package net.consensys.eventeum.chain.service;
 
 import io.reactivex.Flowable;
-import net.consensys.eventeum.chain.service.block.EventBlockManagementService;
-import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
-import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.contract.ContractEventListener;
 import net.consensys.eventeum.chain.factory.ContractEventDetailsFactory;
-import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
+import net.consensys.eventeum.chain.service.domain.Log;
+import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscriber;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.*;
+import org.web3j.protocol.core.methods.response.EthBlockNumber;
+import org.web3j.protocol.core.methods.response.EthCall;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
+import org.web3j.protocol.core.methods.response.Web3ClientVersion;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -44,14 +42,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.eq;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class Web3jServiceTest {
 
@@ -72,7 +65,7 @@ public class Web3jServiceTest {
     private ContractEventDetails mockContractEventDetails;
 
 
-    @Before
+    @BeforeEach
     public void init() throws IOException {
         mockWeb3j = mock(Web3j.class);
         mockContractEventDetailsFactory = mock(ContractEventDetailsFactory.class);
@@ -116,14 +109,14 @@ public class Web3jServiceTest {
         assertEquals("Version 1.0", underTest.getClientVersion());
     }
 
-    @Test(expected = BlockchainException.class)
+    @Test
     public void testGetClientVersionIOException() throws IOException {
         final Request<?, Web3ClientVersion> mockRequest = mock(Request.class);
 
         when(mockRequest.send()).thenThrow(new IOException());
         doReturn(mockRequest).when(mockWeb3j).web3ClientVersion();
 
-        underTest.getClientVersion();
+        assertThrows(BlockchainException.class, () -> underTest.getClientVersion());
     }
 
     @Test
@@ -141,14 +134,14 @@ public class Web3jServiceTest {
         checkTransactionReceipt(underTest.getTransactionReceipt(TX_HASH));
     }
 
-    @Test(expected = BlockchainException.class)
+    @Test()
     public void testGetTransactionReceiptIOException() throws IOException {
         final Request<?, EthGetTransactionReceipt> mockRequest = mock(Request.class);
 
         when(mockRequest.send()).thenThrow(new IOException());
         doReturn(mockRequest).when(mockWeb3j).ethGetTransactionReceipt(TX_HASH);
 
-        underTest.getTransactionReceipt(TX_HASH);
+        assertThrows(BlockchainException.class, () ->underTest.getTransactionReceipt(TX_HASH));
     }
 
     @Test
@@ -163,13 +156,13 @@ public class Web3jServiceTest {
         assertEquals(BigInteger.TEN, underTest.getCurrentBlockNumber());
     }
 
-    @Test(expected = BlockchainException.class)
+    @Test
     public void testGetCurrentBlockNumberIOException() throws IOException {
         final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
 
         when(mockRequest.send()).thenThrow(new IOException());
         doReturn(mockRequest).when(mockWeb3j).ethBlockNumber();
-        underTest.getCurrentBlockNumber();
+        assertThrows(BlockchainException.class, () -> underTest.getCurrentBlockNumber());
     }
 
     @Test

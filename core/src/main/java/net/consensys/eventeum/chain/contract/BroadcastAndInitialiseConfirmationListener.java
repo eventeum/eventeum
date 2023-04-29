@@ -27,7 +27,6 @@ import net.consensys.eventeum.chain.settings.NodeSettings;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
-import net.consensys.eventeum.service.AsyncTaskService;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;

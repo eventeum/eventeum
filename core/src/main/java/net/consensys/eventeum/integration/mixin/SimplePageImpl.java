@@ -17,7 +17,6 @@ package net.consensys.eventeum.integration.mixin;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.*;
 
 import java.util.Iterator;
@@ -34,7 +33,7 @@ public class SimplePageImpl<T> implements Page<T> {
             @JsonProperty("number") int number,
             @JsonProperty("size") int size,
             @JsonProperty("totalElements") long totalElements) {
-        delegate = new PageImpl<>(content, new PageRequest(number, size), totalElements);
+        delegate = new PageImpl<>(content, PageRequest.of(number, size), totalElements);
     }
 
 

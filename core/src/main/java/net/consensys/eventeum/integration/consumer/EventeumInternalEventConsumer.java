@@ -14,7 +14,6 @@
 
 package net.consensys.eventeum.integration.consumer;
 
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 
 /**

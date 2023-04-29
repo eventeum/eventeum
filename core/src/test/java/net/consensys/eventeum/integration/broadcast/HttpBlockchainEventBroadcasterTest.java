@@ -23,9 +23,9 @@ import net.consensys.eventeum.dto.event.parameter.StringParameter;
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.HttpBroadcasterSettings;
 import net.consensys.eventeum.testutils.StubHttpConsumer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -38,7 +38,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public class HttpBlockchainEventBroadcasterTest {
 
@@ -46,7 +47,7 @@ public class HttpBlockchainEventBroadcasterTest {
 
     private StubHttpConsumer httpConsumer;
 
-    @Before
+    @BeforeEach
     public void init() {
         final HttpBroadcasterSettings settings = new HttpBroadcasterSettings();
         settings.setBlockEventsUrl("http://localhost:8082/consumer/block-event");
@@ -65,7 +66,7 @@ public class HttpBlockchainEventBroadcasterTest {
         underTest = new HttpBlockchainEventBroadcaster(settings, retryTemplate);
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         httpConsumer.stop();
     }

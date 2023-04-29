@@ -14,12 +14,11 @@
 
 package net.consensys.eventeum.dto.event.filter.correlationId;
 
-import javax.persistence.Embeddable;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.persistence.Embeddable;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 
 /**

@@ -15,16 +15,15 @@
 package net.consensys.eventeum.chain;
 
 import lombok.AllArgsConstructor;
+import net.consensys.eventeum.chain.config.EventFilterConfiguration;
 import net.consensys.eventeum.chain.config.TransactionFilterConfiguration;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.SubscriptionService;
-import net.consensys.eventeum.chain.config.EventFilterConfiguration;
 import net.consensys.eventeum.service.TransactionMonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.repository.CrudRepository;

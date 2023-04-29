@@ -14,6 +14,8 @@
 
 package net.consensys.eventeum.utils;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -23,9 +25,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Craig Williams <craig.williams@consensys.net>
  */
 public class JSON {
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static String stringify(Object object) {
+        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         try {
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {

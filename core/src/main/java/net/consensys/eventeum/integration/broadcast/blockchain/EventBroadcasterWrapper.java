@@ -18,7 +18,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import org.springframework.scheduling.annotation.Scheduled;
 

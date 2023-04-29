@@ -14,7 +14,6 @@
 
 package net.consensys.eventeum.chain.block;
 
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 
 /**

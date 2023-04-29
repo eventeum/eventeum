@@ -15,7 +15,6 @@
 package net.consensys.eventeumserver.integrationtest.utils;
 
 import org.junit.runners.model.InitializationError;
-import org.springframework.test.context.TestContextManager;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 public class RestartingSpringJUnit4ClassRunner extends SpringJUnit4ClassRunner {

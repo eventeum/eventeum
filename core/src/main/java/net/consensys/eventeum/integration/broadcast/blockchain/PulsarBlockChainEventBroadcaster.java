@@ -14,24 +14,17 @@
 
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
-import javax.annotation.PreDestroy;
-
-import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import org.apache.pulsar.client.api.ClientBuilder;
-import org.apache.pulsar.client.api.CompressionType;
-import org.apache.pulsar.client.api.Producer;
-import org.apache.pulsar.client.api.PulsarClient;
-import org.apache.pulsar.client.api.PulsarClientException;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.PulsarSettings;
 import net.consensys.eventeum.integration.PulsarSettings.Authentication;
 import net.consensys.eventeum.integration.broadcast.BroadcastException;
+import org.apache.pulsar.client.api.*;
 
 @Slf4j
         public class PulsarBlockChainEventBroadcaster implements BlockchainEventBroadcaster {

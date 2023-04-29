@@ -19,7 +19,6 @@ import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.Transaction;
 import net.consensys.eventeum.utils.ModelMapperFactory;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
 import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.EthBlock;
 

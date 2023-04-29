@@ -15,7 +15,6 @@
 package net.consensys.eventeum.chain.service.block;
 
 import com.google.common.collect.EvictingQueue;
-import net.consensys.eventeum.chain.service.block.BlockCache;
 import net.consensys.eventeum.chain.service.domain.Block;
 import org.springframework.stereotype.Component;
 

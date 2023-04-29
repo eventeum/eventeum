@@ -24,16 +24,17 @@ import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.integration.broadcast.blockchain.KafkaBlockchainEventBroadcaster;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigInteger;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class KafkaBlockchainEventBroadcasterTest {
@@ -52,7 +53,7 @@ public class KafkaBlockchainEventBroadcasterTest {
 
     private ContractEventFilterRepository mockFilterRepository;
 
-    @Before
+    @BeforeEach
     public void init() {
         mockKafkaTemplate = mock(KafkaTemplate.class);
         mockKafkaSettings = mock(KafkaSettings.class);

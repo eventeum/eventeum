@@ -14,17 +14,9 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import static org.junit.Assert.assertEquals;
-
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Optional;
-
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import net.consensys.eventeum.utils.JSON;
@@ -37,6 +29,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.web3j.crypto.Keys;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
 
 
 @RunWith(SpringRunner.class)

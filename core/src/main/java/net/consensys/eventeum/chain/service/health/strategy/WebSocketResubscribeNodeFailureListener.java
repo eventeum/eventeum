@@ -15,7 +15,6 @@
 package net.consensys.eventeum.chain.service.health.strategy;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.websocket.WebSocketReconnectionManager;
 import net.consensys.eventeum.service.SubscriptionService;

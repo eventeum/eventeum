@@ -14,15 +14,14 @@
 
 package net.consensys.eventeum.dto.event.filter;
 
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
 
 /**
  * Represents contract event specification, to be used when registering a new filter.

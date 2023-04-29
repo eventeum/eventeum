@@ -27,8 +27,8 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.RabbitSettings;
 import net.consensys.eventeum.integration.broadcast.blockchain.RabbitBlockChainEventBroadcaster;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,8 +37,9 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 public class RabbitBlockchainEventBroadcasterTest {
@@ -54,7 +55,7 @@ public class RabbitBlockchainEventBroadcasterTest {
     private RabbitTemplate rabbitTemplate;
     private RabbitSettings rabbitSettings;
 
-    @Before
+    @BeforeEach
     public void init() {
         rabbitTemplate = Mockito.mock(RabbitTemplate.class);
         rabbitSettings = Mockito.mock(RabbitSettings.class);

@@ -15,7 +15,6 @@
 package net.consensys.eventeum.chain.service.block;
 
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.event.filter.ContractEventSpecification;
 
 import java.math.BigInteger;
 

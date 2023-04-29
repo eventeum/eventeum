@@ -14,12 +14,13 @@
 
 package net.consensys.eventeum.chain.settings;
 
-import java.math.BigInteger;
-import java.util.HashMap;
 import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.math.BigInteger;
+import java.util.HashMap;
 
 @Data
 @Component

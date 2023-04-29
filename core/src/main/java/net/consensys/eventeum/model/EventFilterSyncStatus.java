@@ -14,6 +14,9 @@
 
 package net.consensys.eventeum.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,9 +24,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.math.BigInteger;
 
 @Document
@@ -34,7 +34,7 @@ import java.math.BigInteger;
 @AllArgsConstructor
 public class EventFilterSyncStatus {
 
-    @javax.persistence.Id
+    @jakarta.persistence.Id
     @Id
     private String filterId;
 
