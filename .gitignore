@@ -36,5 +36,6 @@ hs_err_pid*
 .classpath
 .springBeans
 .target
-.springBeans
 **/target
+
+.flattened-pom.xml

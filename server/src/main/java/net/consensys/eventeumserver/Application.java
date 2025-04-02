@@ -15,20 +15,17 @@
 package net.consensys.eventeumserver;
 
 import net.consensys.eventeum.annotation.EnableEventeum;
-import net.consensys.eventeum.config.DatabaseConfiguration;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
-import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@EnableAutoConfiguration(exclude= RabbitAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = RabbitAutoConfiguration.class)
 @EnableEventeum
 public class Application {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
 }

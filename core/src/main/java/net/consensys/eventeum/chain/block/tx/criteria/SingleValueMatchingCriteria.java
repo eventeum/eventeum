@@ -14,27 +14,30 @@
 
 package net.consensys.eventeum.chain.block.tx.criteria;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 public abstract class SingleValueMatchingCriteria<T> implements TransactionMatchingCriteria {
 
-    private String nodeName;
+  private String nodeName;
 
-    private T valueToMatch;
+  private T valueToMatch;
 
-    private List<TransactionStatus> statuses;
+  private List<TransactionStatus> statuses;
 
-    @Override
-    public boolean isAMatch(TransactionDetails tx) {
-        return valueToMatch.equals(getValueFromTx(tx));
+  @Override
+  public boolean isAMatch(TransactionDetails tx) {
+    T value = getValueFromTx(tx);
+    if (String.class.isAssignableFrom(valueToMatch.getClass())) {
+      return value != null && valueToMatch.toString().equalsIgnoreCase(value.toString());
     }
+    return valueToMatch.equals(value);
+  }
 
-    protected abstract T getValueFromTx(TransactionDetails tx);
+  protected abstract T getValueFromTx(TransactionDetails tx);
 }

@@ -16,6 +16,5 @@ package net.consensys.eventeumserver.integrationtest;
 
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(locations="classpath:application-test-ws-start-block.properties")
-public class WSStartBlockIT extends BaseStartBlockTest {
-}
+@TestPropertySource(locations = "classpath:application-test-ws-start-block.properties")
+public class WSStartBlockIT extends BaseStartBlockTest {}

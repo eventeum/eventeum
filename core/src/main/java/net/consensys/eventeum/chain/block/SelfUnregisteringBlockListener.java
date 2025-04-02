@@ -14,7 +14,6 @@
 
 package net.consensys.eventeum.chain.block;
 
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 
 /**
@@ -24,13 +23,13 @@ import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
  */
 public abstract class SelfUnregisteringBlockListener implements BlockListener {
 
-    private BlockSubscriptionStrategy blockSubscriptionStrategy;
+  private BlockSubscriptionStrategy blockSubscriptionStrategy;
 
-    protected SelfUnregisteringBlockListener(BlockSubscriptionStrategy blockSubscriptionStrategy) {
-        this.blockSubscriptionStrategy = blockSubscriptionStrategy;
-    }
+  protected SelfUnregisteringBlockListener(BlockSubscriptionStrategy blockSubscriptionStrategy) {
+    this.blockSubscriptionStrategy = blockSubscriptionStrategy;
+  }
 
-    protected void unregister() {
-        blockSubscriptionStrategy.removeBlockListener(this);
-    }
+  protected void unregister() {
+    blockSubscriptionStrategy.removeBlockListener(this);
+  }
 }

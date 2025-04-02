@@ -14,153 +14,199 @@
 
 package net.consensys.eventeum.chain.service.strategy;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import io.reactivex.disposables.Disposable;
 import io.reactivex.processors.PublishProcessor;
+import java.math.BigInteger;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
+import net.consensys.eventeum.chain.service.HederaService;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
+import net.consensys.eventeum.chain.service.domain.wrapper.HederaBlock;
+import net.consensys.eventeum.chain.settings.NodeType;
 import net.consensys.eventeum.settings.EventeumSettings;
 import net.consensys.eventeum.testutils.DummyAsyncTaskService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
-import java.math.BigInteger;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-
+@Slf4j
 public class PollingBlockchainSubscriptionStrategyTest {
 
-    private static final String BLOCK_HASH = "0xc0e07697167c58f2a173df45f5c9b2c46ca0941cdf0bf79616d53dc92f62aebd";
+  private static final String BLOCK_HASH =
+      "0xc0e07697167c58f2a173df45f5c9b2c46ca0941cdf0bf79616d53dc92f62aebd";
 
-    private static final BigInteger BLOCK_NUMBER = BigInteger.valueOf(123);
+  private static final BigInteger BLOCK_NUMBER = BigInteger.valueOf(1);
 
-    private static final BigInteger BLOCK_TIMESTAMP = BigInteger.valueOf(12345678);
+  private static final BigInteger BLOCK_TIMESTAMP = BigInteger.valueOf(12345678);
 
-    private static final String NODE_NAME = "mainnet";
+  private static final Long POLLING_INTERVAL = 1000L;
 
-    private PollingBlockSubscriptionStrategy underTest;
+  private static final String NODE_NAME = "mainnet";
 
-    private PublishProcessor<EthBlock> blockPublishProcessor;
+  private PollingBlockSubscriptionStrategy underTest;
 
-    private Web3j mockWeb3j;
+  private PublishProcessor<EthBlock> blockPublishProcessor;
 
-    private EthBlock mockEthBlock;
+  private PublishProcessor<HederaBlock> hederaBlockPublishProcessor;
 
-    private BlockListener mockBlockListener;
+  private Web3j mockWeb3j;
 
-    private BlockNumberService mockBlockNumberService;
+  private EthBlock mockEthBlock;
 
-    private EventeumSettings mockSettings;
+  private BlockListener mockBlockListener;
 
-    @Before
-    public void init() {
-        this.mockWeb3j = mock(Web3j.class);
+  private BlockNumberService mockBlockNumberService;
 
-        mockEthBlock = mock(EthBlock.class);
-        mockBlockNumberService = mock(BlockNumberService.class);
-        mockSettings = mock(EventeumSettings.class);
-        final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
+  private EventeumSettings mockSettings;
+  private HederaService mockHederaService;
 
-        when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
-        when(mockBlock.getHash()).thenReturn(BLOCK_HASH);
-        when(mockBlock.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
-        when(mockEthBlock.getBlock()).thenReturn(mockBlock);
+  @BeforeEach
+  public void init() {
+    this.mockWeb3j = mock(Web3j.class);
 
-        blockPublishProcessor = PublishProcessor.create();
-        when(mockWeb3j.replayPastAndFutureBlocksFlowable(any(), eq(true))).thenReturn(blockPublishProcessor);
+    mockEthBlock = mock(EthBlock.class);
+    mockBlockNumberService = mock(BlockNumberService.class);
+    mockSettings = mock(EventeumSettings.class);
+    mockHederaService = mock(HederaService.class);
+    final EthBlock.Block mockBlock = mock(EthBlock.Block.class);
 
-        when(mockBlockNumberService.getStartBlockForNode(NODE_NAME)).thenReturn(BigInteger.ONE);
+    when(mockBlock.getNumber()).thenReturn(BLOCK_NUMBER);
+    when(mockBlock.getHash()).thenReturn(BLOCK_HASH);
+    when(mockBlock.getTimestamp()).thenReturn(BLOCK_TIMESTAMP);
+    when(mockEthBlock.getBlock()).thenReturn(mockBlock);
 
-        underTest = new PollingBlockSubscriptionStrategy(mockWeb3j,
-                NODE_NAME, new DummyAsyncTaskService(), mockBlockNumberService);
+    hederaBlockPublishProcessor = PublishProcessor.create();
+    when(mockHederaService.blocksFlowable(BLOCK_NUMBER, POLLING_INTERVAL))
+        .thenReturn(hederaBlockPublishProcessor);
+
+    blockPublishProcessor = PublishProcessor.create();
+    when(mockWeb3j.replayPastAndFutureBlocksFlowable(any(), eq(true)))
+        .thenReturn(blockPublishProcessor);
+
+    when(mockBlockNumberService.getStartBlockForNode(NODE_NAME)).thenReturn(BigInteger.ONE);
+
+    underTest =
+        new PollingBlockSubscriptionStrategy(
+            mockWeb3j,
+            NODE_NAME,
+            NodeType.NORMAL.name(),
+            new DummyAsyncTaskService(),
+            mockBlockNumberService,
+            mockHederaService,
+            POLLING_INTERVAL);
+  }
+
+  @Test
+  public void testEthSubscribe() {
+    final Disposable returnedSubscription = underTest.subscribe();
+
+    assertFalse(returnedSubscription.isDisposed());
+  }
+
+  @Test
+  public void testHederaSubscribe() {
+    underTest =
+        new PollingBlockSubscriptionStrategy(
+            mockWeb3j,
+            NODE_NAME,
+            NodeType.MIRROR.name(),
+            new DummyAsyncTaskService(),
+            mockBlockNumberService,
+            mockHederaService,
+            POLLING_INTERVAL);
+
+    final Disposable returnedSubscription = underTest.subscribe();
+
+    assertFalse(returnedSubscription.isDisposed());
+  }
+
+  @Test
+  public void testUnsubscribe() {
+    final Disposable returnedSubscription = underTest.subscribe();
+
+    assertFalse(returnedSubscription.isDisposed());
+
+    underTest.unsubscribe();
+
+    assertTrue(returnedSubscription.isDisposed());
+  }
+
+  @Test
+  public void testAddBlockListener() {
+    underTest.subscribe();
+    final Block block = doRegisterBlockListenerAndTrigger();
+    assertNotNull(block);
+  }
+
+  @Test
+  public void testRemoveBlockListener() {
+    underTest.subscribe();
+    final Block block = doRegisterBlockListenerAndTrigger();
+    assertNotNull(block);
+
+    reset(mockBlockListener);
+    underTest.removeBlockListener(mockBlockListener);
+
+    blockPublishProcessor.onNext(mockEthBlock);
+
+    verify(mockBlockListener, never()).onBlock(any());
+  }
+
+  @Test
+  public void testBlockHashPassedToListenerIsCorrect() {
+    underTest.subscribe();
+    final Block block = doRegisterBlockListenerAndTrigger();
+
+    assertEquals(BLOCK_HASH, block.getHash());
+  }
+
+  @Test
+  public void testBlockNumberPassedToListenerIsCorrect() {
+    underTest.subscribe();
+    final Block block = doRegisterBlockListenerAndTrigger();
+
+    assertEquals(BLOCK_NUMBER, block.getNumber());
+  }
+
+  @Test
+  public void testBlockTimestampPassedToListenerIsCorrect() {
+    underTest.subscribe();
+    final Block block = doRegisterBlockListenerAndTrigger();
+
+    assertEquals(BLOCK_TIMESTAMP, block.getTimestamp());
+  }
+
+  @Test
+  public void testBlockNodeNamePassedToListenerIsCorrect() {
+    underTest.subscribe();
+    final Block block = doRegisterBlockListenerAndTrigger();
+
+    assertEquals(NODE_NAME, block.getNodeName());
+  }
+
+  private Block doRegisterBlockListenerAndTrigger() {
+
+    mockBlockListener = mock(BlockListener.class);
+    underTest.addBlockListener(mockBlockListener);
+
+    blockPublishProcessor.onNext(mockEthBlock);
+
+    final ArgumentCaptor<Block> captor = ArgumentCaptor.forClass(Block.class);
+    try {
+      TimeUnit.SECONDS.sleep(8);
+    } catch (Exception ignore) {
+
     }
 
-    @Test
-    public void testSubscribe() {
-        final Disposable returnedSubscription = underTest.subscribe();
+    verify(mockBlockListener).onBlock(captor.capture());
 
-        assertEquals(false, returnedSubscription.isDisposed());
-    }
-
-    @Test
-    public void testUnsubscribe() {
-        final Disposable returnedSubscription = underTest.subscribe();
-
-        assertEquals(false, returnedSubscription.isDisposed());
-
-        underTest.unsubscribe();
-
-        assertEquals(true, returnedSubscription.isDisposed());
-    }
-
-    @Test
-    public void testAddBlockListener() {
-        underTest.subscribe();
-        final Block block = doRegisterBlockListenerAndTrigger();
-        assertNotNull(block);
-    }
-
-    @Test
-    public void testRemoveBlockListener() {
-        underTest.subscribe();
-        final Block block = doRegisterBlockListenerAndTrigger();
-        assertNotNull(block);
-
-        reset(mockBlockListener);
-        underTest.removeBlockListener(mockBlockListener);
-
-        blockPublishProcessor.onNext(mockEthBlock);
-
-        verify(mockBlockListener, never()).onBlock(any());
-    }
-
-    @Test
-    public void testBlockHashPassedToListenerIsCorrect() {
-        underTest.subscribe();
-        final Block block = doRegisterBlockListenerAndTrigger();
-
-        assertEquals(BLOCK_HASH, block.getHash());
-    }
-
-    @Test
-    public void testBlockNumberPassedToListenerIsCorrect() {
-        underTest.subscribe();
-        final Block block = doRegisterBlockListenerAndTrigger();
-
-        assertEquals(BLOCK_NUMBER, block.getNumber());
-    }
-
-    @Test
-    public void testBlockTimestampPassedToListenerIsCorrect() {
-        underTest.subscribe();
-        final Block block = doRegisterBlockListenerAndTrigger();
-
-        assertEquals(BLOCK_TIMESTAMP, block.getTimestamp());
-    }
-
-    @Test
-    public void testBlockNodeNamePassedToListenerIsCorrect() {
-        underTest.subscribe();
-        final Block block = doRegisterBlockListenerAndTrigger();
-
-        assertEquals(NODE_NAME, block.getNodeName());
-    }
-
-    private Block doRegisterBlockListenerAndTrigger() {
-
-        mockBlockListener = mock(BlockListener.class);
-        underTest.addBlockListener(mockBlockListener);
-
-        blockPublishProcessor.onNext(mockEthBlock);
-
-        final ArgumentCaptor<Block> captor = ArgumentCaptor.forClass(Block.class);
-        verify(mockBlockListener).onBlock(captor.capture());
-
-        return captor.getValue();
-    }
+    return captor.getValue();
+  }
 }

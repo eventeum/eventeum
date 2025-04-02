@@ -14,14 +14,12 @@
 
 package net.consensys.eventeum.chain.service.block;
 
-import net.consensys.eventeum.chain.service.domain.Block;
-import net.consensys.eventeum.dto.block.BlockDetails;
-
 import java.util.Set;
+import net.consensys.eventeum.chain.service.domain.Block;
 
 public interface BlockCache {
 
-    void add(Block block);
+  void add(Block block);
 
-    Set<Block> getCachedBlocks();
+  Set<Block> getCachedBlocks();
 }

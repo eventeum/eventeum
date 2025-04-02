@@ -18,5 +18,5 @@ import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 
 public interface EventStoreFactory {
 
-    SaveableEventStore build();
+  SaveableEventStore build();
 }

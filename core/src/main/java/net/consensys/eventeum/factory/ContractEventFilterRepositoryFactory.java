@@ -19,5 +19,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface ContractEventFilterRepositoryFactory {
 
-    CrudRepository<ContractEventFilter, String> build();
+  CrudRepository<ContractEventFilter, String> build();
 }

@@ -16,9 +16,9 @@ package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.message.MessageDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.broadcast.BroadcastException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
@@ -26,57 +26,82 @@ import org.springframework.web.client.RestTemplate;
 /**
  * A BlockchainEventBroadcaster that broadcasts the events via a http post.
  *
- * The url to post to for block and contract events can be configured via the
+ * <p>The url to post to for block and contract events can be configured via the
  * broadcast.http.contractEvents and broadcast.http.blockEvents properties.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
 public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaster {
 
-    private HttpBroadcasterSettings settings;
+  private HttpBroadcasterSettings settings;
 
-    private RestTemplate restTemplate;
+  private RestTemplate restTemplate;
 
-    private RetryTemplate retryTemplate;
+  private RetryTemplate retryTemplate;
 
-    public HttpBlockchainEventBroadcaster(HttpBroadcasterSettings settings, RetryTemplate retryTemplate) {
-        this.settings = settings;
+  public HttpBlockchainEventBroadcaster(
+      HttpBroadcasterSettings settings, RetryTemplate retryTemplate) {
+    this.settings = settings;
 
-        restTemplate = new RestTemplate();
-        this.retryTemplate = retryTemplate;
-    }
+    restTemplate = new RestTemplate();
+    this.retryTemplate = retryTemplate;
+  }
 
-    @Override
-    public void broadcastNewBlock(BlockDetails block) {
-        retryTemplate.execute((context) -> {
-            final ResponseEntity<Void> response =
-                    restTemplate.postForEntity(settings.getBlockEventsUrl(), block, Void.class);
+  @Override
+  public void broadcastNewBlock(BlockDetails block) {
+    retryTemplate.execute(
+        (context) -> {
+          final ResponseEntity<Void> response =
+              restTemplate.postForEntity(settings.getBlockEventsUrl(), block, Void.class);
 
-            checkForSuccessResponse(response);
-            return null;
+          checkForSuccessResponse(response);
+          return null;
         });
-    }
+  }
 
-    @Override
-    public void broadcastContractEvent(ContractEventDetails eventDetails) {
-        retryTemplate.execute((context) -> {
-            final ResponseEntity<Void> response =
-                    restTemplate.postForEntity(settings.getContractEventsUrl(), eventDetails, Void.class);
+  @Override
+  public void broadcastContractEvent(ContractEventDetails eventDetails) {
+    retryTemplate.execute(
+        (context) -> {
+          final ResponseEntity<Void> response =
+              restTemplate.postForEntity(settings.getContractEventsUrl(), eventDetails, Void.class);
 
-            checkForSuccessResponse(response);
-            return null;
+          checkForSuccessResponse(response);
+          return null;
         });
-    }
+  }
 
-    @Override
-    public void broadcastTransaction(TransactionDetails transactionDetails) {
+  @Override
+  public void broadcastTransaction(TransactionDetails transactionDetails) {
+    retryTemplate.execute(
+        (context) -> {
+          final ResponseEntity<Void> response =
+              restTemplate.postForEntity(
+                  settings.getTransactionEventsUrl(), transactionDetails, Void.class);
 
-    }
+          checkForSuccessResponse(response);
+          return null;
+        });
+  }
 
-    private void checkForSuccessResponse(ResponseEntity<Void> response) {
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new BroadcastException(
-                    String.format("Received a %s response when broadcasting via http", response.getStatusCode()));
-        }
+  @Override
+  public void broadcastMessage(MessageDetails messageDetails) {
+    retryTemplate.execute(
+        (context) -> {
+          final ResponseEntity<Void> response =
+              restTemplate.postForEntity(
+                  settings.getMessageEventsUrl(), messageDetails, Void.class);
+
+          checkForSuccessResponse(response);
+          return null;
+        });
+  }
+
+  private void checkForSuccessResponse(ResponseEntity<Void> response) {
+    if (!response.getStatusCode().is2xxSuccessful()) {
+      throw new BroadcastException(
+          String.format(
+              "Received a %s response when broadcasting via http", response.getStatusCode()));
     }
+  }
 }

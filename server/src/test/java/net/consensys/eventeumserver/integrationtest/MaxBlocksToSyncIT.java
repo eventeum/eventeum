@@ -14,42 +14,57 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import org.junit.Test;
-import org.springframework.test.context.TestPropertySource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
+import net.consensys.eventeum.constant.Constants;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.test.context.TestContextManager;
+import org.springframework.test.context.TestPropertySource;
 
-import static org.junit.Assert.assertEquals;
-
-@TestPropertySource(locations="classpath:application-test-db.properties",
-        properties = {"ethereum.nodes[0].maxBlocksToSync=4"})
+@TestPropertySource(
+    locations = "classpath:application-test-db.properties",
+    properties = {"ethereum.nodes[0].maxBlocksToSync=4"})
 public class MaxBlocksToSyncIT extends ServiceRestartRecoveryTests {
 
-    @Test
-    public void onlySyncMaxBlocksOnStartup() throws Exception {
-        triggerBlocks(1);
-        waitForBlockMessages(1);
-        waitForFilterPoll();
+  @Autowired @Lazy ChainServicesContainer chainServices;
 
-        final BigInteger lastBlockNumber = getBroadcastBlockMessages()
-                .get(getBroadcastBlockMessages().size() - 1).getNumber();
+  @Test
+  public void onlySyncMaxBlocksOnStartup() throws Exception {
+    triggerBlocks(1);
+    waitForBlockMessages(1);
+    waitForFilterPoll();
 
-        getBroadcastBlockMessages().clear();
+    TestContextManager tc = new TestContextManager(getClass());
+    tc.prepareTestInstance(this);
 
-        restartEventeum(() -> {
-            try {
-                triggerBlocks(10);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+    AtomicReference<BigInteger> lastBlockNumber = new AtomicReference<>(BigInteger.ZERO);
 
-        waitForBlockMessages(4);
+    restartEventeumKafka(
+        () -> {
+          lastBlockNumber.set(
+              getBroadcastBlockMessages().get(getBroadcastBlockMessages().size() - 1).getNumber());
+          getBroadcastBlockMessages().clear();
+        },
+        tc);
 
-        waitForFilterPoll();
+    waitForBlockMessages(4);
 
-        assertEquals(4, getBroadcastBlockMessages().size());
+    waitForFilterPoll();
 
-        assertEquals(lastBlockNumber.add(BigInteger.valueOf(7)), getBroadcastBlockMessages().get(0).getNumber());
-    }
+    assertEquals(4, getBroadcastBlockMessages().size());
+
+    // Current number at start - 4 (3) of maxSync
+    assertEquals(
+        chainServices
+            .getNodeServices(Constants.DEFAULT_NODE_NAME)
+            .getBlockchainService()
+            .getCurrentBlockNumber()
+            .subtract(BigInteger.valueOf(3)),
+        getBroadcastBlockMessages().get(0).getNumber());
+  }
 }

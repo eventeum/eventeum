@@ -12,14 +12,20 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeumserver.integrationtest.utils;
+package net.consensys.eventeum.chain.service;
 
-import org.junit.runners.model.InitializationError;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+public class MirrorUnexpectedException extends RuntimeException {
 
-public class RestartingSpringRunner extends RestartingSpringJUnit4ClassRunner {
+  public MirrorUnexpectedException(String message) {
+    super(message);
+  }
 
-    public RestartingSpringRunner(Class<?> clazz) throws InitializationError {
-        super(clazz);
-    }
+  public MirrorUnexpectedException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  @Override
+  public Throwable fillInStackTrace() {
+    return this;
+  }
 }

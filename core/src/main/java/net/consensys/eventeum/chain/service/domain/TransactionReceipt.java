@@ -24,29 +24,31 @@ import java.util.List;
  */
 public interface TransactionReceipt {
 
-    String getTransactionHash();
+  String getTransactionHash();
 
-    BigInteger getTransactionIndex();
+  BigInteger getTransactionIndex();
 
-    String getBlockHash();
+  String getBlockHash();
 
-    BigInteger getBlockNumber();
+  BigInteger getBlockNumber();
 
-    BigInteger getCumulativeGasUsed();
+  BigInteger getCumulativeGasUsed();
 
-    BigInteger getGasUsed();
+  BigInteger getGasUsed();
 
-    String getContractAddress();
+  String getContractAddress();
 
-    String getRoot();
+  String getRoot();
 
-    String getFrom();
+  String getFrom();
 
-    String getTo();
+  String getTo();
 
-    List<Log> getLogs();
+  List<Log> getLogs();
 
-    String getLogsBloom();
+  String getLogsBloom();
 
-    String getStatus();
+  String getStatus();
+
+  String getRevertReason();
 }

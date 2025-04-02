@@ -1,0 +1,171 @@
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  port: 8060
+
+
+logging:
+  level:
+    org.springframework.web: ERROR
+    net.consensys: DEBUG
+    net.consensys.configs: ERROR
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+  file: /logs/application.log
+
+ethereum:
+  nodes:
+    - name: default
+      #    url: ${ETHEREUM_NODE_URL:wss://mainnet.infura.io/ws/v3/6d00f1fc08d84be7a25d76996d16550b}
+      url: ${ETHEREUM_NODE_URL:http://localhost:11018}
+      blockStrategy: POLL
+      syncingThreshold: 100
+      healthcheckInterval: 5000
+      maxBlocksToSync: 0
+      extensions:
+        privacy:
+          enabled: true
+          privacyPrecompiledAddress: "0x000000000000000000000000000000000000007a"
+  healthcheck:
+    pollInterval: 5000
+  blockStrategy: POLL
+  numBlocksToReplay: 12
+  sync:
+    batchSize: 100000
+
+eventFilters:
+  - id: MyContractEvent
+    contractAddress: "0x18b5492ecbf4ecda07867912bc15665bad285d9e"
+    eventSpecification:
+      eventName: Event
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+        - position: 1
+          type: UINT256
+        - position: 2
+          type: UINT256
+    extension:
+      privacy:
+        enabled: true
+        privacyGroupId: "UVZoQkxuTmxiR1l3TURBd01EQXdNREF3TURBd01EQXc="
+
+  - id: MyContractEventPublic
+    contractAddress: "0x658a18e951c5f8e6d1d2429ae671e6968d5718e2"
+    eventSpecification:
+      eventName: Event
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: ADDRESS
+        - position: 1
+          type: UINT256
+        - position: 2
+          type: UINT256
+    extension:
+      privacy:
+        enabled: false
+        privacyGroupId: "UVZoQkxuTmxiR1l3TURBd01EQXdNREF3TURBd01EQXc="
+
+#  - id: VersionUpgradedEternalStoragePublicNoExtension
+#    contractAddress: "0xe99311958facfa9d05885054959cf99fea7af1c4"
+#    eventSpecification:
+#      eventName: VersionUpgraded
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    #    correlationId:
+#    #      type: NON_INDEXED_PARAMETER
+#    #      index: 2
+
+transactionFilters:
+  - nodeName: ${ETHEREUM_NETWORK:default}
+    type: "TO_ADDRESS"
+    transactionIdentifierValue: "0x0"
+    statuses: ['FAILED']
+    extension:
+      privacy:
+        enabled: true
+        privacyGroupId: "myId"
+  - nodeName: ${ETHEREUM_NETWORK:default}
+    type: "TO_ADDRESS"
+    transactionIdentifierValue: "0x1"
+    statuses: ['FAILED']
+
+eventStore:
+  type: DB
+  url: http://localhost:8081/api/rest/v1
+  eventPath: /event
+  latestBlockPath: /latestblock
+
+#Enable only when executing tests with MySQL database
+spring:
+  # docker run -d --name sql_server_demo -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=reallyStrongPwd123' -p 1433:1433 microsoft/mssql-server-linux
+  datasource:
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://localhost;databaseName=eventeum
+    username: sa
+    password: reallyStrongPwd123
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.SQLServer2012Dialect
+        #see: https://stackoverflow.com/questions/36583185/spring-data-jpa-could-not-initialize-proxy-no-session-with-methods-marke
+        enable_lazy_load_no_trans: true
+        # Hibernate ddl auto (create, create-drop, validate, update)
+    hibernate:
+      ddl-auto: update
+#     jdbc:
+#       lob:
+#         # For postgres, see: https://github.com/pgjdbc/pgjdbc/issues/1102
+#         non_contextual_creation: true
+
+database:
+  type: MONGO
+
+broadcaster:
+  type: KAFKA
+  cache:
+    expirationMillis: 6000000
+  event:
+    confirmation:
+      numBlocksToWait: 12
+      numBlocksToWaitForMissingTx: 100
+      numBlocksToWaitBeforeInvalidating: 2
+  multiInstance: false
+  enableBlockNotifications: true
+
+# For Kafka
+zookeeper:
+  address: ${ZOOKEEPER_ADDRESS:localhost:2181}
+kafka:
+  bootstrap:
+    addresses: ${KAFKA_ADDRESSES:localhost:9092}
+  topic:
+    contractEvents: contract-events
+    blockEvents: block-events
+    eventeumEvents: eventeum-events
+    transactionEvents: transaction-events
+    partitions: 1
+    replicationSets: 1
+
+management:
+  endpoints:
+    web.base-path: /monitoring
+    enabled-by-default: false
+    web.exposure.include: "*"
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    metrics:
+      enabled: false
+    prometheus:
+      enabled: false
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+

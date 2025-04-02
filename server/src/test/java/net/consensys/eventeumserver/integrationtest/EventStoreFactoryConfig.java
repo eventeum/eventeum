@@ -14,14 +14,14 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
+import net.consensys.eventeum.dto.message.MessageDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
-import net.consensys.eventeum.factory.ContractEventFilterRepositoryFactory;
 import net.consensys.eventeum.factory.EventStoreFactory;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 import net.consensys.eventeum.integration.broadcast.blockchain.ListenerInvokingBlockchainEventBroadcaster;
@@ -31,93 +31,124 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.repository.CrudRepository;
 
 @TestConfiguration
 public class EventStoreFactoryConfig {
 
-    @Bean
-    public BlockchainEventBroadcaster listenerBroadcaster() {
+  @Bean
+  public BlockchainEventBroadcaster listenerBroadcaster() {
 
-        return new ListenerInvokingBlockchainEventBroadcaster(new ListenerInvokingBlockchainEventBroadcaster.OnBlockchainEventListener() {
-            @Override
-            public void onNewBlock(BlockDetails block) {
-                //DO NOTHING
-            }
+    return new ListenerInvokingBlockchainEventBroadcaster(
+        new ListenerInvokingBlockchainEventBroadcaster.OnBlockchainEventListener() {
+          @Override
+          public void onNewBlock(BlockDetails block) {
+            // DO NOTHING
+          }
 
-            @Override
-            public void onContractEvent(ContractEventDetails eventDetails) {
-                //DO NOTHING
-            }
+          @Override
+          public void onContractEvent(ContractEventDetails eventDetails) {
+            // DO NOTHING
+          }
 
-            @Override
-            public void onTransactionEvent(TransactionDetails transactionDetails) {
-                //DO NOTHING
-            }
+          @Override
+          public void onTransactionEvent(TransactionDetails transactionDetails) {
+            // DO NOTHING
+          }
+
+          @Override
+          public void onMessageEvent(MessageDetails messageDetails) {
+            // DO NOTHING
+          }
         });
-    }
+  }
 
-    @Bean
-    public EventStoreFactory eventStoreFactory() {
-        return new EventStoreFactory() {
+  @Bean
+  public EventStoreFactory eventStoreFactory() {
+    return new EventStoreFactory() {
 
-            @Override
-            public SaveableEventStore build() {
-                return new SaveableEventStore() {
-                    @Override
-                    public void save(ContractEventDetails contractEventDetails) {
-                        savedEvents().getEntities().add(contractEventDetails);
-                    }
+      @Override
+      public SaveableEventStore build() {
+        return new SaveableEventStore() {
+          @Override
+          public void save(ContractEventDetails contractEventDetails) {
+            savedEvents().getEntities().add(contractEventDetails);
+          }
 
-                    @Override
-                    public void save(LatestBlock latestBlock) {
-                        savedLatestBlock().getEntities().clear();
-                        savedLatestBlock().getEntities().add(latestBlock);
-                    }
+          @Override
+          public void save(LatestBlock latestBlock) {
+            savedLatestBlock().getEntities().clear();
+            savedLatestBlock().getEntities().add(latestBlock);
+          }
 
-                    @Override
-                    public Page<ContractEventDetails> getContractEventsForSignature(
-                            String eventSignature, String contractAddress, PageRequest pagination) {
-                        return null;
-                    }
+          @Override
+          public void save(MessageDetails messageDetails) {
+            savedMessages().getEntities().add(messageDetails);
+          }
 
-                    @Override
-                    public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
-                        return Optional.empty();
-                    }
+          @Override
+          public Page<ContractEventDetails> getContractEventsForSignature(
+              String eventSignature, String contractAddress, PageRequest pagination) {
+            return null;
+          }
 
-                    @Override
-                    public boolean isPagingZeroIndexed() {
-                        return false;
-                    }
-                };
-            }
+          @Override
+          public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
+            return Optional.empty();
+          }
+
+          @Override
+          public boolean isPagingZeroIndexed() {
+            return false;
+          }
+
+          @Override
+          public Optional<MessageDetails> getLatestMessageFromTopic(
+              String nodeName, String topicId) {
+            return Optional.empty();
+          }
+
+          @Override
+          public Optional<ContractEventDetails> getContractEvent(
+              String eventSignature,
+              String contractAddress,
+              String blockHash,
+              String transactionHash,
+              BigInteger logIndex) {
+            return Optional.empty();
+          }
         };
+      }
+    };
+  }
+
+  @Bean
+  Entities<ContractEventDetails> savedEvents() {
+    return new Entities<>();
+  }
+
+  @Bean
+  Entities<LatestBlock> savedLatestBlock() {
+    return new Entities<>();
+  }
+
+  @Bean
+  Entities<MessageDetails> savedMessages() {
+    return new Entities<>();
+  }
+
+  public class Entities<T> {
+    List<T> entities = new ArrayList<>();
+
+    public List<T> getEntities() {
+      return entities;
     }
+  }
 
-    @Bean
-    Entities<ContractEventDetails> savedEvents() {
-        return new Entities<>();
+  public class EventStoreSavedContractEvents {
+    private List<ContractEventDetails> savedEvents = new ArrayList<>();
+
+    public List<ContractEventDetails> getSavedEvents() {
+      return savedEvents;
     }
-
-    @Bean
-    Entities<LatestBlock> savedLatestBlock() {
-        return new Entities<>();
-    }
-
-    public class Entities<T> {
-        List<T> entities = new ArrayList<>();
-
-        public List<T> getEntities() {
-            return entities;
-        }
-    }
-
-    public class EventStoreSavedContractEvents {
-        private List<ContractEventDetails> savedEvents = new ArrayList<>();
-
-        public List<ContractEventDetails> getSavedEvents() {
-            return savedEvents;
-        }
-    }
+  }
 }

@@ -25,7 +25,7 @@ import lombok.ToString;
 @ToString
 public class TransactionIdentifier {
 
-    String hash;
+  String hash;
 
-    String nodeName;
+  String nodeName;
 }

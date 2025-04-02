@@ -14,10 +14,11 @@
 
 package net.consensys.eventeum.config;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.eventeum.chain.service.container.NodeServices;
 import net.consensys.eventeum.chain.settings.NodeSettings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.annotation.EnableRetry;
@@ -27,12 +28,6 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
-import javax.annotation.PostConstruct;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 @Configuration
 @EnableScheduling
 @EnableAsync
@@ -40,19 +35,19 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 @Slf4j
 public class SchedulerConfiguration implements SchedulingConfigurer {
 
+  private ScheduledExecutorService scheduledExecutorService;
 
-		private ScheduledExecutorService scheduledExecutorService;
+  @Override
+  public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+    taskRegistrar.setScheduler(scheduledExecutorService);
+  }
 
+  @Bean(destroyMethod = "shutdown")
+  public Executor scheduler(NodeSettings nodeSettings) {
 
-		@Override
-		public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-			taskRegistrar.setScheduler(scheduledExecutorService);
-		}
-
-		@Bean(destroyMethod="shutdown")
-		public Executor taskScheduler(NodeSettings nodeSettings) {
-
-			scheduledExecutorService = Executors.newScheduledThreadPool(nodeSettings.getNodes().size(), new CustomizableThreadFactory("eventeum-scheduler"));
-			return  scheduledExecutorService;
-		}
+    scheduledExecutorService =
+        Executors.newScheduledThreadPool(
+            nodeSettings.getNodes().size(), new CustomizableThreadFactory("eventeum-scheduler"));
+    return scheduledExecutorService;
+  }
 }

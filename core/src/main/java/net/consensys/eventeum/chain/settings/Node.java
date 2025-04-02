@@ -14,35 +14,41 @@
 
 package net.consensys.eventeum.chain.settings;
 
+import java.math.BigInteger;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigInteger;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Node {
 
-    private String name;
-
-    private String url;
-    private Long pollingInterval;
-    private String username;
-    private String password;
-    private String blockStrategy;
-    private Boolean addTransactionRevertReason;
-    private Integer maxIdleConnections;
-    private Long keepAliveDuration;
-    private Long connectionTimeout;
-    private Long readTimeout;
-    private Integer syncingThreshold;
-    private Long healthcheckInterval;
-    private BigInteger blocksToWaitForConfirmation;
-    private BigInteger blocksToWaitForMissingTx;
-    private BigInteger blocksToWaitBeforeInvalidating;
-    private BigInteger initialStartBlock;
-    private BigInteger numBlocksToReplay;
-    private BigInteger maxBlocksToSync;
+  private String name;
+  private NodeType nodeType;
+  private ChainType chainType;
+  private String url;
+  private Map<String, String> headers;
+  private BigInteger limitPerRequest = BigInteger.valueOf(100);
+  private BigInteger callRetries;
+  private Long pollingInterval;
+  private String username;
+  private String password;
+  private String blockStrategy;
+  private Boolean addTransactionRevertReason;
+  private Integer maxIdleConnections;
+  private Long keepAliveDuration;
+  private Long connectionTimeout;
+  private Long readTimeout;
+  private Integer syncingThreshold;
+  private Long healthcheckInterval;
+  private BigInteger blocksToWaitForConfirmation;
+  private BigInteger blocksToWaitForMissingTx;
+  private BigInteger blocksToWaitBeforeInvalidating;
+  private BigInteger initialStartBlock;
+  private BigInteger numBlocksToReplay;
+  private BigInteger maxBlocksToSync;
+  private Map<String, Object> extension;
+  private BigInteger limitMirrorNodeResults;
 }

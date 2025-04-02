@@ -25,6 +25,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnKafkaRequired(false)
-@EnableAutoConfiguration(exclude = {org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration.class})
-public class DisableKafkaConfiguration {
-}
+@EnableAutoConfiguration(
+    exclude = {org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration.class})
+public class DisableKafkaConfiguration {}

@@ -15,8 +15,7 @@
 package net.consensys.eventeum.model;
 
 public enum SyncStatus {
+  NOT_SYNCED,
 
-    NOT_SYNCED,
-
-    SYNCED
+  SYNCED
 }

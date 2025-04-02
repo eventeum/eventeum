@@ -1,65 +1,47 @@
 server:
   tomcat:
     uri-encoding: UTF-8
-  port: 8060
+  port: ${SERVER_PORT:8060}
 
 logging:
   level:
-    org.springframework.web: ERROR
+    org.springframework.web: DEBUG
     net.consensys: DEBUG
     net.consensys.configs: ERROR
+    org.springframework.amqp: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
   file: /logs/application.log
 
-ethereum:
-  nodes:
-    - name: default
-      url: http://localhost:8545
-      pollingInterval: ${POLLING_INTERVAL:10000}
-
-  healthcheck:
-    pollInterval: 2000
-
-#eventFilters:
-#  - id: RequestCreated
-#    contractAddress: ${CONTRACT_ADDRESS:0x4aecf261541f168bb3ca65fa8ff5012498aac3b8}
-#    eventSpecification:
-#      eventName: RequestCreated
-#      indexedParameterDefinitions:
-#        - position: 0
-#          type: BYTES32
-#        - position: 1
-#          type: ADDRESS
-#      nonIndexedParameterDefinitions:
-#        - position: 2
-#          type: BYTES32
-#    correlationId:
-#      type: NON_INDEXED_PARAMETER
-#      index: 0
-
-#transactionFilters:
-#- nodeName: ${ETHEREUM_NETWORK:default}
-#  type: "FROM_ADDRESS"
-#  transactionIdentifierValue: ${CONTRACT_ADDRESS_EM_TOKEN:0x0f8E7A681019Ec13EfE853a6Eca666E05b214Fd5}
-#  statuses: ['CONFIRMED']
-#- nodeName: ${ETHEREUM_NETWORK:default}
-#  type: "TO_ADDRESS"
-#  transactionIdentifierValue: ${CONTRACT_ADDRESS_EM_TOKEN:0xfBAB8dE62002c86986C6e070BD3bB46BF983C74e}
-#  statuses: ['FAILED']
-
-
 eventStore:
   type: DB
   url: http://localhost:8081/api/rest/v1
   eventPath: /event
+  latestBlockPath: /latestblock
 database:
   type: MONGO
-# type: SQL
+
+spring:
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    virtualHost: ${RABBIT_VIRTUALHOST:default}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASSWORD:guest}
+    connectionTimeout: 30000
+    port: ${RABBIT_PORT:5672}
+    ssl:
+      enabled: ${RABBIT_SSL_ENABLED:false}
+      algorithm: TLSv1.2
+
+  data:
+    mongodb:
+      uri: ${MONGO_PROTOCOL:mongodb}://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DATABASE:mongodb}
+      repositories:
+        enabled: true
 
 broadcaster:
-  type: KAFKA
+  type: RABBIT
   cache:
     expirationMillis: 6000000
   event:
@@ -68,31 +50,217 @@ broadcaster:
       numBlocksToWaitForMissingTx: 100
       numBlocksToWaitBeforeInvalidating: 2
   multiInstance: false
-  bytesToAscii: false
+  enableBlockNotifications: false
 
-# For Kafka
-zookeeper:
-  address: ${ZOOKEEPER_ADDRESS:localhost:2181}
-kafka:
-  bootstrap:
-    addresses: ${KAFKA_ADDRESSES:localhost:9092}
-  topic:
-    contractEvents: contract-events
-    blockEvents: block-events
-    eventeumEvents: eventeum-events
-  request:
-    timeout:
-      msConfig: ${KAFKA_REQUEST_TIMEOUT_MS:20000}
-  retry:
-    backoff:
-      msConfig: ${KAFKA_RETRY_BACKOFF_MS:500}
+rabbitmq:
+  exchange: adm
+  blockNotification: false
+  routingKey:
+    contractEvents: adm
+    blockEvents: adm.block
+    transactionEvents: adm.transaction
+    messageEvents: adm.message
+
+management:
+  endpoints:
+    web:
+      base-path: /monitoring
+      exposure.include: "*"
+    enabled-by-default: false
   endpoint:
-    identification:
-      algorithm: ${KAFKA_ENDPOINT_IDENTIFICATION_ALGORITHM:null}
-  sasl:
-    mechanism: ${KAFKA_SASL_MECHANISM:PLAIN}
-    username: ${KAFKA_USERNAME:""}
-    password: ${KAFKA_PASSWORD:""}
-  security:
-    protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
-  retries: ${KAFKA_RETRIES:10}
+    health:
+      enabled: true
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Hedera RPC config
+
+#ethereum:
+#  nodes:
+#    - name: ${ETH_NODE:hedera}
+#      url: ${ETH_HOST:https://testnet.hashio.io/api}
+#      url: ${ETH_HOST:http://localhost:7546/api}
+#      blockStrategy: ${ETH_BLOCK_STRATEGY:POLL}
+#      pollInterval: 1000
+#      addTransactionRevertReason: true
+#      maxIdleConnections: 10
+#      keepAliveDuration: 15000
+#      connectionTimeout: 7000
+#      readTimeout: 180000
+#      healthcheckInterval: 10000
+#      numBlocksToWait: 0
+#      numBlocksToWaitForMissingTx: 0
+#      numBlocksToWaitBeforeInvalidating: 0
+#      maxUnsyncedBlocksForFilter: 600
+
+# Base ETH node
+
+#ethereum:
+#  nodes:
+#    - name: default
+#      url: ${ETHEREUM_NODE_URL:http://localhost:8545}
+#      blockStrategy: POLL
+#      syncingThreshold: 100
+#      healthcheckInterval: 3000
+#  healthcheck:
+#    pollInterval: 2000
+#  blockStrategy: POLL
+
+
+# Hedera mirror node config
+
+#hashgraph:
+#  nodes:
+#    - name: hedera
+#      type: MIRROR
+#      url: ${HEDERA_NODE_URL:https://testnet.mirrornode.hedera.com}
+#      blockStrategy: POLL
+#      syncingThreshold: 100
+#      healthcheckInterval: 5000
+#      maxBlocksToSync: 0
+#      initialStartBlock: 1257300
+#      pollingInterval: 500
+
+# Hedera account config
+
+#hedera:
+#  testnet: ${HEDERA_NODE_TESTNET:true}
+#  account:
+#    id: ${HEDERA_ACCOUNT_ID:0.0.7043}
+#    privateKey: ${HEDERA_ACCOUNT_PRIVATE_KEY:d0b52ad9317ba590cb7227090dffa69aa29f2b633b844e475d388c07137a205f}
+#
+#eventFilters:
+#  - id: TransferOperatorAuthorized.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: TransferOperatorAuthorized
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: TransferOperatorRevoked.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: TransferOperatorRevoked
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: DefaultTransferOperatorAdded.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: DefaultTransferOperatorAdded
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: DefaultTransferOperatorRemoved.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: DefaultTransferOperatorRemoved
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Sent.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Sent
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#        - position: 2
+#          type: ADDRESS
+#        - position: 2
+#          type: UINT256
+#        - position: 2
+#          type: BYTES32
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Transfer.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Transfer
+#      indexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#      nonIndexedParameterDefinitions:
+#        - position: 2
+#          type: UINT256
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Approval.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Approval
+#      indexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#      nonIndexedParameterDefinitions:
+#        - position: 2
+#          type: UINT256
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Paused.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Paused
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Unpaused.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Unpaused
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#
+#transactionFilters:
+#  - nodeName: ${ETH_NODE:hedera}
+#    type: "TO_ADDRESS"
+#    transactionIdentifierValue: ${HEDERA_EMONEY_ADDRESS:0000000000000000000000000000000000341c99}
+#    statuses: ['FAILED']

@@ -24,10 +24,10 @@ import org.springframework.data.repository.CrudRepository;
 @Configuration
 public class ContractEventFilterRepositoryConfiguration {
 
-    @Bean
-    @ConditionalOnBean(ContractEventFilterRepositoryFactory.class)
-    public CrudRepository<ContractEventFilter, String> customContractEventFilterRepository(
-            ContractEventFilterRepositoryFactory factory) {
-        return factory.build();
-    }
+  @Bean
+  @ConditionalOnBean(ContractEventFilterRepositoryFactory.class)
+  public CrudRepository<ContractEventFilter, String> customContractEventFilterRepository(
+      ContractEventFilterRepositoryFactory factory) {
+    return factory.build();
+  }
 }

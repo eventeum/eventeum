@@ -23,5 +23,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MonitorTransactionsResponse {
 
-    private String id;
+  private String id;
 }

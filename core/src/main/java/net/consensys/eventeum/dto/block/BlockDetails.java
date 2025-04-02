@@ -14,9 +14,8 @@
 
 package net.consensys.eventeum.dto.block;
 
-import lombok.Data;
-
 import java.math.BigInteger;
+import lombok.Data;
 
 /**
  * Represents the details of an Ethereum block.
@@ -25,11 +24,11 @@ import java.math.BigInteger;
  */
 @Data
 public class BlockDetails {
-    private BigInteger number;
+  private BigInteger number;
 
-    private String hash;
+  private String hash;
 
-    private BigInteger timestamp;
+  private BigInteger timestamp;
 
-    private String nodeName;
+  private String nodeName;
 }

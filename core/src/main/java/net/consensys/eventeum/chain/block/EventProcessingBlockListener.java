@@ -29,20 +29,21 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class EventProcessingBlockListener implements BlockListener {
 
-    @Lazy
-    private SubscriptionService subscriptionService;
+  @Lazy private SubscriptionService subscriptionService;
 
-    private ContractEventProcessor contractEventProcessor;
+  private ContractEventProcessor contractEventProcessor;
 
-    @Autowired
-    public EventProcessingBlockListener(@Lazy SubscriptionService subscriptionService,
-                                        ContractEventProcessor contractEventProcessor) {
-        this.subscriptionService = subscriptionService;
-        this.contractEventProcessor = contractEventProcessor;
-    }
+  @Autowired
+  public EventProcessingBlockListener(
+      @Lazy SubscriptionService subscriptionService,
+      ContractEventProcessor contractEventProcessor) {
+    this.subscriptionService = subscriptionService;
+    this.contractEventProcessor = contractEventProcessor;
+  }
 
-    @Override
-    public void onBlock(Block block) {
-        contractEventProcessor.processLogsInBlock(block, subscriptionService.listContractEventFilters());
-    }
+  @Override
+  public void onBlock(Block block) {
+    contractEventProcessor.processLogsInBlock(
+        block, subscriptionService.listContractEventFilters());
+  }
 }

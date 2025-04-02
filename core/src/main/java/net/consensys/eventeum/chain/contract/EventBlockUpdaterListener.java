@@ -27,15 +27,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventBlockUpdaterListener implements ContractEventListener {
 
-    private EventBlockManagementService blockManagement;
+  private EventBlockManagementService blockManagement;
 
-    @Autowired
-    public EventBlockUpdaterListener(EventBlockManagementService blockManagement) {
-        this.blockManagement = blockManagement;
-    }
+  @Autowired
+  public EventBlockUpdaterListener(EventBlockManagementService blockManagement) {
+    this.blockManagement = blockManagement;
+  }
 
-    @Override
-    public void onEvent(ContractEventDetails eventDetails) {
-        blockManagement.updateLatestBlock(eventDetails.getEventSpecificationSignature(), eventDetails.getBlockNumber(), eventDetails.getAddress());
-    }
+  @Override
+  public void onEvent(ContractEventDetails eventDetails) {
+    blockManagement.updateLatestBlock(
+        eventDetails.getEventSpecificationSignature(),
+        eventDetails.getBlockNumber(),
+        eventDetails.getAddress());
+  }
 }

@@ -25,23 +25,24 @@ import org.web3j.crypto.Keys;
 @Component
 public class DefaultTransactionDetailsFactory implements TransactionDetailsFactory {
 
-    private ModelMapper modelMapper = new ModelMapper();
+  private ModelMapper modelMapper = new ModelMapper();
 
-    @Override
-    public TransactionDetails createTransactionDetails(
-            Transaction transaction, TransactionStatus status, Block block) {
+  @Override
+  public TransactionDetails createTransactionDetails(
+      Transaction transaction, TransactionStatus status, Block block) {
 
-        final TransactionDetails transactionDetails = new TransactionDetails();
-        modelMapper.map(transaction, transactionDetails);
+    final TransactionDetails transactionDetails = new TransactionDetails();
+    modelMapper.map(transaction, transactionDetails);
 
-        transactionDetails.setNodeName(block.getNodeName());
-        transactionDetails.setTimestamp(block.getTimestamp());
-        transactionDetails.setStatus(status);
+    transactionDetails.setNodeName(block.getNodeName());
+    transactionDetails.setTimestamp(block.getTimestamp());
+    transactionDetails.setStatus(status);
+    transactionDetails.setBlockTimestamp(block.getTimestamp().toString());
 
-        if (transaction.getCreates() != null) {
-            transactionDetails.setContractAddress(Keys.toChecksumAddress(transaction.getCreates()));
-        }
-
-        return transactionDetails;
+    if (transaction.getCreates() != null) {
+      transactionDetails.setContractAddress(Keys.toChecksumAddress(transaction.getCreates()));
     }
+
+    return transactionDetails;
+  }
 }

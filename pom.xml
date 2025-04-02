@@ -1,66 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~ http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>io.eventeum</groupId>
-    <artifactId>eventeum</artifactId>
-    <version>0.9.0-RELEASE</version>
-    <packaging>pom</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.0.RELEASE</version>
+        <version>3.3.1</version>
     </parent>
+
+    <groupId>io.eventeum</groupId>
+    <artifactId>eventeum</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
 
     <modules>
         <module>core</module>
         <module>server</module>
+        <module>privacy-plugin</module>
+        <module>coverage</module>
     </modules>
 
     <properties>
-        <java.version>1.8</java.version>
-        <node.version>v8.2.1</node.version>
-        <npm.version>5.3.0</npm.version>
-        <web3j.version>4.5.18</web3j.version>
-        <kafka-deadletter.version>0.2.2-RELEASE</kafka-deadletter.version>
+        <revision>2.0.6</revision>
+        <java.version>21</java.version>
+        <web3j.version>4.12.0</web3j.version>
+        <springcloud.version>4.1.2</springcloud.version>
+        <modelmapper.version>3.1.0</modelmapper.version>
+        <pulsar.version>3.3.0</pulsar.version>
+        <micrometer.version>1.13.10</micrometer.version>
+        <reflections.version>0.10.2</reflections.version>
+        <okhttp3.version>4.10.0</okhttp3.version>
+        <apachecommons.version>4.4</apachecommons.version>
+        <guava.version>33.2.1-jre</guava.version>
+        <flapdoodle.version>3.4.8</flapdoodle.version>
+        <tomakehurst.version>2.27.2</tomakehurst.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
+        <hedera.hashgraph.version>2.24.1</hedera.hashgraph.version>
+        <grpc.netty.shaded.version>1.40.0</grpc.netty.shaded.version>
+        <lombok.version>1.18.34</lombok.version>
+        <spotless.version>2.43.0</spotless.version>
     </properties>
 
     <distributionManagement>
         <repository>
-            <id>artifactory</id>
-            <name>artifactory</name>
-            <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/iobuilders/eventeum</url>
         </repository>
-        <snapshotRepository>
-            <id>artifactory</id>
-            <name>artifactory</name>
-            <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
-        </snapshotRepository>
     </distributionManagement>
 
     <repositories>
         <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-        <repository>
-            <id>artifactory</id>
-            <url>https://eventeum.jfrog.io/artifactory/eventeum</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central-maven</id>
+            <url>https://repo1.maven.org/maven2</url>
         </repository>
     </repositories>
     <pluginRepositories>
@@ -69,4 +79,29 @@
             <url>https://repo1.maven.org/maven2/</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <java>
+                        <googleJavaFormat>
+                            <style>GOOGLE</style>
+                        </googleJavaFormat>
+                    </java>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

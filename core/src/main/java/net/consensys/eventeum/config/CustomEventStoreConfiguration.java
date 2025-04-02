@@ -33,21 +33,23 @@ import org.springframework.core.annotation.Order;
 @ConditionalOnBean(EventStoreFactory.class)
 public class CustomEventStoreConfiguration {
 
-    @Bean
-    public SaveableEventStore customEventStore(EventStoreFactory factory) {
-        return factory.build();
-    }
+  @Bean
+  public SaveableEventStore customEventStore(EventStoreFactory factory) {
+    return factory.build();
+  }
 
-    @Bean
-    public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
-        return new EventStoreContractEventUpdater(eventStore);
-    }
+  @Bean
+  public ContractEventListener eventStoreContractEventUpdater(SaveableEventStore eventStore) {
+    return new EventStoreContractEventUpdater(eventStore);
+  }
 
-    @Bean
-    public BlockListener eventStoreLatestBlockUpdater(SaveableEventStore eventStore,
-                                                      BlockDetailsFactory blockDetailsFactory,
-                                                      EventeumValueMonitor valueMonitor,
-                                                      ChainServicesContainer chainServicesContainer) {
-        return new EventStoreLatestBlockUpdater(eventStore, blockDetailsFactory,  valueMonitor, chainServicesContainer);
-    }
+  @Bean
+  public BlockListener eventStoreLatestBlockUpdater(
+      SaveableEventStore eventStore,
+      BlockDetailsFactory blockDetailsFactory,
+      EventeumValueMonitor valueMonitor,
+      ChainServicesContainer chainServicesContainer) {
+    return new EventStoreLatestBlockUpdater(
+        eventStore, blockDetailsFactory, valueMonitor, chainServicesContainer);
+  }
 }

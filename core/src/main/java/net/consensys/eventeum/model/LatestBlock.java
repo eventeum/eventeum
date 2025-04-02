@@ -14,15 +14,13 @@
 
 package net.consensys.eventeum.model;
 
+import jakarta.persistence.Entity;
+import java.math.BigInteger;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.math.BigInteger;
-
-import javax.persistence.Entity;
 
 @Document
 @Entity
@@ -30,20 +28,18 @@ import javax.persistence.Entity;
 @NoArgsConstructor
 public class LatestBlock {
 
-    public LatestBlock(BlockDetails blockDetails) {
-        this.nodeName = blockDetails.getNodeName();
-        this.number = blockDetails.getNumber();
-        this.hash = blockDetails.getHash();
-        this.timestamp = blockDetails.getTimestamp();
-    }
+  public LatestBlock(BlockDetails blockDetails) {
+    this.nodeName = blockDetails.getNodeName();
+    this.number = blockDetails.getNumber();
+    this.hash = blockDetails.getHash();
+    this.timestamp = blockDetails.getTimestamp();
+  }
 
-    @javax.persistence.Id
-    @Id
-    private String nodeName;
+  @jakarta.persistence.Id @Id private String nodeName;
 
-    private BigInteger number;
+  private BigInteger number;
 
-    private String hash;
+  private String hash;
 
-    private BigInteger timestamp;
+  private BigInteger timestamp;
 }

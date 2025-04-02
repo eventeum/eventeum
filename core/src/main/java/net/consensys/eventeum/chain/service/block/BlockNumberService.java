@@ -18,5 +18,5 @@ import java.math.BigInteger;
 
 public interface BlockNumberService {
 
-    BigInteger getStartBlockForNode(String nodeName);
+  BigInteger getStartBlockForNode(String nodeName);
 }

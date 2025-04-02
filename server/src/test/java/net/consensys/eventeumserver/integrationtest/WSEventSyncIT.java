@@ -16,7 +16,5 @@ package net.consensys.eventeumserver.integrationtest;
 
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(locations="classpath:application-test-ws-event-sync.properties")
-public class WSEventSyncIT extends BaseKafkaIntegrationTest {
-
-}
+@TestPropertySource(locations = "classpath:application-test-ws-event-sync.properties")
+public class WSEventSyncIT extends BaseKafkaIntegrationTest {}

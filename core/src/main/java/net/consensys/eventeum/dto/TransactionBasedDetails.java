@@ -16,7 +16,7 @@ package net.consensys.eventeum.dto;
 
 public interface TransactionBasedDetails {
 
-    String getTransactionHash();
+  String getTransactionHash();
 
-    String getBlockHash();
+  String getBlockHash();
 }

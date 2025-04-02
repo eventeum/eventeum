@@ -15,59 +15,96 @@
 package net.consensys.eventeum.chain.service.strategy;
 
 import io.reactivex.disposables.Disposable;
+import java.math.BigInteger;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.eventeum.chain.service.HederaService;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.wrapper.Web3jBlock;
+import net.consensys.eventeum.chain.settings.NodeType;
 import net.consensys.eventeum.service.AsyncTaskService;
 import net.consensys.eventeum.utils.JSON;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthBlock;
-
-import java.math.BigInteger;
-import java.util.Optional;
 
 @Slf4j
 public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<EthBlock> {
 
-    public PollingBlockSubscriptionStrategy(Web3j web3j,
-                                            String nodeName,
-                                            AsyncTaskService asyncService,
-                                            BlockNumberService blockNumberService) {
-        super(web3j, nodeName, asyncService, blockNumberService);
-    }
+  private final HederaService hederaService;
+  private final Long pollingInterval;
 
-    @Override
-    public Disposable subscribe() {
+  public PollingBlockSubscriptionStrategy(
+      Web3j web3j,
+      String nodeName,
+      String nodeType,
+      AsyncTaskService asyncService,
+      BlockNumberService blockNumberService,
+      Long pollingInterval) {
+    super(web3j, nodeName, nodeType, asyncService, blockNumberService);
+    this.hederaService = null;
+    this.pollingInterval = pollingInterval;
+  }
 
-        final BigInteger startBlock = getStartBlock();
+  public PollingBlockSubscriptionStrategy(
+      Web3j web3j,
+      String nodeName,
+      String nodeType,
+      AsyncTaskService asyncService,
+      BlockNumberService blockNumberService,
+      HederaService hederaService,
+      Long pollingInterval) {
+    super(web3j, nodeName, nodeType, asyncService, blockNumberService);
+    this.hederaService = hederaService;
+    this.pollingInterval = pollingInterval;
+  }
 
-        log.info("Starting block polling, from block {}", startBlock);
+  @Override
+  public Disposable subscribe() {
 
-        final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock);
+    final BigInteger startBlock = getStartBlock();
 
-        blockSubscription = web3j
+    log.info("Starting block polling, from block {}", startBlock);
+
+    final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock);
+
+    switch (NodeType.valueOf(nodeType)) {
+      case NORMAL:
+        blockSubscription =
+            web3j
                 .replayPastAndFutureBlocksFlowable(blockParam, true)
                 .doOnError((error) -> onError(blockSubscription, error))
-                .subscribe(block -> triggerListeners(block), (error) -> onError(blockSubscription, error));
-
-
-        return blockSubscription;
+                .subscribe(this::triggerListeners, (error) -> onError(blockSubscription, error));
+        break;
+      case MIRROR:
+        blockSubscription =
+            Objects.requireNonNull(hederaService)
+                .blocksFlowable(
+                    ((DefaultBlockParameterNumber) blockParam).getBlockNumber(), pollingInterval)
+                .doOnError((error) -> onError(blockSubscription, error))
+                .subscribe(this::triggerListeners, (error) -> onError(blockSubscription, error));
+        break;
+      default:
+        break;
     }
 
-    @Override
-    Block convertToEventeumBlock(EthBlock blockObject) {
-        //Infura is sometimes returning null blocks...just ignore in this case.
-        if (blockObject == null || blockObject.getBlock() == null) {
-            return null;
-        }
+    return blockSubscription;
+  }
 
-        try {
-            return new Web3jBlock(blockObject.getBlock(), nodeName);
-        } catch (Throwable t) {
-            log.error("Error converting block: " + JSON.stringify(blockObject), t);
-            throw t;
-        }
+  @Override
+  Block convertToEventeumBlock(EthBlock blockObject) {
+    // Infura is sometimes returning null blocks...just ignore in this case.
+    if (blockObject == null || blockObject.getBlock() == null) {
+      return null;
     }
+
+    try {
+      return new Web3jBlock(blockObject.getBlock(), nodeName);
+    } catch (Throwable t) {
+      log.error("Error converting block: " + JSON.stringify(blockObject), t);
+      throw t;
+    }
+  }
 }

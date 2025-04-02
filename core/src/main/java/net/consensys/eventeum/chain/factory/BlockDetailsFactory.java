@@ -19,5 +19,5 @@ import net.consensys.eventeum.dto.block.BlockDetails;
 
 public interface BlockDetailsFactory {
 
-    BlockDetails createBlockDetails(Block block);
+  BlockDetails createBlockDetails(Block block);
 }

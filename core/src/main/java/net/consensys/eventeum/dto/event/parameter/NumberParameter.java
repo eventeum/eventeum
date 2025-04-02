@@ -14,29 +14,29 @@
 
 package net.consensys.eventeum.dto.event.parameter;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import jakarta.persistence.Embeddable;
 import java.math.BigInteger;
-
-import javax.persistence.Embeddable;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * A number based EventParameter, represented by a BigInteger.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Embeddable
 @Data
+@Embeddable
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class NumberParameter extends AbstractEventParameter<BigInteger> {
 
-    public NumberParameter(String type, BigInteger value) {
-        super(type, value);
-    }
+  public NumberParameter(String type, BigInteger value) {
+    super(type, value);
+  }
 
-    @Override
-    public String getValueString() {
-        return getValue().toString();
-    }
+  @Override
+  public String getValueString() {
+    return getValue().toString();
+  }
 }

@@ -22,12 +22,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class HttpBroadcasterSettings {
 
-    @Value("${broadcaster.http.blockEventsUrl:}")
-    private String blockEventsUrl;
+  @Value("${broadcaster.http.blockEventsUrl:}")
+  private String blockEventsUrl;
 
-    @Value("${broadcaster.http.contractEventsUrl:}")
-    private String contractEventsUrl;
+  @Value("${broadcaster.http.contractEventsUrl:}")
+  private String contractEventsUrl;
 
-    @Value("${broadcaster.http.transactionEventsUrl:}")
-    private String transactionEventsUrl;
+  @Value("${broadcaster.http.transactionEventsUrl:}")
+  private String transactionEventsUrl;
+
+  @Value("${broadcaster.http.messageEventsUrl:}")
+  private String messageEventsUrl;
 }

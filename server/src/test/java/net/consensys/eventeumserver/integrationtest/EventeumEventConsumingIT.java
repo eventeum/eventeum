@@ -14,6 +14,9 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.math.BigInteger;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -24,147 +27,140 @@ import net.consensys.eventeum.model.TransactionIdentifierType;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.repository.ContractEventFilterRepository;
 import net.consensys.eventeum.repository.TransactionMonitoringSpecRepository;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.web3j.crypto.Hash;
 
-import java.math.BigInteger;
-
-import static org.junit.Assert.assertEquals;
-
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@TestPropertySource(locations="classpath:application-test-multiinstance.properties")
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestPropertySource(locations = "classpath:application-test-multiinstance.properties")
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
-    @Autowired
-    private KafkaEventeumEventBroadcaster broadcaster;
+  @Autowired private KafkaEventeumEventBroadcaster broadcaster;
 
-    @Autowired
-    private ContractEventFilterRepository filterRepo;
+  @Autowired private ContractEventFilterRepository filterRepo;
 
-    @Autowired
-    private TransactionMonitoringSpecRepository txMonitorRepo;
+  @Autowired private TransactionMonitoringSpecRepository txMonitorRepo;
 
-    @Test
-    public void testFilterAddedEventRegistersFilter() throws Exception {
+  @Test
+  public void testFilterAddedEventRegistersFilter() throws Exception {
 
-        doBroadcastFilterAddedEventAndVerifyRegistered(deployEventEmitterContract());
-    }
+    doBroadcastFilterAddedEventAndVerifyRegistered(deployEventEmitterContract());
+  }
 
-    @Test
-    public void testFilterRemovedEventRemovesFilter() throws Exception {
-        final EventEmitter emitter = deployEventEmitterContract();
+  @Test
+  public void testFilterRemovedEventRemovesFilter() throws Exception {
+    final EventEmitter emitter = deployEventEmitterContract();
 
-        final ContractEventFilter filter = doBroadcastFilterAddedEventAndVerifyRegistered(emitter);
+    final ContractEventFilter filter = doBroadcastFilterAddedEventAndVerifyRegistered(emitter);
 
-        broadcaster.broadcastEventFilterRemoved(filter);
+    broadcaster.broadcastEventFilterRemoved(filter);
 
-        waitForFilterEventMessages(2);
+    waitForFilterEventMessages(2);
 
-        clearMessages();
+    clearMessages();
 
-        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-        waitForBroadcast();
+    waitForBroadcast();
 
-        assertEquals(0, getBroadcastContractEvents().size());
-    }
+    assertEquals(0, getBroadcastContractEvents().size());
+  }
 
-    @Test
-    public void testTxMonitorAddedEventRegistersMonitor() throws Exception {
+  @Test
+  public void testTxMonitorAddedEventRegistersMonitor() throws Exception {
 
-        final String signedTxHex = createRawSignedTransactionHex();
-        final String txHash = Hash.sha3(signedTxHex);
+    final String signedTxHex = createRawSignedTransactionHex();
+    final String txHash = Hash.sha3(signedTxHex);
 
-        final TransactionMonitoringSpec spec = new TransactionMonitoringSpec();
-        spec.setNodeName("default");
-        spec.setTransactionIdentifierValue(txHash);
-        spec.setType(TransactionIdentifierType.HASH);
+    final TransactionMonitoringSpec spec = new TransactionMonitoringSpec();
+    spec.setNodeName("default");
+    spec.setTransactionIdentifierValue(txHash);
+    spec.setType(TransactionIdentifierType.HASH);
 
-        broadcaster.broadcastTransactionMonitorAdded(spec);
+    broadcaster.broadcastTransactionMonitorAdded(spec);
 
-        waitForTransactionMonitorEventMessages(1);
+    waitForTransactionMonitorEventMessages(1);
 
-        assertEquals(txHash, sendRawTransaction(signedTxHex));
+    assertEquals(txHash, sendRawTransaction(signedTxHex));
 
-        waitForTransactionMessages(1);
+    waitForTransactionMessages(1);
 
-        assertEquals(1, getBroadcastTransactionMessages().size());
+    assertEquals(1, getBroadcastTransactionMessages().size());
 
-        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
-        assertEquals(txHash, txDetails.getHash());
-        assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
-    }
+    final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+    assertEquals(txHash, txDetails.getHash());
+    assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
+  }
 
-    @Test
-    public void testTxMonitorRemovedEventRemovesMonitor() throws Exception {
+  @Test
+  public void testTxMonitorRemovedEventRemovesMonitor() throws Exception {
 
-        final String signedTxHex = createRawSignedTransactionHex();
-        final String txHash = Hash.sha3(signedTxHex);
+    final String signedTxHex = createRawSignedTransactionHex();
+    final String txHash = Hash.sha3(signedTxHex);
 
-        final TransactionMonitoringSpec spec = new TransactionMonitoringSpec();
-        spec.setNodeName("default");
-        spec.setTransactionIdentifierValue(txHash);
-        spec.setType(TransactionIdentifierType.HASH);
+    final TransactionMonitoringSpec spec = new TransactionMonitoringSpec();
+    spec.setNodeName("default");
+    spec.setTransactionIdentifierValue(txHash);
+    spec.setType(TransactionIdentifierType.HASH);
 
-        broadcaster.broadcastTransactionMonitorAdded(spec);
+    broadcaster.broadcastTransactionMonitorAdded(spec);
 
-        waitForTransactionMonitorEventMessages(1);
+    waitForTransactionMonitorEventMessages(1);
 
-        broadcaster.broadcastTransactionMonitorRemoved(spec);
+    broadcaster.broadcastTransactionMonitorRemoved(spec);
 
-        waitForTransactionMonitorEventMessages(1);
+    waitForTransactionMonitorEventMessages(1);
 
-        assertEquals(txHash, sendRawTransaction(signedTxHex));
+    assertEquals(txHash, sendRawTransaction(signedTxHex));
 
-        waitForBroadcast();
+    waitForBroadcast();
 
-        assertEquals(0, getBroadcastTransactionMessages().size());
-    }
+    assertEquals(0, getBroadcastTransactionMessages().size());
+  }
 
-    private ContractEventFilter doBroadcastFilterAddedEventAndVerifyRegistered(
-            EventEmitter emitter) throws Exception {
+  private ContractEventFilter doBroadcastFilterAddedEventAndVerifyRegistered(EventEmitter emitter)
+      throws Exception {
 
-        final ContractEventFilter filter = createDummyEventFilter(emitter.getContractAddress());
+    final ContractEventFilter filter = createDummyEventFilter(emitter.getContractAddress());
 
-        broadcaster.broadcastEventFilterAdded(filter);
+    broadcaster.broadcastEventFilterAdded(filter);
 
-        waitForFilterEventMessages(1);
+    waitForFilterEventMessages(1);
 
-        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-        waitForContractEventMessages(1);
+    waitForContractEventMessages(1);
 
-        assertEquals(1, getBroadcastContractEvents().size());
+    assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
-        verifyDummyEventDetails(filter, eventDetails, ContractEventStatus.UNCONFIRMED);
+    final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+    verifyDummyEventDetails(filter, eventDetails, ContractEventStatus.UNCONFIRMED);
 
-        return filter;
-    }
+    return filter;
+  }
 
-    private void waitForFilterEventMessages(int expectedMessageCounnt) throws InterruptedException {
-        waitForMessages(expectedMessageCounnt, getBroadcastFilterEventMessages());
+  private void waitForFilterEventMessages(int expectedMessageCounnt) throws InterruptedException {
+    waitForMessages(expectedMessageCounnt, getBroadcastFilterEventMessages());
 
-        //Wait an extra 2 seconds because there may be a race condition
-        Thread.sleep(2000);
-    }
+    // Wait an extra 2 seconds because there may be a race condition
+    Thread.sleep(2000);
+  }
 
-    private void waitForTransactionMonitorEventMessages(int expectedMessageCounnt) throws InterruptedException {
-        waitForMessages(expectedMessageCounnt, getBroadcastTransactionEventMessages());
+  private void waitForTransactionMonitorEventMessages(int expectedMessageCounnt)
+      throws InterruptedException {
+    waitForMessages(expectedMessageCounnt, getBroadcastTransactionEventMessages());
 
-        //Wait an extra 2 seconds because there may be a race condition
-        Thread.sleep(2000);
-    }
+    // Wait an extra 2 seconds because there may be a race condition
+    Thread.sleep(2000);
+  }
 }

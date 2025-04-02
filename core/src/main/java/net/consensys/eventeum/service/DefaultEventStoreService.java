@@ -14,16 +14,16 @@
 
 package net.consensys.eventeum.service;
 
+import java.util.List;
+import java.util.Optional;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.message.MessageDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
 import net.consensys.eventeum.model.LatestBlock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @{inheritDoc}
@@ -33,42 +33,47 @@ import java.util.Optional;
 @Component
 public class DefaultEventStoreService implements EventStoreService {
 
-    private EventStore eventStore;
+  private EventStore eventStore;
 
-    public DefaultEventStoreService(EventStore eventStore) {
-        this.eventStore = eventStore;
+  public DefaultEventStoreService(EventStore eventStore) {
+    this.eventStore = eventStore;
+  }
+
+  /**
+   * @{inheritDoc}
+   */
+  @Override
+  public Optional<ContractEventDetails> getLatestContractEvent(
+      String eventSignature, String contractAddress) {
+    int page = eventStore.isPagingZeroIndexed() ? 0 : 1;
+
+    final PageRequest pagination =
+        PageRequest.of(page, 1, Sort.by(Sort.Direction.DESC, "blockNumber"));
+
+    final Page<ContractEventDetails> eventsPage =
+        eventStore.getContractEventsForSignature(eventSignature, contractAddress, pagination);
+
+    if (eventsPage == null) {
+      return Optional.empty();
     }
 
-    /**
-     * @{inheritDoc}
-     */
-    @Override
-    public Optional<ContractEventDetails> getLatestContractEvent(
-            String eventSignature, String contractAddress) {
-        int page = eventStore.isPagingZeroIndexed() ? 0 : 1;
+    final List<ContractEventDetails> events = eventsPage.getContent();
 
-        final PageRequest pagination = new PageRequest(page,
-                1, new Sort(Sort.Direction.DESC, "blockNumber"));
-
-        final Page<ContractEventDetails> eventsPage =
-                eventStore.getContractEventsForSignature(eventSignature, contractAddress, pagination);
-
-        if (eventsPage == null) {
-            return Optional.empty();
-        }
-
-        final List<ContractEventDetails> events = eventsPage.getContent();
-
-        if (events == null || events.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(events.get(0));
+    if (events == null || events.isEmpty()) {
+      return Optional.empty();
     }
 
-    @Override
-    public Optional<LatestBlock> getLatestBlock(String nodeName) {
+    return Optional.of(events.get(0));
+  }
 
-        return eventStore.getLatestBlockForNode(nodeName);
-    }
+  @Override
+  public Optional<LatestBlock> getLatestBlock(String nodeName) {
+
+    return eventStore.getLatestBlockForNode(nodeName);
+  }
+
+  @Override
+  public Optional<MessageDetails> getLatestMessageFromTopic(String nodeName, String topicId) {
+    return eventStore.getLatestMessageFromTopic(nodeName, topicId);
+  }
 }

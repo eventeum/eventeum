@@ -24,29 +24,27 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
-
 
 @Configuration
 @Import({DatabaseConfiguration.WithMongo.class, DatabaseConfiguration.WithJpa.class})
 public class DatabaseConfiguration {
 
-    @ConditionalOnProperty(name= "database.type", havingValue="MONGO")
-    @EnableAutoConfiguration(
-            exclude = {DataSourceAutoConfiguration.class,   DataSourceTransactionManagerAutoConfiguration.class,
-                HibernateJpaAutoConfiguration.class, JpaRepositoriesAutoConfiguration.class})
-    @EnableMongoRepositories(basePackages = {BaseConfiguration.BASE_PACKAGE})
-    static class WithMongo {
+  @ConditionalOnProperty(name = "database.type", havingValue = "MONGO")
+  @EnableAutoConfiguration(
+      exclude = {
+        DataSourceAutoConfiguration.class,
+        DataSourceTransactionManagerAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class,
+        JpaRepositoriesAutoConfiguration.class
+      })
+  @EnableMongoRepositories(basePackages = {BaseConfiguration.BASE_PACKAGE})
+  static class WithMongo {}
 
-    }
-
-    @ConditionalOnProperty(name= "database.type", havingValue="SQL")
-    @EnableJpaRepositories(basePackages = {BaseConfiguration.BASE_PACKAGE})
-    @EnableAutoConfiguration(
-            exclude = {MongoAutoConfiguration.class,   MongoDataAutoConfiguration.class})
-    static class WithJpa {
-
-    }
+  @ConditionalOnProperty(name = "database.type", havingValue = "SQL")
+  @EnableJpaRepositories(basePackages = {BaseConfiguration.BASE_PACKAGE})
+  @EnableAutoConfiguration(
+      exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
+  static class WithJpa {}
 }

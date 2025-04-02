@@ -19,5 +19,5 @@ import net.consensys.eventeum.model.TransactionMonitoringSpec;
 
 public interface TransactionMatchingCriteriaFactory {
 
-    TransactionMatchingCriteria build(TransactionMonitoringSpec spec);
+  TransactionMatchingCriteria build(TransactionMonitoringSpec spec);
 }

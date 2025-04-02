@@ -19,6 +19,4 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import(BlockchainServiceRegistrar.class)
-public class BaseChainConfiguration {
-
-}
+public class BaseChainConfiguration {}

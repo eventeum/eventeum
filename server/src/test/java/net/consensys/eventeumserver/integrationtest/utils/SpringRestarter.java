@@ -20,45 +20,46 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 
 public class SpringRestarter {
 
-    private static SpringRestarter INSTANCE = null;
+  private static SpringRestarter INSTANCE = null;
 
-    private TestContextManager testContextManager;
+  private TestContextManager testContextManager;
 
-    public static SpringRestarter getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new SpringRestarter();
-        }
-
-        return INSTANCE;
+  public static SpringRestarter getInstance() {
+    if (INSTANCE == null) {
+      INSTANCE = new SpringRestarter();
     }
 
-    public void init(TestContextManager testContextManager) {
-        this.testContextManager = testContextManager;
+    return INSTANCE;
+  }
+
+  public void init(TestContextManager testContextManager) {
+    this.testContextManager = testContextManager;
+  }
+
+  public void restart(Runnable stoppedLogic) {
+    testContextManager
+        .getTestContext()
+        .markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
+
+    if (stoppedLogic != null) {
+      stoppedLogic.run();
     }
 
-    public void restart(Runnable stoppedLogic) {
-        testContextManager.getTestContext().markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
+    testContextManager.getTestContext().getApplicationContext();
+    reinjectDependencies();
+  }
 
-        if (stoppedLogic != null) {
-            stoppedLogic.run();
-        }
-
-        testContextManager.getTestContext().getApplicationContext();
-        reinjectDependencies();
-    }
-
-    private void reinjectDependencies()  {
-        testContextManager
-                .getTestExecutionListeners()
-                .stream()
-                .filter(listener -> listener instanceof DependencyInjectionTestExecutionListener)
-                .findFirst()
-                .ifPresent(listener -> {
-                    try {
-                        listener.prepareTestInstance(testContextManager.getTestContext());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-    }
+  private void reinjectDependencies() {
+    testContextManager.getTestExecutionListeners().stream()
+        .filter(listener -> listener instanceof DependencyInjectionTestExecutionListener)
+        .findFirst()
+        .ifPresent(
+            listener -> {
+              try {
+                listener.prepareTestInstance(testContextManager.getTestContext());
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            });
+  }
 }

@@ -20,6 +20,6 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 
 public interface TransactionDetailsFactory {
-    TransactionDetails createTransactionDetails(
-            Transaction transaction, TransactionStatus status, Block block);
+  TransactionDetails createTransactionDetails(
+      Transaction transaction, TransactionStatus status, Block block);
 }

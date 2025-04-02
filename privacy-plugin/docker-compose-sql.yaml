@@ -1,0 +1,12 @@
+version: '2.1'
+services:
+  sql:
+    image: microsoft/mssql-server-linux:latest
+    container_name: sql_server_demo
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "reallyStrongPwd123"
+    ports:
+      - "1433:1433"
+    networks:
+      - default

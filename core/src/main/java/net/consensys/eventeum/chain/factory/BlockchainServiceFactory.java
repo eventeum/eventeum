@@ -19,5 +19,5 @@ import net.consensys.eventeum.chain.settings.Node;
 
 public interface BlockchainServiceFactory {
 
-    BlockchainService create(Node node);
+  BlockchainService create(Node node);
 }

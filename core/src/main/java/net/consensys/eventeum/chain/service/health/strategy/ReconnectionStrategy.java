@@ -21,13 +21,9 @@ package net.consensys.eventeum.chain.service.health.strategy;
  */
 public interface ReconnectionStrategy {
 
-    /**
-     * Triggered when an Ethereum node failure is detected.
-     */
-    void reconnect();
+  /** Triggered when an Ethereum node failure is detected. */
+  void reconnect();
 
-    /**
-     * Triggered when it has been detected that the Ethereum node has recovered after failure.
-     */
-    void resubscribe();
+  /** Triggered when it has been detected that the Ethereum node has recovered after failure. */
+  void resubscribe();
 }

@@ -27,5 +27,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @ConditionalOnMissingBean(ContractEventFilterRepositoryFactory.class)
-public interface ContractEventFilterRepository extends CrudRepository<ContractEventFilter, String> {
-}
+public interface ContractEventFilterRepository
+    extends CrudRepository<ContractEventFilter, String> {}

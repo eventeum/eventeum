@@ -14,12 +14,10 @@
 
 package net.consensys.eventeum.service.sync;
 
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-
 import java.util.List;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
 public interface EventSyncService {
 
-    void sync(List<ContractEventFilter> filters);
-
+  void sync(List<ContractEventFilter> filters);
 }

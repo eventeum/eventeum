@@ -25,9 +25,9 @@ import java.util.concurrent.Future;
  */
 public interface AsyncTaskService {
 
-    void execute(String executorName, Runnable task);
+  void execute(String executorName, Runnable task);
 
-    CompletableFuture<Void> executeWithCompletableFuture(String executorName, Runnable task);
+  CompletableFuture<Void> executeWithCompletableFuture(String executorName, Runnable task);
 
-    <T> Future<T> submit(String executorName, Callable<T> task);
+  <T> Future<T> submit(String executorName, Callable<T> task);
 }

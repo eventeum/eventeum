@@ -14,24 +14,24 @@
 
 package net.consensys.eventeum.chain.block.tx.criteria;
 
+import java.util.List;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.dto.transaction.TransactionStatus;
 
-import java.util.List;
-
 public class TxHashMatchingCriteria extends SingleValueMatchingCriteria<String> {
 
-    public TxHashMatchingCriteria(String nodeName, String hashToMatch, List<TransactionStatus> statuses) {
-        super(nodeName, hashToMatch, statuses);
-    }
+  public TxHashMatchingCriteria(
+      String nodeName, String hashToMatch, List<TransactionStatus> statuses) {
+    super(nodeName, hashToMatch, statuses);
+  }
 
-    @Override
-    protected String getValueFromTx(TransactionDetails tx) {
-        return tx.getHash();
-    }
+  @Override
+  protected String getValueFromTx(TransactionDetails tx) {
+    return tx.getHash();
+  }
 
-    @Override
-    public boolean isOneTimeMatch() {
-        return true;
-    }
+  @Override
+  public boolean isOneTimeMatch() {
+    return true;
+  }
 }

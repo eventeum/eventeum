@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@ConditionalOnProperty(name="broadcaster.type", havingValue="RABBIT")
+@ConditionalOnProperty(name = "broadcaster.type", havingValue = "RABBIT")
 @Import(RabbitAutoConfiguration.class)
-class RabbitConfiguration{
-
-}
+class RabbitConfiguration {}

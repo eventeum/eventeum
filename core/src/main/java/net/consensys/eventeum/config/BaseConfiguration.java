@@ -24,5 +24,5 @@ import org.springframework.context.annotation.Configuration;
 @EntityScan(basePackages = {BaseConfiguration.BASE_PACKAGE})
 @Configuration
 public class BaseConfiguration {
-    public static final String BASE_PACKAGE = "net.consensys.eventeum";
+  public static final String BASE_PACKAGE = "net.consensys.eventeum";
 }

@@ -14,9 +14,9 @@
 
 package net.consensys.eventeum.dto.event.parameter;
 
-import javax.persistence.Embeddable;
-
+import jakarta.persistence.Embeddable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -24,17 +24,18 @@ import lombok.NoArgsConstructor;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Embeddable
 @Data
+@Embeddable
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class StringParameter extends AbstractEventParameter<String> {
 
-    public StringParameter(String type, String value) {
-        super(type, value);
-    }
+  public StringParameter(String type, String value) {
+    super(type, value);
+  }
 
-    @Override
-    public String getValueString() {
-        return getValue();
-    }
+  @Override
+  public String getValueString() {
+    return getValue();
+  }
 }

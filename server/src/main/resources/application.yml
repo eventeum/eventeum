@@ -1,56 +1,18 @@
 server:
   tomcat:
     uri-encoding: UTF-8
-  port: 8060
+  port: ${SERVER_PORT:8060}
 
 logging:
   level:
-    org.springframework.web: ERROR
+    org.springframework.web: DEBUG
     net.consensys: DEBUG
     net.consensys.configs: ERROR
+    org.springframework.amqp: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
   file: /logs/application.log
-
-ethereum:
-  nodes:
-  - name: default
-#    url: ${ETHEREUM_NODE_URL:wss://mainnet.infura.io/ws/v3/6d00f1fc08d84be7a25d76996d16550b}
-    url: ${ETHEREUM_NODE_URL:http://localhost:8545}
-    blockStrategy: POLL
-    syncingThreshold: 100
-    healthcheckInterval: 5000
-    maxBlocksToSync: 0
-  healthcheck:
-    pollInterval: 5000
-  blockStrategy: POLL
-  numBlocksToReplay: 12
-  sync:
-    batchSize: 100000
-
-#eventFilters:
-#  - id: CryptoKittiesTransfer
-#    contractAddress: "0x06012c8cf97bead5deae237070f9587f8e7a266d"
-#    eventSpecification:
-#      eventName: Transfer
-#      nonIndexedParameterDefinitions:
-#        - position: 0
-#          type: ADDRESS
-#        - position: 1
-#          type: ADDRESS
-#        - position: 2
-#          type: UINT256
-#
-#    correlationId:
-#      type: NON_INDEXED_PARAMETER
-#      index: 2
-#    startBlock: 10330000
-
-#transactionFilters:
-#- nodeName: ${ETHEREUM_NETWORK:default}
-#  type: "TO_ADDRESS"
-#  transactionIdentifierValue: "0x06012c8cf97bead5deae237070f9587f8e7a266d"
 
 eventStore:
   type: DB
@@ -60,51 +22,312 @@ eventStore:
 database:
   type: MONGO
 
+spring:
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    virtualHost: /
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASSWORD:guest}
+    connectionTimeout: 30000
+    port: ${RABBIT_PORT:5672}
+    ssl:
+      enabled: ${RABBIT_SSL_ENABLED:false}
+      algorithm: TLSv1.2
+
+  data:
+    mongodb:
+      uri: ${MONGO_PROTOCOL:mongodb}://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DATABASE:mongodb}
+      repositories:
+        enabled: true
+
 broadcaster:
-  type: KAFKA
+  type: RABBIT
   cache:
     expirationMillis: 6000000
   event:
     confirmation:
-      numBlocksToWait: 12
+      numBlocksToWait: 0
       numBlocksToWaitForMissingTx: 100
       numBlocksToWaitBeforeInvalidating: 2
   multiInstance: false
-  enableBlockNotifications: true
+  enableBlockNotifications: false
+
+rabbitmq:
+  exchange: my_exchange
+  blockNotification: false
+  routingKey:
+    contractEvents: my_queue
+    blockEvents: adm.block
+    transactionEvents: adm.transaction
+    messageEvents: adm.message
 
 # For Kafka
-zookeeper:
-  address: ${ZOOKEEPER_ADDRESS:localhost:2181}
-kafka:
-  bootstrap:
-    addresses: ${KAFKA_ADDRESSES:localhost:9092}
-  topic:
-    contractEvents: contract-events
-    blockEvents: block-events
-    eventeumEvents: eventeum-events
-    transactionEvents: transaction-events
-
-    partitions: 1
-    replicationSets: 1
-
-
+#zookeeper:
+#  address: ${ZOOKEEPER_ADDRESS:localhost:2181}
+#kafka:
+#  bootstrap:
+#    addresses: ${KAFKA_ADDRESSES:localhost:9092}
+#  topic:
+#    contractEvents: contract-events
+#    blockEvents: block-events
+#    eventeumEvents: eventeum-events
+#    transactionEvents: transaction-events
+#
+#    partitions: 1
+#    replicationSets: 1
 
 
 management:
   endpoints:
-    web.base-path: /monitoring
+    web:
+      base-path: /monitoring
+      exposure.include: "*"
     enabled-by-default: false
-    web.exposure.include: "*"
   endpoint:
     health:
       enabled: true
       show-details: always
     metrics:
-      enabled: false
+      enabled: true
     prometheus:
-      enabled: false
+      enabled: true
   metrics:
     export:
       prometheus:
-        enabled: false
+        enabled: true
 
+  # Hedera RPC config
+
+  #ethereum:
+  #  nodes:
+  #    - name: ${ETH_NODE:hedera}
+  #      url: ${ETH_HOST:https://testnet.hashio.io/api}
+  #      url: ${ETH_HOST:http://localhost:7546/api}
+  #      blockStrategy: ${ETH_BLOCK_STRATEGY:POLL}
+  #      pollInterval: 1000
+  #      addTransactionRevertReason: true
+  #      maxIdleConnections: 10
+  #      keepAliveDuration: 15000
+  #      connectionTimeout: 7000
+  #      readTimeout: 180000
+  #      healthcheckInterval: 10000
+  #      numBlocksToWait: 0
+  #      numBlocksToWaitForMissingTx: 0
+  #      numBlocksToWaitBeforeInvalidating: 0
+  #      maxUnsyncedBlocksForFilter: 600
+
+  # Base ETH node
+
+ethereum:
+  nodes:
+    - name: default
+      url: wss://eth-sepolia.g.alchemy.com/v2/qHQnYZKv3T4S4VAEiOB1V87fu7hsZ9GJ
+      blockStrategy: PUBSUB
+      syncingThreshold: 100
+      healthcheckInterval: 3000
+      initialStartBlock: 7057395
+      maxBlocksToSync: 2
+  healthcheck:
+    pollInterval: 2000
+  blockStrategy: PUBSUB
+
+
+# Hedera mirror node config
+
+#hashgraph:
+#  nodes:
+#    - name: hedera
+#      type: MIRROR
+#      url: ${HEDERA_NODE_URL:https://testnet.mirrornode.hedera.com}
+#      blockStrategy: POLL
+#      syncingThreshold: 100
+#      healthcheckInterval: 5000
+#      maxBlocksToSync: 0
+#      initialStartBlock: 1257300
+#      pollingInterval: 500
+
+# Hedera account config
+
+#hedera:
+#  testnet: ${HEDERA_NODE_TESTNET:true}
+#  account:
+#    id: ${HEDERA_ACCOUNT_ID:0.0.7043}
+#    privateKey: ${HEDERA_ACCOUNT_PRIVATE_KEY:d0b52ad9317ba590cb7227090dffa69aa29f2b633b844e475d388c07137a205f}
+#
+#eventFilters:
+#  - id: TransferOperatorAuthorized.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: TransferOperatorAuthorized
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: TransferOperatorRevoked.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: TransferOperatorRevoked
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: DefaultTransferOperatorAdded.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: DefaultTransferOperatorAdded
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: DefaultTransferOperatorRemoved.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: DefaultTransferOperatorRemoved
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Sent.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Sent
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#        - position: 2
+#          type: ADDRESS
+#        - position: 2
+#          type: UINT256
+#        - position: 2
+#          type: BYTES32
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Transfer.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Transfer
+#      indexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#      nonIndexedParameterDefinitions:
+#        - position: 2
+#          type: UINT256
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Approval.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Approval
+#      indexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#      nonIndexedParameterDefinitions:
+#        - position: 2
+#          type: UINT256
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Paused.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Paused
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#  - id: Unpaused.adm
+#    node: ${ETH_NODE:hedera}
+#    contractAddress: ${HEDERA_EMONEYTOKEN_ADDRESS:0000000000000000000000000000000000341c99}
+#    eventSpecification:
+#      eventName: Unpaused
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#
+#transactionFilters:
+#  - nodeName: ${ETH_NODE:hedera}
+#    type: "TO_ADDRESS"
+#    transactionIdentifierValue: ${HEDERA_EMONEY_ADDRESS:0000000000000000000000000000000000341c99}
+#    statuses: ['FAILED']
+
+eventFilters:
+  - id: DummyStructCreated
+    node: default
+    contractAddress: "0x38a5385011Cc1B729EfBb3e9b03C5369c497AcBb"
+    eventSpecification:
+      eventName: DummyStructCreated
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+        - position: 1
+          type: UINT256
+        - position: 2
+          type: INT256
+        - position: 3
+          type: BOOL
+        - position: 4
+          type: ADDRESS
+        - position: 5
+          type: STRING
+        - position: 6
+          type: BYTES32
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0
+
+  - id: DummyStructUpdated
+    node: default
+    contractAddress: "0x38a5385011Cc1B729EfBb3e9b03C5369c497AcBb"
+    eventSpecification:
+      eventName: DummyStructUpdated
+      nonIndexedParameterDefinitions:
+        - position: 0
+          type: UINT256
+        - position: 1
+          type: UINT256
+        - position: 2
+          type: INT256
+        - position: 3
+          type: BOOL
+        - position: 4
+          type: ADDRESS
+        - position: 5
+          type: STRING
+        - position: 6
+          type: BYTES32
+    correlationId:
+      type: NON_INDEXED_PARAMETER
+      index: 0

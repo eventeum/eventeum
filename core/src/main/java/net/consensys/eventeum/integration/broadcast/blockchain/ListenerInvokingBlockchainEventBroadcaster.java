@@ -17,35 +17,42 @@ package net.consensys.eventeum.integration.broadcast.blockchain;
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.message.MessageDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 
 @AllArgsConstructor
-    public class ListenerInvokingBlockchainEventBroadcaster implements BlockchainEventBroadcaster {
+public class ListenerInvokingBlockchainEventBroadcaster implements BlockchainEventBroadcaster {
 
-    private OnBlockchainEventListener listener;
+  private OnBlockchainEventListener listener;
 
-    @Override
-    public void broadcastNewBlock(BlockDetails block) {
-        listener.onNewBlock(block);
-    }
+  @Override
+  public void broadcastNewBlock(BlockDetails block) {
+    listener.onNewBlock(block);
+  }
 
-    @Override
-    public void broadcastContractEvent(ContractEventDetails eventDetails) {
-        listener.onContractEvent(eventDetails);
-    }
+  @Override
+  public void broadcastContractEvent(ContractEventDetails eventDetails) {
+    listener.onContractEvent(eventDetails);
+  }
 
-    @Override
-    public void broadcastTransaction(TransactionDetails transactionDetails) {
-        listener.onTransactionEvent(transactionDetails);
-    }
+  @Override
+  public void broadcastTransaction(TransactionDetails transactionDetails) {
+    listener.onTransactionEvent(transactionDetails);
+  }
 
-    public interface OnBlockchainEventListener {
+  @Override
+  public void broadcastMessage(MessageDetails messageDetails) {
+    listener.onMessageEvent(messageDetails);
+  }
 
-        void onNewBlock(BlockDetails block);
+  public interface OnBlockchainEventListener {
 
-        void onContractEvent(ContractEventDetails eventDetails);
+    void onNewBlock(BlockDetails block);
 
-        void onTransactionEvent(TransactionDetails transactionDetails);
-    }
+    void onContractEvent(ContractEventDetails eventDetails);
 
+    void onTransactionEvent(TransactionDetails transactionDetails);
+
+    void onMessageEvent(MessageDetails messageDetails);
+  }
 }

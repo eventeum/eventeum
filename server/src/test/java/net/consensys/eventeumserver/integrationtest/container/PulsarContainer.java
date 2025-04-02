@@ -13,58 +13,59 @@
  */
 package net.consensys.eventeumserver.integrationtest.container;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
+
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
-import java.time.Duration;
-
-import static java.time.temporal.ChronoUnit.SECONDS;
-
 public class PulsarContainer<SelfT extends PulsarContainer<SelfT>> extends GenericContainer<SelfT> {
 
-    private static final Logger log = LoggerFactory.getLogger(PulsarContainer.class);
+  private static final Logger log = LoggerFactory.getLogger(PulsarContainer.class);
 
-    public static final int BROKER_PORT = 6650;
-    public static final int BROKER_HTTP_PORT = 8080;
-    public static final String METRICS_ENDPOINT = "/metrics";
+  public static final int BROKER_PORT = 6650;
+  public static final int BROKER_HTTP_PORT = 8080;
+  public static final String METRICS_ENDPOINT = "/metrics";
 
-    private static final String IMAGE_NAME = "apachepulsar/pulsar:2.3.1";
+  private static final String IMAGE_NAME = "apachepulsar/pulsar:2.3.1";
 
-    public PulsarContainer() {
-        super(IMAGE_NAME);
-    }
+  public PulsarContainer() {
+    super(IMAGE_NAME);
+  }
 
-    @Override
-    protected void configure() {
-        super.configure();
-        this.addExposedPorts(BROKER_PORT, BROKER_HTTP_PORT);
-    }
+  @Override
+  protected void configure() {
+    super.configure();
+    this.addExposedPorts(BROKER_PORT, BROKER_HTTP_PORT);
+  }
 
-    @Override
-    public void start() {
-        this.waitStrategy = new HttpWaitStrategy()
-                .forPort(BROKER_HTTP_PORT)
-                .forStatusCode(200)
-                .forPath(METRICS_ENDPOINT)
-                .withStartupTimeout(Duration.of(60, SECONDS));
+  @Override
+  public void start() {
+    this.waitStrategy =
+        new HttpWaitStrategy()
+            .forPort(BROKER_HTTP_PORT)
+            .forStatusCode(200)
+            .forPath(METRICS_ENDPOINT)
+            .withStartupTimeout(Duration.of(60, SECONDS));
 
-        this.withCommand("/bin/bash", "-c", "/pulsar/bin/pulsar standalone");
+    this.withCommand("/bin/bash", "-c", "/pulsar/bin/pulsar standalone");
 
-        this.withCreateContainerCmdModifier(createContainerCmd -> {
-            createContainerCmd.withHostName("standalone");
+    this.withCreateContainerCmdModifier(
+        createContainerCmd -> {
+          createContainerCmd.withHostName("standalone");
         });
 
-        super.start();
-        log.info("Pulsar Service Started");
-    }
+    super.start();
+    log.info("Pulsar Service Started");
+  }
 
-    public String getPlainTextServiceUrl() {
-        return "pulsar://" + getContainerIpAddress() + ":" + getMappedPort(BROKER_PORT);
-    }
+  public String getPlainTextServiceUrl() {
+    return "pulsar://" + getContainerIpAddress() + ":" + getMappedPort(BROKER_PORT);
+  }
 
-    public String getHttpServiceUrl() {
-        return "http://" + getContainerIpAddress() + ":" + getMappedPort(BROKER_HTTP_PORT);
-    }
+  public String getHttpServiceUrl() {
+    return "http://" + getContainerIpAddress() + ":" + getMappedPort(BROKER_HTTP_PORT);
+  }
 }

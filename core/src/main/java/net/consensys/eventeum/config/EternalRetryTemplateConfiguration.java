@@ -23,19 +23,19 @@ import org.springframework.retry.support.RetryTemplate;
 @Configuration
 public class EternalRetryTemplateConfiguration {
 
-    private static final  long  DEFAULT_BACKOFF_TIME = 500l;
+  private static final long DEFAULT_BACKOFF_TIME = 500l;
 
-    @Bean
-    public RetryTemplate eternalRetryTemplate() {
-        RetryTemplate retryTemplate = new RetryTemplate();
+  @Bean
+  public RetryTemplate eternalRetryTemplate() {
+    RetryTemplate retryTemplate = new RetryTemplate();
 
-        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-        fixedBackOffPolicy.setBackOffPeriod(DEFAULT_BACKOFF_TIME);
-        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+    FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+    fixedBackOffPolicy.setBackOffPeriod(DEFAULT_BACKOFF_TIME);
+    retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
 
-        AlwaysRetryPolicy retryPolicy = new AlwaysRetryPolicy();
-        retryTemplate.setRetryPolicy(retryPolicy);
+    AlwaysRetryPolicy retryPolicy = new AlwaysRetryPolicy();
+    retryTemplate.setRetryPolicy(retryPolicy);
 
-        return retryTemplate;
-    }
+    return retryTemplate;
+  }
 }

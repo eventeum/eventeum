@@ -14,14 +14,13 @@
 
 package net.consensys.eventeum.config;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import net.consensys.eventeum.dto.message.*;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import net.consensys.eventeum.integration.mixin.PageMixIn;
-import net.consensys.kafkadl.message.RetryableMessage;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 
 /**
@@ -29,14 +28,17 @@ import org.springframework.data.domain.Page;
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
-@Configuration
-public class JacksonConfiguration {
+@AutoConfiguration
+@ConditionalOnClass(ObjectMapper.class)
+public class JacksonAutoConfiguration {
 
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.addMixIn(Page.class, PageMixIn.class);
+  @Bean
+  @ConditionalOnMissingBean(ObjectMapper.class)
+  public ObjectMapper objectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.addMixIn(Page.class, PageMixIn.class);
 
-        return mapper;
-    }
+    return mapper;
+  }
 }

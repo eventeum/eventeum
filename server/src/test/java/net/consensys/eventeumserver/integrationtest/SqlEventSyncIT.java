@@ -14,29 +14,29 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import org.junit.ClassRule;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MSSQLServerContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@TestPropertySource(locations="classpath:application-test-sql-event-sync.properties")
+@TestPropertySource(locations = "classpath:application-test-sql-event-sync.properties")
 @ContextConfiguration(initializers = {SqlEventSyncIT.Initializer.class})
+@Testcontainers
 public class SqlEventSyncIT extends BaseEventCatchupTest {
 
-    @ClassRule
-    public static MSSQLServerContainer mssqlserver = new MSSQLServerContainer()
-            .withPassword("reallyStrongPwd123");
+  @Container
+  public static MSSQLServerContainer mssqlserver =
+      new MSSQLServerContainer().withPassword("reallyStrongPwd123").acceptLicense();
 
-    static class Initializer
-            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + mssqlserver.getJdbcUrl()
-            ).applyTo(configurableApplicationContext.getEnvironment());
-        }
+  static class Initializer
+      implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+    public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
+      TestPropertyValues.of("spring.datasource.url=" + mssqlserver.getJdbcUrl())
+          .applyTo(configurableApplicationContext.getEnvironment());
     }
-
+  }
 }

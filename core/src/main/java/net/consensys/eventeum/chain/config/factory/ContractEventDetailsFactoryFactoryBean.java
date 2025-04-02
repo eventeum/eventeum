@@ -24,20 +24,19 @@ import org.web3j.abi.datatypes.Type;
 
 @Data
 public class ContractEventDetailsFactoryFactoryBean
-        implements FactoryBean<ContractEventDetailsFactory> {
+    implements FactoryBean<ContractEventDetailsFactory> {
 
-    EventParameterConverter<Type> parameterConverter;
-    Node node;
-    String nodeName;
+  EventParameterConverter<Type> parameterConverter;
+  Node node;
+  String nodeName;
 
-    @Override
-    public ContractEventDetailsFactory getObject() throws Exception {
-        return new DefaultContractEventDetailsFactory(
-                parameterConverter, node, nodeName);
-    }
+  @Override
+  public ContractEventDetailsFactory getObject() throws Exception {
+    return new DefaultContractEventDetailsFactory(parameterConverter, node, nodeName);
+  }
 
-    @Override
-    public Class<?> getObjectType() {
-        return ContractEventDetailsFactory.class;
-    }
+  @Override
+  public Class<?> getObjectType() {
+    return ContractEventDetailsFactory.class;
+  }
 }

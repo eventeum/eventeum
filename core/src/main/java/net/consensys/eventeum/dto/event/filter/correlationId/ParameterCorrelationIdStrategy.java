@@ -14,8 +14,10 @@
 
 package net.consensys.eventeum.dto.event.filter.correlationId;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
 
 /**
  * An abstract CorrelationIdStrategy that considers the correlation id of a specific contract event
@@ -25,13 +27,25 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public abstract class ParameterCorrelationIdStrategy implements CorrelationIdStrategy {
-    private int parameterIndex;
+public class ParameterCorrelationIdStrategy implements CorrelationIdStrategy {
 
-    private String type;
+  @Column(name = "correlation_id_strategy_parameter_id")
+  private int parameterIndex;
 
-    protected ParameterCorrelationIdStrategy(String type, int parameterIndex) {
-        this.type = type;
-        this.parameterIndex = parameterIndex;
-    }
+  @Column(name = "correlation_id_strategy_type")
+  private CorrelationIdType type;
+
+  public ParameterCorrelationIdStrategy(CorrelationIdType type, int parameterIndex) {
+    this.type = type;
+    this.parameterIndex = parameterIndex;
+  }
+
+  @Override
+  public String getCorrelationId(ContractEventDetails contractEvent) {
+    return (type == CorrelationIdType.INDEXED_PARAMETER
+            ? contractEvent.getIndexedParameters()
+            : contractEvent.getNonIndexedParameters())
+        .get(getParameterIndex())
+        .getValueString();
+  }
 }

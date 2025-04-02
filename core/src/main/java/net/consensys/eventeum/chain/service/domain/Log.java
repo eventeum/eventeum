@@ -24,23 +24,23 @@ import java.util.List;
  */
 public interface Log {
 
-    boolean isRemoved();
+  boolean isRemoved();
 
-    BigInteger getLogIndex();
+  BigInteger getLogIndex();
 
-    BigInteger getTransactionIndex();
+  BigInteger getTransactionIndex();
 
-    String getTransactionHash();
+  String getTransactionHash();
 
-    String getBlockHash();
+  String getBlockHash();
 
-    BigInteger getBlockNumber();
+  BigInteger getBlockNumber();
 
-    String getAddress();
+  String getAddress();
 
-    String getData();
+  String getData();
 
-    String getType();
+  String getType();
 
-    List<String> getTopics();
+  List<String> getTopics();
 }

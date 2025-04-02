@@ -23,5 +23,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AddEventFilterResponse {
 
-    private String id;
+  private String id;
 }

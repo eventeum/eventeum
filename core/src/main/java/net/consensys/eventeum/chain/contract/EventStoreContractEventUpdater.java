@@ -14,27 +14,46 @@
 
 package net.consensys.eventeum.chain.contract;
 
+import java.util.Optional;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.event.ContractEventStatus;
 import net.consensys.eventeum.integration.eventstore.SaveableEventStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A contract event listener that saves the ContractEventDetails to a SaveableEventStore.
  *
- * Only gets registered if a SaveableEventStore exists in the context.
+ * <p>Only gets registered if a SaveableEventStore exists in the context.
  *
  * @author Craig Williams <craig.williams@consensys.net>
  */
 public class EventStoreContractEventUpdater implements ContractEventListener {
 
-    private SaveableEventStore saveableEventStore;
+  private SaveableEventStore saveableEventStore;
 
-    @Autowired
-    public EventStoreContractEventUpdater(SaveableEventStore saveableEventStore) {
-        this.saveableEventStore = saveableEventStore;
+  @Autowired
+  public EventStoreContractEventUpdater(SaveableEventStore saveableEventStore) {
+    this.saveableEventStore = saveableEventStore;
+  }
+
+  @Override
+  public void onEvent(ContractEventDetails eventDetails) {
+    Optional<ContractEventDetails> eventFoundOpt =
+        saveableEventStore.getContractEvent(
+            eventDetails.getEventSpecificationSignature(),
+            eventDetails.getAddress(),
+            eventDetails.getBlockHash(),
+            eventDetails.getTransactionHash(),
+            eventDetails.getLogIndex());
+    if (eventFoundOpt.isEmpty()) {
+      saveableEventStore.save(eventDetails);
+      return;
     }
-    @Override
-    public void onEvent(ContractEventDetails eventDetails) {
-        saveableEventStore.save(eventDetails);
+    ContractEventDetails eventFound = eventFoundOpt.get();
+    if (eventFound.getStatus() == ContractEventStatus.UNCONFIRMED
+        && eventDetails.getStatus() == ContractEventStatus.CONFIRMED) {
+      eventFound.setStatus(ContractEventStatus.CONFIRMED);
+      saveableEventStore.save(eventFound);
     }
+  }
 }

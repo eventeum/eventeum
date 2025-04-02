@@ -14,17 +14,17 @@
 
 package net.consensys.eventeum.service.sync;
 
-import net.consensys.eventeum.dto.event.ContractEventDetails;
-import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-
 import java.math.BigInteger;
 import java.util.List;
 import java.util.function.Consumer;
+import net.consensys.eventeum.dto.event.ContractEventDetails;
+import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
 public interface EventRetriever {
 
-    void retrieveEvents(ContractEventFilter eventFilter,
-                        BigInteger startBlock,
-                        BigInteger endBlock,
-                        Consumer<List<ContractEventDetails>> eventConsumer);
+  void retrieveEvents(
+      ContractEventFilter eventFilter,
+      BigInteger startBlock,
+      BigInteger endBlock,
+      Consumer<List<ContractEventDetails>> eventConsumer);
 }

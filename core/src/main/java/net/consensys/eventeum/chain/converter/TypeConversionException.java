@@ -21,7 +21,7 @@ package net.consensys.eventeum.chain.converter;
  */
 public class TypeConversionException extends RuntimeException {
 
-    public TypeConversionException(String msg) {
-        super(msg);
-    }
+  public TypeConversionException(String msg) {
+    super(msg);
+  }
 }

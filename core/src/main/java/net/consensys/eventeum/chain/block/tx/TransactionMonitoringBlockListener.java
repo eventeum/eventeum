@@ -19,7 +19,7 @@ import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteri
 
 public interface TransactionMonitoringBlockListener extends BlockListener {
 
-    void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria);
+  void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria);
 
-    void removeMatchingCriteria(TransactionMatchingCriteria matchingCriteria);
+  void removeMatchingCriteria(TransactionMatchingCriteria matchingCriteria);
 }

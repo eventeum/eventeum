@@ -16,7 +16,5 @@ package net.consensys.eventeumserver.integrationtest;
 
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(locations="classpath:application-test-event-sync.properties")
-public class HttpEventSyncIT extends BaseEventCatchupTest {
-
-}
+@TestPropertySource(locations = "classpath:application-test-event-sync.properties")
+public class HttpEventSyncIT extends BaseEventCatchupTest {}

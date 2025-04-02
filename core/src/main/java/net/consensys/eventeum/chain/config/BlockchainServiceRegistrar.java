@@ -25,23 +25,24 @@ import org.springframework.core.type.AnnotationMetadata;
 
 public class BlockchainServiceRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
-    @Setter
-    private Environment environment;
+  @Setter private Environment environment;
 
-    @Override
-    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-        final NodeSettings nodeSettings = getNodeSettings();
+  @Override
+  public void registerBeanDefinitions(
+      AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+    final NodeSettings nodeSettings = getNodeSettings();
 
-        nodeSettings.getNodes().forEach((name, node) ->
-                getNodeBeanRegistratioStrategy(nodeSettings).register(node, registry));
-    }
+    nodeSettings
+        .getNodes()
+        .forEach(
+            (name, node) -> getNodeBeanRegistratioStrategy(nodeSettings).register(node, registry));
+  }
 
-    protected NodeBeanRegistrationStrategy getNodeBeanRegistratioStrategy(NodeSettings nodeSettings) {
-        return new NodeBeanRegistrationStrategy(nodeSettings, new OkHttpClient());
+  protected NodeBeanRegistrationStrategy getNodeBeanRegistratioStrategy(NodeSettings nodeSettings) {
+    return new NodeBeanRegistrationStrategy(nodeSettings, new OkHttpClient());
+  }
 
-    }
-
-    protected NodeSettings getNodeSettings() {
-        return new NodeSettings(environment);
-    }
+  protected NodeSettings getNodeSettings() {
+    return new NodeSettings(environment);
+  }
 }
